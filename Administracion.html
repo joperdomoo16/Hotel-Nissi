@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hotel Nissi · Panel de Recepción y Control</title>
+<meta name="robots" content="noindex, nofollow">
+
+<!-- Iconos y fuentes oficiales -->
+<link rel="icon" type="image/png" href="assets/nissi-mark-dark.png" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/png" href="assets/nissi-mark.png" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" href="assets/nissi-mark-dark.png">
+<link rel="apple-touch-icon" href="assets/logo-nissi.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..700;1,6..72,200..700&family=Hanken+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+
+<!-- Hojas de estilo modulares -->
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/Administracion.css">
+</head>
+
+<body class="admin-body">
+
+<!-- Pantalla de bloqueo de seguridad con PIN -->
+<div class="admin-lock" id="lockScreen" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+  <div class="lock-card">
+    <img src="assets/nissi-mark.png" alt="Hotel Nissi" class="lock-logo" width="54" height="54">
+    <h2 class="lock-title" id="lockTitle">Recepción Nissi</h2>
+    <p class="lock-desc">Digita el PIN de 4 dígitos de turno para ingresar al panel de habitaciones.</p>
+
+    <div class="pin-display" aria-hidden="true">
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+      <div class="pin-dot"></div>
+    </div>
+
+    <div class="pin-pad">
+      <button class="pin-btn" type="button" data-digit="1">1</button>
+      <button class="pin-btn" type="button" data-digit="2">2</button>
+      <button class="pin-btn" type="button" data-digit="3">3</button>
+      <button class="pin-btn" type="button" data-digit="4">4</button>
+      <button class="pin-btn" type="button" data-digit="5">5</button>
+      <button class="pin-btn" type="button" data-digit="6">6</button>
+      <button class="pin-btn" type="button" data-digit="7">7</button>
+      <button class="pin-btn" type="button" data-digit="8">8</button>
+      <button class="pin-btn" type="button" data-digit="9">9</button>
+      <a href="index.html" class="pin-btn pin-btn--link">Web</a>
+      <button class="pin-btn" type="button" data-digit="0">0</button>
+      <button class="pin-btn" type="button" id="pinDelete" aria-label="Borrar dígito">⌫</button>
+    </div>
+
+    <span class="err" id="lockError"></span>
+  </div>
+</div>
+
+<!-- Barra de navegacion del panel administrativo -->
+<header class="admin-header">
+  <nav class="admin-nav" aria-label="Navegación del rack de recepción">
+    <div class="admin-brand">
+      <img src="assets/nissi-mark.png" alt="Hotel Nissi" width="34" height="34">
+      <div class="admin-title">
+        <b>Hotel Nissi</b>
+        <small>Rack de Recepción · Mingueo</small>
+      </div>
+    </div>
+
+    <div class="admin-tools">
+      <span class="admin-clock" id="adminClock">--:--</span>
+      <button class="btn btn--ghost btn--sm" type="button" onclick="Cargarhabitaciones()" title="Actualizar datos con Google Sheets">↻ Actualizar</button>
+      <a href="https://docs.google.com/spreadsheets/d/1DkRlKHSehr_xDAV_FcaRg15MUKsO9-pS0lHVTVExfYPfnrCshxFYjOrS/edit" target="_blank" rel="noopener" class="btn btn--outline-dark btn--sm admin-link-sheets">Abrir Sheets ↗</a>
+      <button class="btn btn--ghost btn--sm" type="button" onclick="Cerrarsesionadmin()">Salir</button>
+    </div>
+  </nav>
+</header>
+
+<!-- Contenido central de recepcion -->
+<main class="admin-main">
+
+  <section class="admin-summary" aria-label="Resumen de ocupación actual">
+    <div class="summary-card">
+      <span class="summary-label">Habitaciones libres</span>
+      <span class="summary-value summary-value--free" id="countAvailable">--</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">Habitaciones ocupadas</span>
+      <span class="summary-value summary-value--busy" id="countOccupied">--</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">Capacidad total</span>
+      <span class="summary-value">6</span>
+    </div>
+  </section>
+
+  <div class="rack-head">
+    <h1 class="rack-title">Rack en <em>tiempo real.</em></h1>
+    <div class="rack-legend">
+      <div class="legend-item"><span class="legend-dot is-free"></span> Libre para check-in</div>
+      <div class="legend-item"><span class="legend-dot is-busy"></span> Ocupada en Sheets</div>
+    </div>
+  </div>
+
+  <section class="rack-grid" id="rackGrid" aria-label="Habitaciones del hotel">
+    <!-- Se llena dinamicamente con Administracion.js -->
+  </section>
+
+</main>
+
+<!-- Modal para Check-in presencial rapido (Walk-in) -->
+<div class="modal-admin" id="checkinModal" hidden role="dialog" aria-modal="true" aria-labelledby="checkinModalTitle">
+  <div class="admin-dialog">
+    <div class="admin-dialog-head">
+      <div>
+        <span class="eyebrow">Ingreso presencial</span>
+        <h3 id="checkinModalTitle">Check-in <em>inmediato.</em></h3>
+      </div>
+      <button class="btn btn--ghost btn--sm" type="button" onclick="Cerrarcheckin()">Cerrar ✕</button>
+    </div>
+
+    <form class="admin-form" id="checkinForm" novalidate>
+      <div class="admin-total-box">
+        <span id="checkinRoomTitle">Habitación --</span>
+        <b id="checkinTotal">$0 COP</b>
+      </div>
+
+      <div class="admin-grid-2">
+        <label class="admin-field">
+          <span>Fecha de llegada</span>
+          <input type="date" id="checkinLlegada" readonly>
+        </label>
+        <label class="admin-field">
+          <span>Fecha de salida</span>
+          <input type="date" id="checkinSalida" required>
+        </label>
+      </div>
+
+      <div class="admin-grid-2">
+        <label class="admin-field">
+          <span>Nombre del huésped</span>
+          <input type="text" id="checkinNombre" placeholder="Nombre completo" required autocomplete="off">
+        </label>
+        <label class="admin-field">
+          <span>Celular / WhatsApp</span>
+          <input type="tel" id="checkinCelular" placeholder="300 123 4567" required autocomplete="off">
+        </label>
+      </div>
+
+      <div class="admin-grid-2">
+        <label class="admin-field">
+          <span>Número de personas</span>
+          <select id="checkinHuespedes">
+            <option value="1">1 persona</option>
+            <option value="2" selected>2 personas</option>
+            <option value="3">3 personas</option>
+            <option value="4">4 personas</option>
+          </select>
+        </label>
+        <label class="admin-field">
+          <span>Medio de pago recibido</span>
+          <select id="checkinMedio">
+            <option value="Efectivo" selected>Efectivo en caja</option>
+            <option value="Nequi">Nequi</option>
+            <option value="Daviplata">Daviplata</option>
+            <option value="Transferencia">Transferencia Bancolombia</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="admin-field">
+        <span>Monto cobrado en COP</span>
+        <input type="number" id="checkinPago" required>
+      </label>
+
+      <span class="err" id="checkinError"></span>
+
+      <div class="admin-form-actions">
+        <button class="btn btn--cream" type="submit" id="btnGuardarCheckin">Confirmar ingreso y entregar llaves</button>
+        <button class="btn btn--ghost" type="button" onclick="Cerrarcheckin()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Scripts en orden estricto de dependencias -->
+<script src="js/Datosinicial.js"></script>
+<script src="js/Almacenamiento.js"></script>
+<script src="js/Validaciones.js"></script>
+<script src="js/Administracion.js"></script>
+</body>
+</html>

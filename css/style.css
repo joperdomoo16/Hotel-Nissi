@@ -1,0 +1,244 @@
+/* Hotel Nissi — Estilos principales y configuracion global */
+
+:root {
+  --ink: #1A1C13;
+  --ink2: #24271B;
+  --ink3: #2A2D20;
+  --cream: #F2EADB;
+  --sand: #E7DCC6;
+  --muted: #BDB49F;
+  --muted-dark: #5A5C4E;
+  --text-dark: #3A3C30;
+  --rust: #8C3B1F;
+  --rust2: #A24725;
+  --olive: #4F5A2E;
+  --green: #4DD678;
+  --serif: 'Newsreader', Georgia, serif;
+  --sans: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --pad: clamp(20px, 4vw, 56px);
+  --sec: clamp(80px, 10vw, 160px);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-io: cubic-bezier(0.77, 0, 0.18, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--cream);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--sand);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+button, input {
+  font-family: var(--sans);
+}
+
+::selection {
+  background: var(--rust);
+  color: var(--cream);
+}
+
+input::-webkit-calendar-picker-indicator {
+  filter: invert(0.9);
+  cursor: pointer;
+}
+
+em {
+  font-style: italic;
+}
+
+/* Enlace directo para accesibilidad */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 20px;
+  background: var(--rust);
+  color: var(--cream);
+  padding: 12px 20px;
+  z-index: 9999;
+  border-radius: 8px;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 20px;
+}
+
+/* Tipografia y utilidades de encabezado */
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.display {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 300;
+  line-height: 0.88;
+  letter-spacing: -0.03em;
+}
+
+.display em {
+  color: var(--sand);
+}
+
+.light .display em, .on-light em {
+  color: var(--rust);
+}
+
+/* Botones e indicadores de interaccion */
+.btn {
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 14px 22px;
+  transition: all 0.4s var(--ease);
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn--cream {
+  background: var(--cream);
+  color: var(--ink);
+}
+
+.btn--cream:hover {
+  background: var(--rust);
+  color: var(--cream);
+  gap: 20px;
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--cream);
+  border: 1px solid rgba(242, 234, 219, 0.4);
+  font-weight: 500;
+}
+
+.btn--ghost:hover {
+  border-color: var(--cream);
+  background: rgba(242, 234, 219, 0.08);
+  color: var(--cream);
+}
+
+.btn--dark {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 18px 30px;
+  font-size: 15px;
+}
+
+.btn--dark:hover {
+  background: var(--rust);
+  padding: 18px 38px;
+  color: var(--cream);
+}
+
+.btn--rust {
+  background: var(--rust);
+  color: var(--cream);
+  padding: 18px 30px;
+  font-size: 15px;
+}
+
+.btn--rust:hover {
+  background: var(--ink);
+  padding: 18px 38px;
+}
+
+.btn--outline-dark {
+  background: transparent;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  padding: 18px 28px;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.btn--sm {
+  padding: 11px 18px;
+  font-size: 13px;
+}
+
+.link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: 14px var(--sans);
+  color: inherit;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--green);
+  flex: none;
+}
+
+.dot--pulse {
+  animation: nPulse 1.6s infinite;
+}
+
+.dot--wa {
+  background: #2FB45A;
+}
+
+.dot--sm {
+  width: 8px;
+  height: 8px;
+}
+
+.link-btn--subrayado {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.link-btn--tenue {
+  align-self: flex-start;
+  color: var(--muted-dark);
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.row--amplia {
+  gap: 16px;
+}
