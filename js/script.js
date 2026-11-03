@@ -1,6 +1,14 @@
 // Coordinador general de la aplicacion, eventos de reservas y conexion de modulos
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Construccion modular de la ventana modal y del catalogo de habitaciones
+  if (typeof Construirmodalreservas === 'function') {
+    Construirmodalreservas();
+  }
+  if (typeof Renderizarcatalogohabitaciones === 'function') {
+    Renderizarcatalogohabitaciones();
+  }
+
   // Carga de sesion previa si existe en almacenamiento local
   const Sesionguardada = Obtenerdatossesion();
   if (Sesionguardada) {

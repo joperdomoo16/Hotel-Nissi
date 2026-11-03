@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hotel Nissi · Mingueo, Dibulla · Hospedaje y Descanso</title>
-<meta name="description" content="Hotel Nissi en Mingueo, municipio de Dibulla (La Guajira): seis habitaciones con aire acondicionado para descansar entre Santa Marta y Riohacha, cerca de Palomino. Reserva directa por WhatsApp 24/7.">
+<meta name="description" content="Hotel Nissi en Mingueo, municipio de Dibulla (La Guajira): habitaciones con aire acondicionado para descansar entre Santa Marta y Riohacha, cerca de Palomino. Reserva directa por WhatsApp 24/7.">
 <link rel="canonical" href="https://hotelnissi.com/">
 <meta name="robots" content="index, follow">
 
@@ -12,7 +12,7 @@
 <meta property="og:locale" content="es_CO">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Hotel Nissi · Mingueo, Dibulla">
-<meta property="og:description" content="Seis habitaciones para descansar entre Santa Marta y Riohacha sobre la Troncal del Caribe en Mingueo, La Guajira. Atención continua y reserva directa por WhatsApp.">
+<meta property="og:description" content="Habitaciones para descansar entre Santa Marta y Riohacha sobre la Troncal del Caribe en Mingueo, La Guajira. Atención continua y reserva directa por WhatsApp.">
 <meta property="og:url" content="https://hotelnissi.com/">
 <meta property="og:site_name" content="Hotel Nissi">
 <meta property="og:image" content="https://hotelnissi.com/assets/logo-nissi.png">
@@ -30,7 +30,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..700;1,6..72,200..700&family=Hanken+Grotesk:wght@300..700&display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=1600" fetchpriority="high">
-<!-- Hojas de estilo: base global primero y luego una hoja por seccion -->
+
+<!-- Hojas de estilo modulares -->
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/Animaciones.css">
 <link rel="stylesheet" href="css/Portada.css">
@@ -48,7 +49,7 @@
       "@type": "Hotel",
       "@id": "https://hotelnissi.com/#hotel",
       "name": "Hotel Nissi",
-      "description": "Hotel de paso sobre la Troncal del Caribe en Mingueo, municipio de Dibulla, La Guajira, con seis habitaciones confortables para descansar entre Santa Marta y Riohacha.",
+      "description": "Hotel de paso sobre la Troncal del Caribe en Mingueo, municipio de Dibulla, La Guajira, con habitaciones confortables para descansar entre Santa Marta y Riohacha.",
       "url": "https://hotelnissi.com/",
       "image": "https://hotelnissi.com/assets/logo-nissi.png",
       "telephone": "+573001234567",
@@ -108,17 +109,27 @@
 </head>
 <body>
 
+<!-- Simbolos vectoriales reutilizables -->
+<svg xmlns="http://www.w3.org/2000/svg" hidden aria-hidden="true">
+  <defs>
+    <path id="ringPath" d="M100,100 m-82,0 a82,82 0 1,1 164,0 a82,82 0 1,1 -164,0"/>
+    <g id="iconMaps">
+      <path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+    </g>
+    <g id="iconWaze">
+      <path fill="currentColor" d="M18.8 9.3c0-.3-.1-.6-.2-.9-1-3.6-4.3-6.4-8.3-6.4-4.8 0-8.7 3.9-8.7 8.7 0 2.2.8 4.2 2.2 5.8l-1.3 3.5c-.2.5.3 1 1 .8l3.6-1.3c1 .5 2.1.8 3.2.8 4.8 0 8.7-3.9 8.7-8.7 0-.8-.1-1.6-.2-2.3zm-10.3 3.2c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm5.5 0c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5z"/>
+    </g>
+  </defs>
+</svg>
+
 <a href="#contenido-principal" class="skip-link">Saltar al contenido principal</a>
 
 <!-- Cortina de entrada animada -->
 <div class="intro" id="intro" aria-hidden="true">
   <div class="intro__badge">
     <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
-      <defs>
-        <path id="ringIntro" d="M100,100 m-82,0 a82,82 0 1,1 164,0 a82,82 0 1,1 -164,0"/>
-      </defs>
       <text textLength="510" lengthAdjust="spacing">
-        <textPath href="#ringIntro">Hotel Nissi · Mingueo · La Guajira · </textPath>
+        <textPath href="#ringPath">Hotel Nissi · Mingueo · La Guajira · </textPath>
       </text>
     </svg>
     <img src="assets/nissi-mark.png" alt="Hotel Nissi" width="120" height="120">
@@ -168,11 +179,8 @@
         </h1>
         <a href="#ubicacion" class="hero__seal fade-in d3" data-magnetic data-cursor="Explorar" aria-label="Ir a la sección de ubicación">
           <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
-            <defs>
-              <path id="ringHero" d="M100,100 m-82,0 a82,82 0 1,1 164,0 a82,82 0 1,1 -164,0"/>
-            </defs>
             <text textLength="510" lengthAdjust="spacing">
-              <textPath href="#ringHero">Santa Marta · Palomino · Riohacha · </textPath>
+              <textPath href="#ringPath">Santa Marta · Palomino · Riohacha · </textPath>
             </text>
           </svg>
           <img src="assets/nissi-mark.png" alt="" width="80" height="80">
@@ -229,16 +237,16 @@
         <p>Sobre la Troncal del Caribe, en Mingueo (municipio de Dibulla). Paras, duermes y sigues tu ruta descansado, a medio camino entre Santa Marta y Riohacha y muy cerca de Palomino.</p>
         <div class="loc__actions">
           <a class="ulink js-maps" href="https://maps.app.goo.gl/TudMNAdQRpVyzHZGA" target="_blank" rel="noopener">
-            <svg class="navicon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+            <svg class="navicon" viewBox="0 0 24 24" aria-hidden="true"><use href="#iconMaps"></use></svg>
             Mingueo, Dibulla · Abrir mapa <span>↗</span>
           </a>
           <div class="loc__apps" aria-label="Navegar al hotel en aplicaciones de mapas">
             <a class="appbtn js-maps" href="https://maps.app.goo.gl/TudMNAdQRpVyzHZGA" target="_blank" rel="noopener" data-magnetic data-cursor="Maps" aria-label="Abrir ruta en Google Maps">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#iconMaps"></use></svg>
               <span>Google Maps</span>
             </a>
             <a class="appbtn js-waze" href="https://waze.com/ul?ll=11.216310,-73.392264&navigate=yes" target="_blank" rel="noopener" data-magnetic data-cursor="Waze" aria-label="Iniciar ruta en Waze">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.8 9.3c0-.3-.1-.6-.2-.9-1-3.6-4.3-6.4-8.3-6.4-4.8 0-8.7 3.9-8.7 8.7 0 2.2.8 4.2 2.2 5.8l-1.3 3.5c-.2.5.3 1 1 .8l3.6-1.3c1 .5 2.1.8 3.2.8 4.8 0 8.7-3.9 8.7-8.7 0-.8-.1-1.6-.2-2.3zm-10.3 3.2c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm5.5 0c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5z"/></svg>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#iconWaze"></use></svg>
               <span>Waze</span>
             </a>
           </div>
@@ -266,136 +274,11 @@
       <p data-reveal>Pocas, para que haya silencio. Elige una y reserva en la web o por WhatsApp.</p>
     </div>
     <div class="rooms__grid">
-      <div class="rlist">
-        <div class="room is-active" data-room="0">
-          <button class="room__btn" data-cursor="Ver" type="button">
-            <span class="room__n">01</span><span class="room__name">Sencilla</span><span class="room__cap">1–2 pers.</span>
-          </button>
-          <div class="room__body">
-            <div class="room__inner">
-              <p>Cama doble, cortinas oscuras y aire acondicionado. Para llegar, dormir y seguir.</p>
-              <div class="tags">
-                <span>Cama doble</span><span>Aire acondicionado</span><span>Baño privado</span><span>Wi-Fi</span>
-              </div>
-              <div class="row">
-                <button class="btn btn--cream btn--sm" type="button" data-book="0">Reservar la 01 →</button>
-                <a class="btn btn--ghost btn--sm" href="https://wa.me/573001234567?text=Hola%20Hotel%20Nissi%2C%20quiero%20informaci%C3%B3n%20de%20la%20habitaci%C3%B3n%2001%20(Sencilla)." target="_blank" rel="noopener" data-wa="Hola Hotel Nissi, quiero información de la habitación 01 (Sencilla).">Preguntar por WhatsApp</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="room" data-room="1">
-          <button class="room__btn" data-cursor="Ver" type="button">
-            <span class="room__n">02</span><span class="room__name">Sencilla</span><span class="room__cap">1–2 pers.</span>
-          </button>
-          <div class="room__body">
-            <div class="room__inner">
-              <p>La misma calma de la 01, pensada para el trabajador que repite ruta cada semana.</p>
-              <div class="tags">
-                <span>Cama doble</span><span>Aire acondicionado</span><span>Baño privado</span><span>Wi-Fi</span>
-              </div>
-              <div class="row">
-                <button class="btn btn--cream btn--sm" type="button" data-book="1">Reservar la 02 →</button>
-                <a class="btn btn--ghost btn--sm" href="https://wa.me/573001234567?text=Hola%20Hotel%20Nissi%2C%20quiero%20informaci%C3%B3n%20de%20la%20habitaci%C3%B3n%2002%20(Sencilla)." target="_blank" rel="noopener" data-wa="Hola Hotel Nissi, quiero información de la habitación 02 (Sencilla).">Preguntar por WhatsApp</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="room" data-room="2">
-          <button class="room__btn" data-cursor="Ver" type="button">
-            <span class="room__n">03</span><span class="room__name">Doble</span><span class="room__cap">2 pers.</span>
-          </button>
-          <div class="room__body">
-            <div class="room__inner">
-              <p>Dos camas para compañeros de viaje o de trabajo. Cada uno descansa a su manera.</p>
-              <div class="tags">
-                <span>2 camas</span><span>Aire acondicionado</span><span>Baño privado</span><span>Wi-Fi</span>
-              </div>
-              <div class="row">
-                <button class="btn btn--cream btn--sm" type="button" data-book="2">Reservar la 03 →</button>
-                <a class="btn btn--ghost btn--sm" href="https://wa.me/573001234567?text=Hola%20Hotel%20Nissi%2C%20quiero%20informaci%C3%B3n%20de%20la%20habitaci%C3%B3n%2003%20(Doble)." target="_blank" rel="noopener" data-wa="Hola Hotel Nissi, quiero información de la habitación 03 (Doble).">Preguntar por WhatsApp</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="room" data-room="3">
-          <button class="room__btn" data-cursor="Ver" type="button">
-            <span class="room__n">04</span><span class="room__name">Doble</span><span class="room__cap">2 pers.</span>
-          </button>
-          <div class="room__body">
-            <div class="room__inner">
-              <p>Dos camas y espacio para el equipaje de una jornada larga.</p>
-              <div class="tags">
-                <span>2 camas</span><span>Aire acondicionado</span><span>Baño privado</span><span>Wi-Fi</span>
-              </div>
-              <div class="row">
-                <button class="btn btn--cream btn--sm" type="button" data-book="3">Reservar la 04 →</button>
-                <a class="btn btn--ghost btn--sm" href="https://wa.me/573001234567?text=Hola%20Hotel%20Nissi%2C%20quiero%20informaci%C3%B3n%20de%20la%20habitaci%C3%B3n%2004%20(Doble)." target="_blank" rel="noopener" data-wa="Hola Hotel Nissi, quiero información de la habitación 04 (Doble).">Preguntar por WhatsApp</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="room" data-room="4">
-          <button class="room__btn" data-cursor="Ver" type="button">
-            <span class="room__n">05</span><span class="room__name">Triple</span><span class="room__cap">3 pers.</span>
-          </button>
-          <div class="room__body">
-            <div class="room__inner">
-              <p>Para cuadrillas pequeñas o amigos camino a Palomino.</p>
-              <div class="tags">
-                <span>3 camas</span><span>Aire acondicionado</span><span>Baño privado</span><span>Wi-Fi</span>
-              </div>
-              <div class="row">
-                <button class="btn btn--cream btn--sm" type="button" data-book="4">Reservar la 05 →</button>
-                <a class="btn btn--ghost btn--sm" href="https://wa.me/573001234567?text=Hola%20Hotel%20Nissi%2C%20quiero%20informaci%C3%B3n%20de%20la%20habitaci%C3%B3n%2005%20(Triple)." target="_blank" rel="noopener" data-wa="Hola Hotel Nissi, quiero información de la habitación 05 (Triple).">Preguntar por WhatsApp</a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="room" data-room="5">
-          <button class="room__btn" data-cursor="Ver" type="button">
-            <span class="room__n">06</span><span class="room__name">Familiar</span><span class="room__cap">4 pers.</span>
-          </button>
-          <div class="room__body">
-            <div class="room__inner">
-              <p>La más amplia. Para familias que cruzan La Guajira y necesitan una noche tranquila.</p>
-              <div class="tags">
-                <span>Cama doble + 2 sencillas</span><span>Aire acondicionado</span><span>Baño privado</span><span>Wi-Fi</span>
-              </div>
-              <div class="row">
-                <button class="btn btn--cream btn--sm" type="button" data-book="5">Reservar la 06 →</button>
-                <a class="btn btn--ghost btn--sm" href="https://wa.me/573001234567?text=Hola%20Hotel%20Nissi%2C%20quiero%20informaci%C3%B3n%20de%20la%20habitaci%C3%B3n%2006%20(Familiar)." target="_blank" rel="noopener" data-wa="Hola Hotel Nissi, quiero información de la habitación 06 (Familiar).">Preguntar por WhatsApp</a>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="rlist" id="roomList">
+        <!-- Generado dinamicamente con Datosinicial.js e Interfaz.js -->
       </div>
-
-      <div class="rphoto" data-reveal="img">
-        <div class="rphoto__img is-active" data-photo="0">
-          <img src="https://images.pexels.com/photos/271618/pexels-photo-271618.jpeg?auto=compress&cs=tinysrgb&w=1600" alt="Habitación 01 Sencilla con cama doble" width="800" height="1000" loading="lazy">
-        </div>
-        <div class="rphoto__img" data-photo="1">
-          <img src="https://images.pexels.com/photos/164595/pexels-photo-164595.jpeg?auto=compress&cs=tinysrgb&w=1600" alt="Habitación 02 Sencilla con aire acondicionado" width="800" height="1000" loading="lazy">
-        </div>
-        <div class="rphoto__img" data-photo="2">
-          <img src="https://images.pexels.com/photos/279746/pexels-photo-279746.jpeg?auto=compress&cs=tinysrgb&w=1600" alt="Habitación 03 Doble con dos camas" width="800" height="1000" loading="lazy">
-        </div>
-        <div class="rphoto__img" data-photo="3">
-          <img src="https://images.pexels.com/photos/262048/pexels-photo-262048.jpeg?auto=compress&cs=tinysrgb&w=1600" alt="Habitación 04 Doble espaciosa" width="800" height="1000" loading="lazy">
-        </div>
-        <div class="rphoto__img" data-photo="4">
-          <img src="https://images.pexels.com/photos/237371/pexels-photo-237371.jpeg?auto=compress&cs=tinysrgb&w=1600" alt="Habitación 05 Triple para grupos" width="800" height="1000" loading="lazy">
-        </div>
-        <div class="rphoto__img" data-photo="5">
-          <img src="https://images.pexels.com/photos/6585757/pexels-photo-6585757.jpeg?auto=compress&cs=tinysrgb&w=1600" alt="Habitación 06 Familiar con cama doble y sencillas" width="800" height="1000" loading="lazy">
-        </div>
-        <div class="rphoto__num" id="roomNum">01</div>
+      <div class="rphoto" id="roomGallery" data-reveal="img">
+        <!-- Generado dinamicamente con Datosinicial.js e Interfaz.js -->
       </div>
     </div>
   </section>
@@ -487,11 +370,11 @@
           <li><a class="js-maps" href="https://maps.app.goo.gl/TudMNAdQRpVyzHZGA" target="_blank" rel="noopener">Mingueo (Dibulla)<br>La Guajira, Colombia</a></li>
           <li class="fcol__apps">
             <a class="apppill js-maps" href="https://maps.app.goo.gl/TudMNAdQRpVyzHZGA" target="_blank" rel="noopener" aria-label="Abrir en Google Maps">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#iconMaps"></use></svg>
               Maps
             </a>
             <a class="apppill js-waze" href="https://waze.com/ul?ll=11.216310,-73.392264&navigate=yes" target="_blank" rel="noopener" aria-label="Abrir en Waze">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.8 9.3c0-.3-.1-.6-.2-.9-1-3.6-4.3-6.4-8.3-6.4-4.8 0-8.7 3.9-8.7 8.7 0 2.2.8 4.2 2.2 5.8l-1.3 3.5c-.2.5.3 1 1 .8l3.6-1.3c1 .5 2.1.8 3.2.8 4.8 0 8.7-3.9 8.7-8.7 0-.8-.1-1.6-.2-2.3zm-10.3 3.2c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm5.5 0c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5z"/></svg>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#iconWaze"></use></svg>
               Waze
             </a>
           </li>
@@ -507,11 +390,8 @@
       <div>N<em>issi</em></div>
       <a href="#inicio" class="footer__seal" data-magnetic data-cursor="Inicio" aria-label="Volver al inicio de Hotel Nissi">
         <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
-          <defs>
-            <path id="ringFooter" d="M100,100 m-82,0 a82,82 0 1,1 164,0 a82,82 0 1,1 -164,0"/>
-          </defs>
           <text textLength="510" lengthAdjust="spacing">
-            <textPath href="#ringFooter">Hotel Nissi · Mingueo · La Guajira · </textPath>
+            <textPath href="#ringPath">Hotel Nissi · Mingueo · La Guajira · </textPath>
           </text>
         </svg>
         <img src="assets/nissi-mark.png" alt="Emblema Hotel Nissi" width="120" height="120">
@@ -529,150 +409,16 @@
   <span class="dot dot--pulse"></span>Reservar por WhatsApp
 </a>
 
-<!-- Ventana modal de reserva y cotizacion -->
+<!-- Ventana modal modular de reserva y cotizacion -->
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
-  <div class="modal__wrap">
-    <div class="modal__top">
-      <div class="modal__brand" id="modalTitulo">
-        <img src="assets/nissi-mark-dark.png" alt="" width="40" height="40">Reserva
-      </div>
-      <button class="modal__close js-close" type="button" aria-label="Cerrar">×</button>
-    </div>
-    <div class="mprog" id="mprog" hidden>
-      <div class="mprog__labels">
-        <span id="stepLabel"></span>
-        <span id="userTag">Invitado</span>
-      </div>
-      <div class="mprog__bar"><div id="progBar"></div></div>
-    </div>
-
-    <div class="step" data-step="choose">
-      <h3 class="display mh">¿Cómo quieres<br><em>reservar?</em></h3>
-      <div class="choices">
-        <button class="choice choice--dark" type="button" data-go="dates">
-          <small>Sin registro</small>
-          <span><b>Como invitado</b>Solo tus datos básicos. Listo en un minuto.</span>
-        </button>
-        <button class="choice choice--line" type="button" data-go="login">
-          <small>Usuario registrado</small>
-          <span><b>Iniciar sesión</b>Tus datos guardados y el historial de tus estadías.</span>
-        </button>
-        <a class="choice choice--olive js-wa" href="https://wa.me/573001234567?text=Hola%20Hotel%20Nissi%2C%20quiero%20reservar%20una%20habitaci%C3%B3n." target="_blank" rel="noopener">
-          <small><span class="dot dot--pulse dot--sm"></span>Más rápido</small>
-          <span><b>Por WhatsApp ↗</b>El asistente te atiende al instante.</span>
-        </a>
-      </div>
-    </div>
-
-    <div class="step two" data-step="login" hidden>
-      <h3 class="display mh"><span id="loginT1">Iniciar</span><br><em id="loginT2">sesión.</em></h3>
-      <form class="form" id="loginForm" novalidate>
-        <label class="field is-hidden" id="regName" hidden>
-          <span>Nombre completo</span>
-          <input data-bind="nombreviajero" autocomplete="name" placeholder="Tu nombre y apellido">
-        </label>
-        <label class="field">
-          <span>Correo</span>
-          <input type="email" data-bind="correoviajero" placeholder="tu@correo.com" autocomplete="email">
-        </label>
-        <label class="field">
-          <span>Contraseña</span>
-          <input type="password" data-bind="claveviajero" autocomplete="current-password">
-        </label>
-        <span class="err" data-err></span>
-        <div class="row row--amplia">
-          <button class="btn btn--dark" type="submit"><span id="loginCta">Ingresar</span> →</button>
-          <button class="link-btn link-btn--subrayado" type="button" id="toggleReg">¿No tienes cuenta? Créala aquí</button>
-        </div>
-        <button class="link-btn link-btn--tenue" type="button" data-go="dates">o continuar como invitado</button>
-      </form>
-    </div>
-
-    <div class="step" data-step="dates" hidden>
-      <h3 class="display mh">Fechas y <em>habitación.</em></h3>
-      <div class="fields3">
-        <label class="field">
-          <span>Llegada</span>
-          <input type="date" data-bind="fechallegada" aria-label="Fecha de llegada en modal">
-        </label>
-        <label class="field">
-          <span>Salida</span>
-          <input type="date" data-bind="fechasalida" aria-label="Fecha de salida en modal">
-        </label>
-        <div class="field">
-          <span>Huéspedes</span>
-          <div class="stepper">
-            <button type="button" data-guests="-1" aria-label="Menos huéspedes">−</button>
-            <span data-out="guests">2</span>
-            <button type="button" data-guests="1" aria-label="Más huéspedes">+</button>
-          </div>
-        </div>
-      </div>
-      <div class="picks">
-        <button type="button" class="pick is-on" data-pick="0"><i>01</i><span><b>Sencilla</b><small>1–2 pers.</small></span></button>
-        <button type="button" class="pick" data-pick="1"><i>02</i><span><b>Sencilla</b><small>1–2 pers.</small></span></button>
-        <button type="button" class="pick" data-pick="2"><i>03</i><span><b>Doble</b><small>2 pers.</small></span></button>
-        <button type="button" class="pick" data-pick="3"><i>04</i><span><b>Doble</b><small>2 pers.</small></span></button>
-        <button type="button" class="pick" data-pick="4"><i>05</i><span><b>Triple</b><small>3 pers.</small></span></button>
-        <button type="button" class="pick" data-pick="5"><i>06</i><span><b>Familiar</b><small>4 pers.</small></span></button>
-      </div>
-      <div class="mfoot">
-        <span data-out="nights">Elige tus fechas</span>
-        <div class="row row--amplia">
-          <span class="err" data-err></span>
-          <button class="btn btn--dark" type="button" id="toDetails">Continuar →</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="step two" data-step="details" hidden>
-      <div>
-        <h3 class="display mh">Tus <em>datos.</em></h3>
-        <div class="summary">
-          <b data-out="roomLabel">Habitación 01 · Sencilla</b>
-          <span data-out="range">Fechas por definir</span>
-          <span><span data-out="guests">2</span> huésped(es) · <span data-out="nights"></span></span>
-        </div>
-      </div>
-      <form class="form" id="detailsForm" novalidate>
-        <label class="field">
-          <span>Nombre completo</span>
-          <input data-bind="nombreviajero" autocomplete="name">
-        </label>
-        <label class="field">
-          <span>Celular (WhatsApp)</span>
-          <input type="tel" data-bind="celularviajero" placeholder="+57" autocomplete="tel">
-        </label>
-        <label class="field">
-          <span>Hora estimada de llegada</span>
-          <input type="time" data-bind="horallegada" aria-label="Hora estimada de llegada">
-        </label>
-        <span class="err" data-err></span>
-        <div class="row row--amplia">
-          <button class="btn btn--rust" type="submit">Confirmar reserva</button>
-          <button class="link-btn" type="button" data-go="dates">← Volver</button>
-        </div>
-      </form>
-    </div>
-
-    <div class="step done" data-step="done" hidden>
-      <div class="done__check" aria-hidden="true">✓</div>
-      <h3 class="display mh">Te esperamos,<br><em data-out="firstName">viajero</em>.</h3>
-      <p>Solicitud <strong data-out="code"></strong> recibida para la habitación <span data-out="roomN"></span>, <span data-out="range"></span>. Envíala por WhatsApp para recibir la confirmación y la tarifa final.</p>
-      <div class="row">
-        <a class="btn btn--dark" id="waConfirm" href="https://wa.me/573001234567" target="_blank" rel="noopener">
-          <span class="dot"></span>Confirmar por WhatsApp ↗
-        </a>
-        <button class="btn btn--outline-dark js-close" type="button">Volver al inicio</button>
-      </div>
-    </div>
-  </div>
+  <!-- Ensamblado de forma modular mediante Modalreservas.js -->
 </div>
 
-<!-- Orden estricto de carga de scripts modulares -->
+<!-- Scripts en orden estricto de dependencias -->
 <script src="js/Datosinicial.js"></script>
 <script src="js/Almacenamiento.js"></script>
 <script src="js/Validaciones.js"></script>
+<script src="js/Modalreservas.js"></script>
 <script src="js/Interfaz.js"></script>
 <script src="js/Animaciones.js"></script>
 <script src="js/script.js"></script>

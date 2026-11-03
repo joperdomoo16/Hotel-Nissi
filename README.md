@@ -23,7 +23,8 @@ El sitio permite a los viajeros conocer las habitaciones del hotel, verificar la
 - `js/Datosinicial.js`: Catálogo de habitaciones, precios y configuración inicial del establecimiento.
 - `js/Almacenamiento.js`: Guardado de la sesión, borradores locales y sincronización con Google Sheets.
 - `js/Validaciones.js`: Funciones de comprobación para números de celular, fechas de estadía y correos.
-- `js/Interfaz.js`: Control visual de la ventana modal, actualización de textos y catálogo de habitaciones.
+- `js/Modalreservas.js`: Construcción y ensamblaje modular de los cinco pasos de la ventana modal de reservas y registro.
+- `js/Interfaz.js`: Control visual de la ventana modal, actualización de textos y renderizado dinámico del catálogo de habitaciones.
 - `js/Animaciones.js`: Módulo de microinteracciones visuales, parallax, cursor dinámico y efectos al hacer scroll.
 - `js/script.js`: Controlador principal que coordina los eventos de reservas y el ciclo de vida de la página.
 - `js/Administracion.js`: Lógica de validación del PIN de seguridad, sincronización en vivo del estado de habitaciones y registro de check-in directo en Google Sheets.

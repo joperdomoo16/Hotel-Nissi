@@ -16,6 +16,52 @@ const Estadoaplicacion = {
   mapaocupacion: {}
 };
 
+// Renderizado dinamico del catalogo de habitaciones y galeria de fotos
+function Renderizarcatalogohabitaciones() {
+  const Contenedorhabitaciones = document.getElementById('roomList');
+  const Contenedorfotos = document.getElementById('roomGallery');
+  if (!Contenedorhabitaciones || !Contenedorfotos) {
+    return;
+  }
+
+  let Htmlhabitaciones = '';
+  let Htmlfotos = '';
+
+  Habitacioneshotel.forEach(function(Hab, Indice) {
+    const Esactiva = Indice === 0;
+    const Etiquetas = Hab.detalles.map(function(Tag) {
+      return `<span>${Tag}</span>`;
+    }).join('');
+
+    Htmlhabitaciones += `
+      <div class="room ${Esactiva ? 'is-active' : ''}" data-room="${Indice}">
+        <button class="room__btn" data-cursor="Ver" type="button">
+          <span class="room__n">${Hab.numero}</span><span class="room__name">${Hab.tipo}</span><span class="room__cap">${Hab.capacidad}</span>
+        </button>
+        <div class="room__body">
+          <div class="room__inner">
+            <p>${Hab.descripcion}</p>
+            <div class="tags">${Etiquetas}</div>
+            <div class="row">
+              <button class="btn btn--cream btn--sm" type="button" data-book="${Indice}">Reservar la ${Hab.numero} →</button>
+              <a class="btn btn--ghost btn--sm" href="https://wa.me/${Configuracionhotel.celular}?text=${encodeURIComponent('Hola Hotel Nissi, quiero información de la habitación ' + Hab.numero + ' (' + Hab.tipo + ').')}" target="_blank" rel="noopener" data-wa="Hola Hotel Nissi, quiero información de la habitación ${Hab.numero} (${Hab.tipo}).">Preguntar por WhatsApp</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    Htmlfotos += `
+      <div class="rphoto__img ${Esactiva ? 'is-active' : ''}" data-photo="${Indice}">
+        <img src="${Hab.foto}" alt="Habitación ${Hab.numero} ${Hab.tipo}" width="800" height="1000" loading="lazy">
+      </div>
+    `;
+  });
+
+  Contenedorhabitaciones.innerHTML = Htmlhabitaciones;
+  Contenedorfotos.innerHTML = Htmlfotos + '<div class="rphoto__num" id="roomNum">01</div>';
+}
+
 function Construirenlasewhatsapp(Mensajetexto) {
   const Digitoslimpios = Configuracionhotel.celular.replace(/\D/g, '');
   return `https://wa.me/${Digitoslimpios}?text=${encodeURIComponent(Mensajetexto)}`;
