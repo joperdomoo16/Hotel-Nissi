@@ -35,28 +35,24 @@ El sitio permite a los viajeros conocer las habitaciones del hotel, verificar la
 
 ## Integración con Firebase (Hosting y Registro de Huéspedes)
 
-El proyecto cuenta con integración nativa para **Firebase Authentication** y **Firebase Hosting**:
+El proyecto se encuentra configurado y desplegado en **Firebase**:
 
-1. **Crear el proyecto en la consola:**
-   - Ingresa a [console.firebase.google.com](https://console.firebase.google.com/) y crea un nuevo proyecto llamado `hotel-nissi`.
-   - En el menú lateral ve a **Compilación → Authentication**, da clic en **Comenzar** y habilita el proveedor **Correo electrónico/Contraseña**.
-   - En la configuración del proyecto (ícono de engranaje) agrega una aplicación web (`</>`) y copia los valores del objeto `firebaseConfig`.
-2. **Configurar las credenciales:**
-   - Abre el archivo `js/Autenticacion.js` y pega tus valores en la constante `Configuracionfirebase`.
-3. **Publicar el sitio web en Firebase Hosting:**
-   - Si no tienes la herramienta de Firebase instalada, instálala en tu computador ejecutando en la terminal:
-     ```bash
-     npm install -g firebase-tools
-     ```
-   - Inicia sesión con tu cuenta de Google:
-     ```bash
-     firebase login
-     ```
-   - Publica los archivos del hotel:
-     ```bash
-     firebase deploy --only hosting
-     ```
-   - Al terminar, Firebase te entregará un enlace público rápido y seguro con HTTPS (ejemplo: `https://hotel-nissi.web.app`).
+- **Identificador del proyecto:** `hotel-nissi-mingueo`
+- **Nombre en consola:** `Hotel Nissi`
+- **Consola del proyecto:** [https://console.firebase.google.com/project/hotel-nissi-mingueo/overview](https://console.firebase.google.com/project/hotel-nissi-mingueo/overview)
+- **Sitio web en vivo (Hosting):** [https://hotel-nissi-mingueo.web.app](https://hotel-nissi-mingueo.web.app)
+
+### Activar Registro con Correo y Contraseña
+Para que los huéspedes puedan crear su cuenta y registrarse en la web:
+1. Entra a la sección de [Métodos de acceso en Authentication](https://console.firebase.google.com/project/hotel-nissi-mingueo/authentication/providers).
+2. Da clic en **Comenzar** (o **Agregar nuevo proveedor**).
+3. Selecciona **Correo electrónico/Contraseña**, activa la casilla **Habilitar** y da clic en **Guardar**.
+
+### Cómo volver a desplegar cambios
+Cada vez que hagas ajustes en los archivos y quieras publicarlos en internet:
+```bash
+firebase deploy --only hosting
+```
 
 ## Panel de Recepción y Control Presencial
 

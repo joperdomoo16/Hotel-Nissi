@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://hotelnissi.com/sitemap.xml
+Sitemap: https://hotel-nissi-mingueo.web.app/sitemap.xml
 

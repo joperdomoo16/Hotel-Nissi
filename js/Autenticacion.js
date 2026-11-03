@@ -1,26 +1,23 @@
 // Modulo de gestion y autenticacion de usuarios con Firebase
 
 const Configuracionfirebase = {
-  apiKey: "TU_API_KEY",
-  authDomain: "hotel-nissi.firebaseapp.com",
-  projectId: "hotel-nissi",
-  storageBucket: "hotel-nissi.appspot.com",
-  messagingSenderId: "TU_MESSAGING_SENDER_ID",
-  appId: "TU_APP_ID"
+  apiKey: "AIzaSyDejKbwGSI3t4_gw6YRXeDwEDnhBIKjI0o",
+  authDomain: "hotel-nissi-mingueo.firebaseapp.com",
+  projectId: "hotel-nissi-mingueo",
+  storageBucket: "hotel-nissi-mingueo.firebasestorage.app",
+  messagingSenderId: "828441790622",
+  appId: "1:828441790622:web:57c5a34014f5541376d38f"
 };
 
 function Firebaseactivo() {
   return typeof firebase !== 'undefined' && 
          Boolean(firebase.apps) && 
-         Boolean(firebase.apps.length) && 
-         Configuracionfirebase.apiKey !== 'TU_API_KEY';
+         Boolean(firebase.apps.length);
 }
 
 function Inicializarfirebase() {
   if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-    if (Configuracionfirebase.apiKey && Configuracionfirebase.apiKey !== 'TU_API_KEY') {
-      firebase.initializeApp(Configuracionfirebase);
-    }
+    firebase.initializeApp(Configuracionfirebase);
   }
 }
 
