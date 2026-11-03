@@ -23,12 +23,40 @@ El sitio permite a los viajeros conocer las habitaciones del hotel, verificar la
 - `js/Datosinicial.js`: Catálogo de habitaciones, precios y configuración inicial del establecimiento.
 - `js/Almacenamiento.js`: Guardado de la sesión, borradores locales y sincronización con Google Sheets.
 - `js/Validaciones.js`: Funciones de comprobación para números de celular, fechas de estadía y correos.
+- `js/Autenticacion.js`: Conexión con Firebase Authentication para registro, inicio de sesión y persistencia de cuentas.
 - `js/Modalreservas.js`: Construcción y ensamblaje modular de los cinco pasos de la ventana modal de reservas y registro.
 - `js/Interfaz.js`: Control visual de la ventana modal, actualización de textos y renderizado dinámico del catálogo de habitaciones.
 - `js/Animaciones.js`: Módulo de microinteracciones visuales, parallax, cursor dinámico y efectos al hacer scroll.
 - `js/script.js`: Controlador principal que coordina los eventos de reservas y el ciclo de vida de la página.
 - `js/Administracion.js`: Lógica de validación del PIN de seguridad, sincronización en vivo del estado de habitaciones y registro de check-in directo en Google Sheets.
 - `js/Servidorreservas.js`: Servidor para Google Apps Script que conecta Google Sheets con Gemini, WhatsApp y alertas por correo.
+- `firebase.json`: Configuración de despliegue para Firebase Hosting con reglas de almacenamiento en caché.
+- `.firebaserc`: Asociación del proyecto con el identificador en la consola de Firebase.
+
+## Integración con Firebase (Hosting y Registro de Huéspedes)
+
+El proyecto cuenta con integración nativa para **Firebase Authentication** y **Firebase Hosting**:
+
+1. **Crear el proyecto en la consola:**
+   - Ingresa a [console.firebase.google.com](https://console.firebase.google.com/) y crea un nuevo proyecto llamado `hotel-nissi`.
+   - En el menú lateral ve a **Compilación → Authentication**, da clic en **Comenzar** y habilita el proveedor **Correo electrónico/Contraseña**.
+   - En la configuración del proyecto (ícono de engranaje) agrega una aplicación web (`</>`) y copia los valores del objeto `firebaseConfig`.
+2. **Configurar las credenciales:**
+   - Abre el archivo `js/Autenticacion.js` y pega tus valores en la constante `Configuracionfirebase`.
+3. **Publicar el sitio web en Firebase Hosting:**
+   - Si no tienes la herramienta de Firebase instalada, instálala en tu computador ejecutando en la terminal:
+     ```bash
+     npm install -g firebase-tools
+     ```
+   - Inicia sesión con tu cuenta de Google:
+     ```bash
+     firebase login
+     ```
+   - Publica los archivos del hotel:
+     ```bash
+     firebase deploy --only hosting
+     ```
+   - Al terminar, Firebase te entregará un enlace público rápido y seguro con HTTPS (ejemplo: `https://hotel-nissi.web.app`).
 
 ## Panel de Recepción y Control Presencial
 

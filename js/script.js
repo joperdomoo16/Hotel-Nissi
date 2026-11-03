@@ -16,6 +16,24 @@ document.addEventListener('DOMContentLoaded', function() {
     Estadoaplicacion.nombreviajero = Sesionguardada;
   }
 
+  // Observador del estado de autenticacion de Firebase
+  if (typeof Observadorestadoautenticacion === 'function') {
+    Observadorestadoautenticacion(function(Usuario) {
+      if (Usuario) {
+        const Nombreidentificado = Usuario.displayName || (Usuario.email ? Usuario.email.split('@')[0] : 'viajero');
+        Estadoaplicacion.usuariologueado = Nombreidentificado;
+        if (!Estadoaplicacion.nombreviajero) {
+          Estadoaplicacion.nombreviajero = Usuario.displayName || Nombreidentificado;
+        }
+        if (Usuario.email) {
+          Estadoaplicacion.correoviajero = Usuario.email;
+        }
+        Guardardatossesion(Nombreidentificado);
+      }
+      Refrescarpantalla();
+    });
+  }
+
   // Establecer fecha minima de llegada para el dia de hoy
   const Hoyfecha = new Date();
   const Anoformato = Hoyfecha.getFullYear();
@@ -139,24 +157,51 @@ document.addEventListener('DOMContentLoaded', function() {
   if (Formulariologin) {
     Formulariologin.addEventListener('submit', function(Eventologin) {
       Eventologin.preventDefault();
+      const Correolimpio = (Estadoaplicacion.correoviajero || '').trim();
+      const Clavelimpia = Estadoaplicacion.claveviajero || '';
+
       if (Estadoaplicacion.creandocuenta && !(Estadoaplicacion.nombreviajero || '').trim()) {
         return Mostrarmensajeerror('Escribe tu nombre completo.');
       }
-      if (!Validarcorreoelectronico(Estadoaplicacion.correoviajero || '')) {
+      if (!Validarcorreoelectronico(Correolimpio)) {
         return Mostrarmensajeerror('Revisa tu correo.');
       }
-      if ((Estadoaplicacion.claveviajero || '').length < 4) {
-        return Mostrarmensajeerror('La contraseña es muy corta.');
+      if (Clavelimpia.length < 6) {
+        return Mostrarmensajeerror('La contraseña debe tener al menos 6 caracteres.');
       }
-      const Nombreasignado = Estadoaplicacion.creandocuenta && Estadoaplicacion.nombreviajero
-        ? Estadoaplicacion.nombreviajero
-        : (Estadoaplicacion.correoviajero || '').split('@')[0];
-      Estadoaplicacion.usuariologueado = Nombreasignado;
-      if (!Estadoaplicacion.nombreviajero) {
-        Estadoaplicacion.nombreviajero = Nombreasignado;
+
+      const Botonenvio = Formulariologin.querySelector('button[type="submit"]');
+      const Textobotonoriginal = Botonenvio ? Botonenvio.innerHTML : '';
+      if (Botonenvio) {
+        Botonenvio.disabled = true;
+        Botonenvio.textContent = 'Verificando...';
       }
-      Guardardatossesion(Nombreasignado);
-      Cambiarpasomodal('dates');
+
+      const Promesaautenticacion = Estadoaplicacion.creandocuenta
+        ? Registrarnuevousuario(Estadoaplicacion.nombreviajero.trim(), Correolimpio, Clavelimpia)
+        : Iniciarsesionusuario(Correolimpio, Clavelimpia);
+
+      Promesaautenticacion
+        .then(function(Respuesta) {
+          const Usuariodatos = Respuesta.user || Respuesta;
+          const Nombreasignado = Usuariodatos.displayName || Usuariodatos.email.split('@')[0];
+          Estadoaplicacion.usuariologueado = Nombreasignado;
+          Estadoaplicacion.nombreviajero = Nombreasignado;
+          Estadoaplicacion.correoviajero = Usuariodatos.email;
+          Guardardatossesion(Nombreasignado);
+          Mostrarmensajeerror('');
+          Cambiarpasomodal('dates');
+        })
+        .catch(function(Errorautenticacion) {
+          const Codigoerror = Errorautenticacion.code || '';
+          Mostrarmensajeerror(Traducirerrorfirebase(Codigoerror));
+        })
+        .finally(function() {
+          if (Botonenvio) {
+            Botonenvio.disabled = false;
+            Botonenvio.innerHTML = Textobotonoriginal;
+          }
+        });
     });
   }
 
