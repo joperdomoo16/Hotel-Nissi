@@ -141,12 +141,16 @@
           <input type="text" id="checkinNombre" placeholder="Nombre completo" required autocomplete="off">
         </label>
         <label class="admin-field">
-          <span>Celular / WhatsApp</span>
-          <input type="tel" id="checkinCelular" placeholder="300 123 4567" required autocomplete="off">
+          <span>Cédula de ciudadanía</span>
+          <input type="text" id="checkinCedula" placeholder="Ej. 1098765432" inputmode="numeric" required autocomplete="off">
         </label>
       </div>
 
       <div class="admin-grid-2">
+        <label class="admin-field">
+          <span>Celular / WhatsApp</span>
+          <input type="tel" id="checkinCelular" placeholder="300 123 4567" required autocomplete="off">
+        </label>
         <label class="admin-field">
           <span>Número de personas</span>
           <select id="checkinHuespedes">
@@ -156,6 +160,7 @@
             <option value="4">4 personas</option>
           </select>
         </label>
+      </div>
         <label class="admin-field">
           <span>Medio de pago recibido</span>
           <select id="checkinMedio">

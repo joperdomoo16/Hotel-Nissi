@@ -206,10 +206,14 @@ function Registrarosincronizarreserva(Datos) {
     }
   }
 
+  const Nombreconcedula = Datos.cedula
+    ? `${Sanitizarcelda(Datos.nombre || 'Viajero', 70)} (C.C. ${Sanitizarcelda(Datos.cedula, 20)})`
+    : Sanitizarcelda(Datos.nombre || 'Viajero', 80);
+
   const Nuevafila = [
     Sanitizarcelda(Codigoreserva, 20),
     Fecharegistro,
-    Sanitizarcelda(Datos.nombre || 'Viajero', 80),
+    Nombreconcedula,
     Sanitizarcelda(Datos.celular || '', 20),
     Numerohab,
     Sanitizarcelda(Datos.llegada, 15),

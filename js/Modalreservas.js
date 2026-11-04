@@ -137,6 +137,10 @@ function Construirmodalreservas() {
             <input data-bind="nombreviajero" autocomplete="name">
           </label>
           <label class="field">
+            <span>Cédula de ciudadanía</span>
+            <input type="text" inputmode="numeric" data-bind="cedulaviajero" placeholder="Ej. 1098765432" autocomplete="off" required>
+          </label>
+          <label class="field">
             <span>Celular (WhatsApp)</span>
             <input type="tel" data-bind="celularviajero" placeholder="+57" autocomplete="tel">
           </label>

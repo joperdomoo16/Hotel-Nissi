@@ -5,6 +5,7 @@ const Estadoaplicacion = {
   cantidadhuespedes: 2,
   habitacionseleccionada: 0,
   nombreviajero: '',
+  cedulaviajero: '',
   celularviajero: '',
   horallegada: '',
   correoviajero: '',
@@ -103,7 +104,8 @@ function Actualizarmensajeswhatsapp() {
     const Textorango = (Estadoaplicacion.fechallegada && Estadoaplicacion.fechasalida && Nochesnumero > 0)
       ? `${Formatearfechalegible(Estadoaplicacion.fechallegada)} → ${Formatearfechalegible(Estadoaplicacion.fechasalida)}`
       : 'Fechas por definir';
-    const Textoconfirmacion = `Hola Hotel Nissi, confirmo mi solicitud ${Estadoaplicacion.codigoreserva}: habitación ${Habitacionactual.numero} (${Habitacionactual.tipo}), ${Textorango}, ${Estadoaplicacion.cantidadhuespedes} huésped(es). A nombre de ${Estadoaplicacion.nombreviajero}${Estadoaplicacion.horallegada ? ', llegada ' + Estadoaplicacion.horallegada : ''}.`;
+    const Cedulatexto = Estadoaplicacion.cedulaviajero ? ` (C.C. ${Estadoaplicacion.cedulaviajero})` : '';
+    const Textoconfirmacion = `Hola Hotel Nissi, confirmo mi solicitud ${Estadoaplicacion.codigoreserva}: habitación ${Habitacionactual.numero} (${Habitacionactual.tipo}), ${Textorango}, ${Estadoaplicacion.cantidadhuespedes} huésped(es). A nombre de ${Estadoaplicacion.nombreviajero}${Cedulatexto}${Estadoaplicacion.horallegada ? ', llegada ' + Estadoaplicacion.horallegada : ''}.`;
     Confirmacionenlace.href = Construirenlasewhatsapp(Textoconfirmacion);
   }
 }

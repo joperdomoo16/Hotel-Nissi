@@ -28,6 +28,11 @@ function Validarnumerocelular(Celulartexto) {
   return Solodigitos.length >= 7 && Solodigitos.length <= 13;
 }
 
+function Validarcedulacolombiana(Cedulatexto) {
+  const Solodigitos = String(Cedulatexto || '').replace(/\D/g, '');
+  return /^[1-9]\d{5,9}$/.test(Solodigitos);
+}
+
 function Validarrangofechas(Fechallegada, Fechasalida) {
   if (!Fechallegada || !Fechasalida) {
     return false;

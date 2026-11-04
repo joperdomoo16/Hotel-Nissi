@@ -259,6 +259,7 @@ function Guardarcheckinpresencial(Evento) {
 
   const Errorbox = document.getElementById('checkinError');
   const Nombre = Sanitizartexto(document.getElementById('checkinNombre').value, 80);
+  const Cedula = Sanitizartexto(document.getElementById('checkinCedula') ? document.getElementById('checkinCedula').value : '', 20);
   const Celular = Sanitizartexto(document.getElementById('checkinCelular').value, 20);
   const Llegada = document.getElementById('checkinLlegada').value;
   const Salida = document.getElementById('checkinSalida').value;
@@ -269,6 +270,12 @@ function Guardarcheckinpresencial(Evento) {
   if (!Nombre) {
     if (Errorbox) {
       Errorbox.textContent = 'Escribe el nombre del huésped.';
+    }
+    return;
+  }
+  if (!Validarcedulacolombiana(Cedula)) {
+    if (Errorbox) {
+      Errorbox.textContent = 'Ingresa una cédula colombiana válida (6 a 10 dígitos).';
     }
     return;
   }
@@ -289,6 +296,7 @@ function Guardarcheckinpresencial(Evento) {
   const Solicitud = {
     codigo: Codigo,
     nombre: Nombre,
+    cedula: Cedula.replace(/\D/g, ''),
     celular: Celular,
     habitacion: Hab.numero,
     llegada: Llegada,

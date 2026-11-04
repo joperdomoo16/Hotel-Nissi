@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Manejo de eventos de entrada y vinculacion segura de campos permitidos
-  const Campospermitidos = ['fechallegada', 'fechasalida', 'nombreviajero', 'celularviajero', 'horallegada', 'correoviajero', 'claveviajero'];
+  const Campospermitidos = ['fechallegada', 'fechasalida', 'nombreviajero', 'cedulaviajero', 'celularviajero', 'horallegada', 'correoviajero', 'claveviajero'];
   document.addEventListener('input', function(Eventoentrada) {
     const Campovinculado = Eventoentrada.target.dataset && Eventoentrada.target.dataset.bind;
     if (!Campovinculado || Campospermitidos.indexOf(Campovinculado) === -1) {
@@ -270,22 +270,28 @@ document.addEventListener('DOMContentLoaded', function() {
     Formulariodetalles.addEventListener('submit', function(Eventodetalles) {
       Eventodetalles.preventDefault();
       const Nombrelimpio = Sanitizartexto(Estadoaplicacion.nombreviajero, 80);
+      const Cedulalimpia = Sanitizartexto(Estadoaplicacion.cedulaviajero, 20);
       const Celularlimpio = Sanitizartexto(Estadoaplicacion.celularviajero, 20);
       const Horalimpia = Sanitizartexto(Estadoaplicacion.horallegada, 40);
 
       if (!Nombrelimpio) {
         return Mostrarmensajeerror('Escribe tu nombre.');
       }
+      if (!Validarcedulacolombiana(Cedulalimpia)) {
+        return Mostrarmensajeerror('Ingresa una cédula colombiana válida (6 a 10 dígitos).');
+      }
       if (!Validarnumerocelular(Celularlimpio)) {
         return Mostrarmensajeerror('Escribe un celular válido.');
       }
       Estadoaplicacion.nombreviajero = Nombrelimpio;
+      Estadoaplicacion.cedulaviajero = Cedulalimpia.replace(/\D/g, '');
       Estadoaplicacion.celularviajero = Celularlimpio;
       Estadoaplicacion.horallegada = Horalimpia;
       Estadoaplicacion.codigoreserva = Generarcodigoreserva();
       const Solicitudreserva = {
         codigo: Estadoaplicacion.codigoreserva,
         nombre: Nombrelimpio,
+        cedula: Estadoaplicacion.cedulaviajero,
         celular: Celularlimpio,
         llegada: Estadoaplicacion.fechallegada,
         salida: Estadoaplicacion.fechasalida,
