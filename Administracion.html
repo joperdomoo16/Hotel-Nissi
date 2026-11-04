@@ -66,10 +66,19 @@
       </div>
     </div>
 
+    <!-- Pestañas de Navegacion del Panel -->
+    <div class="admin-nav-tabs" role="tablist">
+      <button class="nav-tab is-active" id="btnTabRack" type="button" role="tab" aria-selected="true" data-seccion="rack">
+        <span>🏨 Rack en vivo</span>
+      </button>
+      <button class="nav-tab" id="btnTabDashboard" type="button" role="tab" aria-selected="false" data-seccion="dashboard">
+        <span>📊 Dashboard y Métricas</span>
+      </button>
+    </div>
+
     <div class="admin-tools">
       <span class="admin-clock" id="adminClock">--:--</span>
-      <button class="btn btn--ghost btn--sm" type="button" id="btnRefrescarRack" title="Actualizar datos con Google Sheets">↻ Actualizar</button>
-      <a href="https://docs.google.com/spreadsheets/d/1DkRlKHSehr_xDAV_FcaRg15MUKsO9-pS0lHVTVExfYPfnrCshxFYjOrS/edit" target="_blank" rel="noopener noreferrer" class="btn btn--outline-dark btn--sm admin-link-sheets">Abrir Sheets ↗</a>
+      <button class="btn btn--ghost btn--sm" type="button" id="btnRefrescarRack" title="Actualizar datos">↻ Actualizar</button>
       <button class="btn btn--ghost btn--sm" type="button" id="btnSalirAdmin">Salir</button>
     </div>
   </nav>
@@ -78,32 +87,189 @@
 <!-- Contenido central de recepcion -->
 <main class="admin-main">
 
-  <section class="admin-summary" aria-label="Resumen de ocupación actual">
-    <div class="summary-card">
-      <span class="summary-label">Habitaciones libres</span>
-      <span class="summary-value summary-value--free" id="countAvailable">--</span>
-    </div>
-    <div class="summary-card">
-      <span class="summary-label">Habitaciones ocupadas</span>
-      <span class="summary-value summary-value--busy" id="countOccupied">--</span>
-    </div>
-    <div class="summary-card">
-      <span class="summary-label">Capacidad total</span>
-      <span class="summary-value">6</span>
-    </div>
-  </section>
+  <!-- Vista 1: Rack en vivo -->
+  <div id="seccionRack">
+    <section class="admin-summary" aria-label="Resumen de ocupación actual">
+      <div class="summary-card">
+        <span class="summary-label">Habitaciones libres</span>
+        <span class="summary-value summary-value--free" id="countAvailable">--</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Habitaciones ocupadas</span>
+        <span class="summary-value summary-value--busy" id="countOccupied">--</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Capacidad total</span>
+        <span class="summary-value">6</span>
+      </div>
+    </section>
 
-  <div class="rack-head">
-    <h1 class="rack-title">Rack en <em>tiempo real.</em></h1>
-    <div class="rack-legend">
-      <div class="legend-item"><span class="legend-dot is-free"></span> Libre para check-in</div>
-      <div class="legend-item"><span class="legend-dot is-busy"></span> Ocupada en Sheets</div>
+    <div class="rack-head">
+      <h1 class="rack-title">Rack en <em>tiempo real.</em></h1>
+      <div class="rack-legend">
+        <div class="legend-item"><span class="legend-dot is-free"></span> Libre para check-in</div>
+        <div class="legend-item"><span class="legend-dot is-busy"></span> Ocupada</div>
+      </div>
     </div>
+
+    <section class="rack-grid" id="rackGrid" aria-label="Habitaciones del hotel">
+      <!-- Se llena dinamicamente con Administracion.js -->
+    </section>
   </div>
 
-  <section class="rack-grid" id="rackGrid" aria-label="Habitaciones del hotel">
-    <!-- Se llena dinamicamente con Administracion.js -->
-  </section>
+  <!-- Vista 2: Dashboard de Metricas y Rendimiento -->
+  <div id="seccionDashboard" hidden>
+    <div class="dash-head">
+      <div>
+        <span class="eyebrow">Panel de control gerencial</span>
+        <h1 class="rack-title">Métricas y <em>rendimiento.</em></h1>
+      </div>
+      <span class="dash-period-badge" id="dashRangoTexto">Período: Hoy</span>
+    </div>
+
+    <!-- Barra de Filtros del Dashboard -->
+    <div class="dash-toolbar">
+      <div class="dash-filter-group" role="group" aria-label="Filtro de período">
+        <button class="dash-filter-btn is-active" type="button" data-filtro="diario" id="btnFiltroDiario">
+          📅 Diario (Hoy)
+        </button>
+        <button class="dash-filter-btn" type="button" data-filtro="semanal" id="btnFiltroSemanal">
+          🗓️ Semanal
+        </button>
+        <div class="dash-month-wrapper">
+          <button class="dash-filter-btn" type="button" data-filtro="mensual" id="btnFiltroMensual">
+            📆 Mensual
+          </button>
+          <select class="dash-select-month" id="dashSelectMes" aria-label="Seleccionar mes específico" hidden>
+            <!-- Llenado dinamicamente con Administracion.js -->
+          </select>
+        </div>
+        <button class="dash-filter-btn" type="button" data-filtro="personalizado" id="btnFiltroPersonalizado">
+          🗓️ Rango personalizado
+        </button>
+      </div>
+
+      <!-- Selector de fechas manual (Calendario) -->
+      <div class="dash-custom-range" id="dashCustomRange" hidden>
+        <label class="dash-range-field">
+          <span>Desde</span>
+          <input type="date" class="dash-date-input" id="dashFechaInicio">
+        </label>
+        <label class="dash-range-field">
+          <span>Hasta</span>
+          <input type="date" class="dash-date-input" id="dashFechaFin">
+        </label>
+        <button class="btn btn--cream btn--sm" type="button" id="btnAplicarRango">Aplicar rango</button>
+      </div>
+    </div>
+
+    <!-- Grid de Tarjetas KPI -->
+    <section class="dash-kpis" aria-label="Indicadores clave de rendimiento">
+      <div class="dash-kpi-card dash-kpi-card--income">
+        <div class="dash-kpi-header">
+          <span class="dash-kpi-title">Ingresos Totales</span>
+          <span class="dash-kpi-icon">💰</span>
+        </div>
+        <b class="dash-kpi-val" id="kpiIngresos">$0 COP</b>
+        <span class="dash-kpi-sub" id="kpiIngresosSub">Recaudado en el período</span>
+      </div>
+
+      <div class="dash-kpi-card dash-kpi-card--occ">
+        <div class="dash-kpi-header">
+          <span class="dash-kpi-title">Tasa de Ocupación</span>
+          <span class="dash-kpi-icon">📈</span>
+        </div>
+        <b class="dash-kpi-val" id="kpiOcupacion">0%</b>
+        <span class="dash-kpi-sub" id="kpiOcupacionSub">Sobre 6 habitaciones</span>
+      </div>
+
+      <div class="dash-kpi-card dash-kpi-card--nights">
+        <div class="dash-kpi-header">
+          <span class="dash-kpi-title">Noches Vendidas</span>
+          <span class="dash-kpi-icon">🌙</span>
+        </div>
+        <b class="dash-kpi-val" id="kpiNoches">0</b>
+        <span class="dash-kpi-sub" id="kpiNochesSub">Noches reservadas</span>
+      </div>
+
+      <div class="dash-kpi-card dash-kpi-card--guests">
+        <div class="dash-kpi-header">
+          <span class="dash-kpi-title">Huéspedes Recibidos</span>
+          <span class="dash-kpi-icon">👥</span>
+        </div>
+        <b class="dash-kpi-val" id="kpiHuespedes">0</b>
+        <span class="dash-kpi-sub" id="kpiHuespedesSub">Personas alojadas</span>
+      </div>
+
+      <div class="dash-kpi-card">
+        <div class="dash-kpi-header">
+          <span class="dash-kpi-title">Reservas / Check-ins</span>
+          <span class="dash-kpi-icon">📋</span>
+        </div>
+        <b class="dash-kpi-val" id="kpiCheckins">0</b>
+        <span class="dash-kpi-sub" id="kpiCheckinsSub">Ingresos registrados</span>
+      </div>
+    </section>
+
+    <!-- Grid de Analiticas: Medios de Pago y Rendimiento de Habitaciones -->
+    <div class="dash-analytics-grid">
+      <!-- Medios de Pago -->
+      <div class="dash-card">
+        <div class="dash-card-title">
+          <span>Medios de Pago</span>
+          <small class="dash-period-badge" id="dashTotalMedios">$0 COP</small>
+        </div>
+        <div class="dash-payments-list" id="dashPaymentsList">
+          <!-- Dinamico -->
+        </div>
+      </div>
+
+      <!-- Rendimiento por Habitacion -->
+      <div class="dash-card">
+        <div class="dash-card-title">
+          <span>Rendimiento por Habitación</span>
+          <small class="dash-period-badge">Habitaciones 01 a 06</small>
+        </div>
+        <div class="dash-rooms-list" id="dashRoomsList">
+          <!-- Dinamico -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla Detallada de Reservas del Periodo -->
+    <div class="dash-table-card">
+      <div class="dash-table-head">
+        <div>
+          <h2 class="dash-card-title" style="margin-bottom:4px;">Movimientos del Período</h2>
+          <span class="dash-kpi-sub"><span id="dashTotalRegistros">0</span> reservas encontradas</span>
+        </div>
+        <input type="text" class="dash-search-input" id="dashSearchInput" placeholder="Buscar por huésped, cédula o código...">
+      </div>
+
+      <div class="dash-table-wrapper">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Registro</th>
+              <th>Huésped</th>
+              <th>Cédula</th>
+              <th>Hab.</th>
+              <th>Estadía</th>
+              <th>Noches</th>
+              <th>Pers.</th>
+              <th>Medio</th>
+              <th>Total COP</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="dashTableBody">
+            <!-- Dinamico -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
 </main>
 
