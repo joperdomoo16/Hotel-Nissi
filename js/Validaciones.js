@@ -1,4 +1,23 @@
-// Reglas para validar datos del viajero, fechas y formatos de contacto
+// Reglas para validar datos del viajero, fechas, formatos de contacto y sanitizacion contra XSS
+
+function Escaparhtml(Texto) {
+  return String(Texto == null ? '' : Texto)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function Sanitizartexto(Texto, Longitudmaxima) {
+  const Limite = Longitudmaxima || 120;
+  return String(Texto == null ? '' : Texto)
+    .replace(/[<>]/g, '')
+    .replace(/[\u0000-\u001F\u007F]/g, '')
+    .trim()
+    .slice(0, Limite);
+}
+
 function Validarcorreoelectronico(Correotexto) {
   const Patrontipico = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return Patrontipico.test((Correotexto || '').trim());

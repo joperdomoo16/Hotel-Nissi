@@ -1,4 +1,5 @@
 // Inyeccion de datos estructurados Schema.org en formato JSON-LD
+document.documentElement.classList.add('js');
 
 function Inyectardatosestructurados() {
   const Existente = document.getElementById('datosEstructurados');

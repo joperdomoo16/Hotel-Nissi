@@ -4,7 +4,8 @@ const Clavealmacenamientousuario = 'nissiusuario';
 
 function Guardardatossesion(Nombreusuario) {
   try {
-    localStorage.setItem(Clavealmacenamientousuario, Nombreusuario);
+    const Nombrelimpio = typeof Sanitizartexto === 'function' ? Sanitizartexto(Nombreusuario, 80) : String(Nombreusuario || '').replace(/[<>]/g, '').slice(0, 80);
+    localStorage.setItem(Clavealmacenamientousuario, Nombrelimpio);
   } catch (Erroralmacenamiento) {
     // Si el modo privado bloquea el almacenamiento continuamos normalmente
   }
@@ -12,7 +13,8 @@ function Guardardatossesion(Nombreusuario) {
 
 function Obtenerdatossesion() {
   try {
-    return localStorage.getItem(Clavealmacenamientousuario) || '';
+    const Guardado = localStorage.getItem(Clavealmacenamientousuario) || '';
+    return typeof Sanitizartexto === 'function' ? Sanitizartexto(Guardado, 80) : Guardado.replace(/[<>]/g, '').slice(0, 80);
   } catch (Erroralmacenamiento) {
     return '';
   }

@@ -26,7 +26,6 @@ function Renderizarpiedepagina() {
             <li><a href="#habitaciones">Habitaciones</a></li>
             <li><a href="#descanso">Descanso</a></li>
             <li><button class="link-btn js-login" type="button">Ingresar</button></li>
-            <li><a href="Administracion.html" class="link-btn link-admin">Recepción 🔒</a></li>
           </ul>
         </nav>
         <nav class="fcol" aria-label="Información de contacto">
@@ -44,7 +43,7 @@ function Renderizarpiedepagina() {
               </a>
             </li>
             <li><a class="js-wa js-wa-num" href="https://wa.me/573001234567" target="_blank" rel="noopener">+573001234567</a></li>
-            <li><small>Recepción 24 horas</small></li>
+            <li><small><a href="Administracion.html" class="link-discreto-admin">Recepción</a> 24 horas</small></li>
           </ul>
         </nav>
       </div>

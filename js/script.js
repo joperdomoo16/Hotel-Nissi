@@ -73,13 +73,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Manejo de eventos de entrada y vinculacion de campos
+  // Manejo de eventos de entrada y vinculacion segura de campos permitidos
+  const Campospermitidos = ['fechallegada', 'fechasalida', 'nombreviajero', 'celularviajero', 'horallegada', 'correoviajero', 'claveviajero'];
   document.addEventListener('input', function(Eventoentrada) {
     const Campovinculado = Eventoentrada.target.dataset && Eventoentrada.target.dataset.bind;
-    if (!Campovinculado) {
+    if (!Campovinculado || Campospermitidos.indexOf(Campovinculado) === -1) {
       return;
     }
-    Estadoaplicacion[Campovinculado] = Eventoentrada.target.value;
+    const Valorlimpio = Campovinculado === 'claveviajero'
+      ? String(Eventoentrada.target.value || '').slice(0, 128)
+      : String(Eventoentrada.target.value || '').replace(/[<>]/g, '').slice(0, 120);
+    Estadoaplicacion[Campovinculado] = Valorlimpio;
     Mostrarmensajeerror('');
     Refrescarpantalla();
 
@@ -265,22 +269,29 @@ document.addEventListener('DOMContentLoaded', function() {
   if (Formulariodetalles) {
     Formulariodetalles.addEventListener('submit', function(Eventodetalles) {
       Eventodetalles.preventDefault();
-      if (!(Estadoaplicacion.nombreviajero || '').trim()) {
+      const Nombrelimpio = Sanitizartexto(Estadoaplicacion.nombreviajero, 80);
+      const Celularlimpio = Sanitizartexto(Estadoaplicacion.celularviajero, 20);
+      const Horalimpia = Sanitizartexto(Estadoaplicacion.horallegada, 40);
+
+      if (!Nombrelimpio) {
         return Mostrarmensajeerror('Escribe tu nombre.');
       }
-      if (!Validarnumerocelular(Estadoaplicacion.celularviajero || '')) {
+      if (!Validarnumerocelular(Celularlimpio)) {
         return Mostrarmensajeerror('Escribe un celular válido.');
       }
+      Estadoaplicacion.nombreviajero = Nombrelimpio;
+      Estadoaplicacion.celularviajero = Celularlimpio;
+      Estadoaplicacion.horallegada = Horalimpia;
       Estadoaplicacion.codigoreserva = Generarcodigoreserva();
       const Solicitudreserva = {
         codigo: Estadoaplicacion.codigoreserva,
-        nombre: Estadoaplicacion.nombreviajero,
-        celular: Estadoaplicacion.celularviajero,
+        nombre: Nombrelimpio,
+        celular: Celularlimpio,
         llegada: Estadoaplicacion.fechallegada,
         salida: Estadoaplicacion.fechasalida,
         huespedes: Estadoaplicacion.cantidadhuespedes,
         habitacion: Habitacioneshotel[Estadoaplicacion.habitacionseleccionada].numero,
-        horallegada: Estadoaplicacion.horallegada
+        horallegada: Horalimpia
       };
 
       Guardarborradorreserva(Solicitudreserva);

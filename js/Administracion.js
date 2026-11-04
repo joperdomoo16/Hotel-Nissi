@@ -4,6 +4,8 @@ const Estadorecepcion = {
   autenticado: false,
   pincorrecto: '1973',
   pinactual: '',
+  intentosfallidos: 0,
+  bloqueadohasta: 0,
   habitaciones: [],
   habitacionseleccionada: null,
   cargando: false
@@ -18,8 +20,18 @@ function Actualizarmarcadorpin() {
 }
 
 function Ingresardigitopin(Digito) {
+  const Ahora = Date.now();
+  const Mensajerror = document.getElementById('lockError');
+  if (Estadorecepcion.bloqueadohasta > Ahora) {
+    const Segundosrestantes = Math.ceil((Estadorecepcion.bloqueadohasta - Ahora) / 1000);
+    if (Mensajerror) {
+      Mensajerror.textContent = `Demasiados intentos. Espera ${Segundosrestantes} s.`;
+    }
+    return;
+  }
+
   if (Estadorecepcion.pinactual.length < 4) {
-    Estadorecepcion.pinactual += String(Digito);
+    Estadorecepcion.pinactual += String(Digito).replace(/\D/g, '').slice(0, 1);
     Actualizarmarcadorpin();
 
     if (Estadorecepcion.pinactual.length === 4) {
@@ -39,7 +51,8 @@ function Verificarpin() {
   const Mensajerror = document.getElementById('lockError');
   if (Estadorecepcion.pinactual === Estadorecepcion.pincorrecto) {
     Estadorecepcion.autenticado = true;
-    sessionStorage.setItem('nissi_admin_auth', 'true');
+    Estadorecepcion.intentosfallidos = 0;
+    Estadorecepcion.bloqueadohasta = 0;
     const Bloqueo = document.getElementById('lockScreen');
     if (Bloqueo) {
       Bloqueo.hidden = true;
@@ -49,7 +62,14 @@ function Verificarpin() {
     }
     Cargarhabitaciones();
   } else {
-    if (Mensajerror) {
+    Estadorecepcion.intentosfallidos++;
+    if (Estadorecepcion.intentosfallidos >= 5) {
+      Estadorecepcion.bloqueadohasta = Date.now() + 30000;
+      Estadorecepcion.intentosfallidos = 0;
+      if (Mensajerror) {
+        Mensajerror.textContent = 'Demasiados intentos. Bloqueado por 30 segundos.';
+      }
+    } else if (Mensajerror) {
       Mensajerror.textContent = 'PIN incorrecto. Intenta de nuevo.';
     }
     Estadorecepcion.pinactual = '';
@@ -122,23 +142,27 @@ function Dibujartablerohabitaciones() {
       Contadorocupadas++;
     }
 
+    const Numeroseguro = Escaparhtml(Hab.numero);
+    const Tiposeguro = Escaparhtml(Hab.tipo);
+    const Capacidadsegura = Escaparhtml(Hab.capacidad);
+
     const Tarjeta = document.createElement('div');
     Tarjeta.className = `room-card ${Eslibre ? 'is-available' : 'is-occupied'}`;
     Tarjeta.innerHTML = `
       <div class="room-card-head">
-        <span class="room-card-num">${Hab.numero}</span>
+        <span class="room-card-num">${Numeroseguro}</span>
         <span class="room-card-status">${Eslibre ? '● Disponible' : '■ Ocupada'}</span>
       </div>
-      <h4 class="room-card-type">${Hab.tipo}</h4>
+      <h4 class="room-card-type">${Tiposeguro}</h4>
       <div class="room-card-info">
-        <span>${Hab.capacidad}</span>
+        <span>${Capacidadsegura}</span>
         <span class="room-card-price">$${Number(Hab.tarifanoche || 0).toLocaleString('es-CO')} COP</span>
       </div>
       <div class="room-card-action">
         ${
           Eslibre
-            ? `<button class="btn btn--cream btn--sm" onclick="Abrircheckin('${Hab.numero}')">Check-in presencial</button>`
-            : `<button class="btn btn--ghost btn--sm" disabled>Ocupada actualmente</button>`
+            ? `<button class="btn btn--cream btn--sm" type="button" data-checkin="${Numeroseguro}">Check-in presencial</button>`
+            : `<button class="btn btn--ghost btn--sm" type="button" disabled>Ocupada actualmente</button>`
         }
       </div>
     `;
@@ -234,13 +258,13 @@ function Guardarcheckinpresencial(Evento) {
   }
 
   const Errorbox = document.getElementById('checkinError');
-  const Nombre = document.getElementById('checkinNombre').value.trim();
-  const Celular = document.getElementById('checkinCelular').value.trim();
+  const Nombre = Sanitizartexto(document.getElementById('checkinNombre').value, 80);
+  const Celular = Sanitizartexto(document.getElementById('checkinCelular').value, 20);
   const Llegada = document.getElementById('checkinLlegada').value;
   const Salida = document.getElementById('checkinSalida').value;
-  const Huespedes = parseInt(document.getElementById('checkinHuespedes').value, 10);
-  const Mediopago = document.getElementById('checkinMedio').value;
-  const Montopago = parseInt(document.getElementById('checkinPago').value, 10) || 0;
+  const Huespedes = Math.max(1, Math.min(4, parseInt(document.getElementById('checkinHuespedes').value, 10) || 2));
+  const Mediopago = Sanitizartexto(document.getElementById('checkinMedio').value, 30);
+  const Montopago = Math.max(0, parseInt(document.getElementById('checkinPago').value, 10) || 0);
 
   if (!Nombre) {
     if (Errorbox) {
@@ -286,7 +310,7 @@ function Guardarcheckinpresencial(Evento) {
       const Enviarwa = confirm(`¡Ingreso registrado con éxito! Código: ${Codigo}.\n\n¿Deseas enviar el recibo y la bienvenida por WhatsApp al huésped?`);
       if (Enviarwa) {
         const Mensajebienvenida = `¡Bienvenido al Hotel Nissi, ${Nombre}! Tu ingreso a la habitación ${Hab.numero} (${Hab.tipo}) ha sido confirmado. Código: ${Codigo}. Red Wi-Fi: HotelNissi_Huespedes. ¡Que tengas un excelente descanso en Mingueo!`;
-        window.open(`https://wa.me/57${Celular.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(Mensajebienvenida)}`, '_blank');
+        window.open(`https://wa.me/57${Celular.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(Mensajebienvenida)}`, '_blank', 'noopener,noreferrer');
       }
     })
     .catch(function(Errorregistro) {
@@ -302,17 +326,16 @@ function Guardarcheckinpresencial(Evento) {
     });
 }
 
-// Inicializacion al cargar el DOM
+// Inicializacion al cargar el DOM: siempre pedir PIN al abrir o recargar
 document.addEventListener('DOMContentLoaded', function() {
-  // Comprobar sesion previa de PIN
-  if (sessionStorage.getItem('nissi_admin_auth') === 'true') {
-    Estadorecepcion.autenticado = true;
-    const Bloqueo = document.getElementById('lockScreen');
-    if (Bloqueo) {
-      Bloqueo.hidden = true;
-    }
-    Cargarhabitaciones();
+  Estadorecepcion.autenticado = false;
+  Estadorecepcion.pinactual = '';
+  sessionStorage.removeItem('nissi_admin_auth');
+  const Bloqueo = document.getElementById('lockScreen');
+  if (Bloqueo) {
+    Bloqueo.hidden = false;
   }
+  Actualizarmarcadorpin();
 
   // Teclado virtual de PIN
   document.querySelectorAll('[data-digit]').forEach(function(Boton) {
@@ -324,6 +347,30 @@ document.addEventListener('DOMContentLoaded', function() {
   const Botonborrar = document.getElementById('pinDelete');
   if (Botonborrar) {
     Botonborrar.addEventListener('click', Borrardigitopin);
+  }
+
+  const Botonrefrescar = document.getElementById('btnRefrescarRack');
+  if (Botonrefrescar) {
+    Botonrefrescar.addEventListener('click', Cargarhabitaciones);
+  }
+
+  const Botonsalir = document.getElementById('btnSalirAdmin');
+  if (Botonsalir) {
+    Botonsalir.addEventListener('click', Cerrarsesionadmin);
+  }
+
+  document.querySelectorAll('.js-cerrar-checkin').forEach(function(Botoncerrar) {
+    Botoncerrar.addEventListener('click', Cerrarcheckin);
+  });
+
+  const Contenedorrack = document.getElementById('rackGrid');
+  if (Contenedorrack) {
+    Contenedorrack.addEventListener('click', function(Evento) {
+      const Botoncheckin = Evento.target.closest('[data-checkin]');
+      if (Botoncheckin) {
+        Abrircheckin(Botoncheckin.dataset.checkin);
+      }
+    });
   }
 
   // Captura de teclado fisico para el PIN

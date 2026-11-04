@@ -68,9 +68,9 @@
 
     <div class="admin-tools">
       <span class="admin-clock" id="adminClock">--:--</span>
-      <button class="btn btn--ghost btn--sm" type="button" onclick="Cargarhabitaciones()" title="Actualizar datos con Google Sheets">↻ Actualizar</button>
-      <a href="https://docs.google.com/spreadsheets/d/1DkRlKHSehr_xDAV_FcaRg15MUKsO9-pS0lHVTVExfYPfnrCshxFYjOrS/edit" target="_blank" rel="noopener" class="btn btn--outline-dark btn--sm admin-link-sheets">Abrir Sheets ↗</a>
-      <button class="btn btn--ghost btn--sm" type="button" onclick="Cerrarsesionadmin()">Salir</button>
+      <button class="btn btn--ghost btn--sm" type="button" id="btnRefrescarRack" title="Actualizar datos con Google Sheets">↻ Actualizar</button>
+      <a href="https://docs.google.com/spreadsheets/d/1DkRlKHSehr_xDAV_FcaRg15MUKsO9-pS0lHVTVExfYPfnrCshxFYjOrS/edit" target="_blank" rel="noopener noreferrer" class="btn btn--outline-dark btn--sm admin-link-sheets">Abrir Sheets ↗</a>
+      <button class="btn btn--ghost btn--sm" type="button" id="btnSalirAdmin">Salir</button>
     </div>
   </nav>
 </header>
@@ -115,7 +115,7 @@
         <span class="eyebrow">Ingreso presencial</span>
         <h3 id="checkinModalTitle">Check-in <em>inmediato.</em></h3>
       </div>
-      <button class="btn btn--ghost btn--sm" type="button" onclick="Cerrarcheckin()">Cerrar ✕</button>
+      <button class="btn btn--ghost btn--sm js-cerrar-checkin" type="button">Cerrar ✕</button>
     </div>
 
     <form class="admin-form" id="checkinForm" novalidate>
@@ -176,7 +176,7 @@
 
       <div class="admin-form-actions">
         <button class="btn btn--cream" type="submit" id="btnGuardarCheckin">Confirmar ingreso y entregar llaves</button>
-        <button class="btn btn--ghost" type="button" onclick="Cerrarcheckin()">Cancelar</button>
+        <button class="btn btn--ghost js-cerrar-checkin" type="button">Cancelar</button>
       </div>
     </form>
   </div>

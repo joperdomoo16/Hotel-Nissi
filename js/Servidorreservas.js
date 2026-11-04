@@ -17,6 +17,29 @@ const Catalogoinicial = [
   ['06', 'Familiar', '4 personas', 4, 180000, 'Disponible']
 ];
 
+// Funciones de sanitizacion contra inyeccion de formulas en Sheets y XSS en correos
+function Sanitizarcelda(Valor, Maximo) {
+  const Limite = Maximo || 120;
+  let Limpio = String(Valor == null ? '' : Valor)
+    .replace(/[<>]/g, '')
+    .replace(/[\u0000-\u001F\u007F]/g, '')
+    .trim()
+    .slice(0, Limite);
+  if (/^[=+\-@]/.test(Limpio)) {
+    Limpio = "'" + Limpio;
+  }
+  return Limpio;
+}
+
+function Escaparhtmlservidor(Texto) {
+  return String(Texto == null ? '' : Texto)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Lee las claves guardadas en Propiedades del Script (Clave Gemini, Token WhatsApp, Celular y Correo Admin)
 function Obtenercredenciales() {
   const Propiedades = PropertiesService.getScriptProperties().getProperties();
@@ -184,21 +207,21 @@ function Registrarosincronizarreserva(Datos) {
   }
 
   const Nuevafila = [
-    Codigoreserva,
+    Sanitizarcelda(Codigoreserva, 20),
     Fecharegistro,
-    Datos.nombre || 'Viajero',
-    String(Datos.celular || ''),
+    Sanitizarcelda(Datos.nombre || 'Viajero', 80),
+    Sanitizarcelda(Datos.celular || '', 20),
     Numerohab,
-    Datos.llegada,
-    Datos.salida,
+    Sanitizarcelda(Datos.llegada, 15),
+    Sanitizarcelda(Datos.salida, 15),
     Noches,
     Number(Datos.huespedes || 2),
-    Datos.horallegada || 'Por confirmar',
+    Sanitizarcelda(Datos.horallegada || 'Por confirmar', 40),
     Montototal,
     Number(Datos.montopagado || 0),
-    Datos.referenciapago || '',
-    Datos.entidadpago || '',
-    Estadoinicial
+    Sanitizarcelda(Datos.referenciapago || '', 60),
+    Sanitizarcelda(Datos.entidadpago || '', 40),
+    Sanitizarcelda(Estadoinicial, 20)
   ];
 
   if (Filaencontrada > 0) {
@@ -383,12 +406,12 @@ function Enviarinformecorreodiario() {
     if (Fechallegada === Hoytexto && Estado === 'Confirmada') {
       Filasllegadashoy +=
         `<tr>` +
-        `<td style="padding:8px;border:1px solid #ddd">${Fila[0]}</td>` +
-        `<td style="padding:8px;border:1px solid #ddd">Hab. ${String(Fila[4]).padStart(2, '0')}</td>` +
-        `<td style="padding:8px;border:1px solid #ddd">${Fila[2]}</td>` +
-        `<td style="padding:8px;border:1px solid #ddd">${Fila[3]}</td>` +
-        `<td style="padding:8px;border:1px solid #ddd">${Fila[9]}</td>` +
-        `<td style="padding:8px;border:1px solid #ddd">$${Montopagado.toLocaleString('es-CO')} COP (${Fila[12]})</td>` +
+        `<td style="padding:8px;border:1px solid #ddd">${Escaparhtmlservidor(Fila[0])}</td>` +
+        `<td style="padding:8px;border:1px solid #ddd">Hab. ${Escaparhtmlservidor(String(Fila[4]).padStart(2, '0'))}</td>` +
+        `<td style="padding:8px;border:1px solid #ddd">${Escaparhtmlservidor(Fila[2])}</td>` +
+        `<td style="padding:8px;border:1px solid #ddd">${Escaparhtmlservidor(Fila[3])}</td>` +
+        `<td style="padding:8px;border:1px solid #ddd">${Escaparhtmlservidor(Fila[9])}</td>` +
+        `<td style="padding:8px;border:1px solid #ddd">$${Montopagado.toLocaleString('es-CO')} COP (${Escaparhtmlservidor(Fila[12])})</td>` +
         `</tr>`;
     }
   });
@@ -398,9 +421,9 @@ function Enviarinformecorreodiario() {
     const Color = String(Hab[5]) === 'Ocupada' ? '#8C3B1F' : '#2FB45A';
     Filasestadohab +=
       `<tr>` +
-      `<td style="padding:8px;border:1px solid #ddd">Habitación ${String(Hab[0]).padStart(2, '0')}</td>` +
-      `<td style="padding:8px;border:1px solid #ddd">${Hab[1]} (${Hab[2]})</td>` +
-      `<td style="padding:8px;border:1px solid #ddd;color:${Color};font-weight:bold">${Hab[5]}</td>` +
+      `<td style="padding:8px;border:1px solid #ddd">Habitación ${Escaparhtmlservidor(String(Hab[0]).padStart(2, '0'))}</td>` +
+      `<td style="padding:8px;border:1px solid #ddd">${Escaparhtmlservidor(Hab[1])} (${Escaparhtmlservidor(Hab[2])})</td>` +
+      `<td style="padding:8px;border:1px solid #ddd;color:${Color};font-weight:bold">${Escaparhtmlservidor(Hab[5])}</td>` +
       `</tr>`;
   });
 

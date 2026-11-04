@@ -198,15 +198,29 @@
   color: var(--muted);
 }
 
-.fcol__list .link-admin {
-  color: var(--muted);
-  font-size: 13px;
-  opacity: 0.65;
+.fcol__list small .link-discreto-admin,
+.fcol__list .link-discreto-admin {
+  display: inline !important;
+  align-self: auto !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  color: inherit !important;
+  text-decoration: none !important;
+  cursor: pointer;
+  transform: none !important;
+  transition: opacity 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.fcol__list .link-admin:hover {
-  opacity: 1;
-  color: var(--cream);
+.fcol__list small .link-discreto-admin:hover {
+  transform: none !important;
+  color: inherit !important;
+  opacity: 0.85;
+}
+
+.fcol__list small .link-discreto-admin:active {
+  opacity: 0.35;
+  transform: scale(0.95) !important;
 }
 
 .footer__mark {
