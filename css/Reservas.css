@@ -221,6 +221,62 @@
   gap: 26px;
 }
 
+.oauth-sep {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--muted-dark);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 2px 0;
+}
+
+.oauth-sep::before,
+.oauth-sep::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid rgba(26, 28, 19, 0.18);
+}
+
+.oauth-sep span {
+  padding: 0 14px;
+}
+
+.btn--google {
+  background: #ffffff;
+  color: #1a1c13;
+  border: 1px solid rgba(26, 28, 19, 0.22);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 15px;
+  padding: 14px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  width: 100%;
+}
+
+.btn--google:hover {
+  background: #fdfcf9;
+  border-color: rgba(26, 28, 19, 0.45);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.btn--google:active {
+  transform: scale(0.98);
+}
+
+.btn--google svg {
+  flex-shrink: 0;
+}
+
 .field[hidden],
 .field.is-hidden {
   display: none !important;

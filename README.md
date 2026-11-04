@@ -8,7 +8,7 @@ El sitio permite a los viajeros conocer las habitaciones del hotel, verificar la
 
 ## Estructura Modular del Código
 
-- `index.html`: Estructura semántica principal, metadatos para buscadores y marcado en formato JSON-LD.
+- `index.html`: Estructura semántica principal y contenedor de los módulos de la interfaz.
 - `Administracion.html`: Panel de recepción y control de habitaciones para atención de huéspedes presenciales.
 - `robots.txt`: Directivas de rastreo e indexación para motores de búsqueda.
 - `sitemap.xml`: Mapa del sitio con las rutas del dominio.
@@ -21,10 +21,13 @@ El sitio permite a los viajeros conocer las habitaciones del hotel, verificar la
 - `css/Reservas.css`: Ventana modal de reserva, pasos del formulario y resumen de costos.
 - `css/Administracion.css`: Estilos del teclado numérico de seguridad, tarjetas del rack de habitaciones y ventana de ingreso presencial.
 - `js/Datosinicial.js`: Catálogo de habitaciones, precios y configuración inicial del establecimiento.
+- `js/Datosestructurados.js`: Inyección dinámica de datos estructurados Schema.org en formato JSON-LD para motores de búsqueda.
+- `js/Comodidades.js`: Renderizado dinámico de las tarjetas de descanso y facilidades para el huésped.
 - `js/Almacenamiento.js`: Guardado de la sesión, borradores locales y sincronización con Google Sheets.
 - `js/Validaciones.js`: Funciones de comprobación para números de celular, fechas de estadía y correos.
 - `js/Autenticacion.js`: Conexión con Firebase Authentication para registro, inicio de sesión y persistencia de cuentas.
 - `js/Modalreservas.js`: Construcción y ensamblaje modular de los cinco pasos de la ventana modal de reservas y registro.
+- `js/Piedepagina.js`: Construcción y renderizado dinámico del pie de página con navegación secundaria y datos de contacto.
 - `js/Interfaz.js`: Control visual de la ventana modal, actualización de textos y renderizado dinámico del catálogo de habitaciones.
 - `js/Animaciones.js`: Módulo de microinteracciones visuales, parallax, cursor dinámico y efectos al hacer scroll.
 - `js/script.js`: Controlador principal que coordina los eventos de reservas y el ciclo de vida de la página.
@@ -48,6 +51,12 @@ Para que los huéspedes puedan crear su cuenta y registrarse en la web:
 2. Da clic en **Comenzar** (o **Agregar nuevo proveedor**).
 3. Selecciona **Correo electrónico/Contraseña**, activa la casilla **Habilitar** y da clic en **Guardar**.
 
+### Activar Registro con Cuenta de Google
+Para que los huéspedes puedan registrarse o iniciar sesión con un solo clic usando Google:
+1. En la misma sección de [Métodos de acceso en Authentication](https://console.firebase.google.com/project/hotel-nissi-mingueo/authentication/providers), da clic en **Agregar nuevo proveedor**.
+2. Selecciona **Google**.
+3. Activa la casilla **Habilitar**, selecciona tu correo de asistencia y da clic en **Guardar**.
+
 ### Cómo volver a desplegar cambios
 Cada vez que hagas ajustes en los archivos y quieras publicarlos en internet:
 ```bash
@@ -59,7 +68,7 @@ firebase deploy --only hosting
 Para registrar huéspedes que llegan directamente al hotel en Mingueo sin reserva previa en la web:
 
 1. Abre el archivo `Administracion.html` en el navegador del computador o celular de recepción (también accesible desde el enlace discreto del pie de página en `index.html`).
-2. Ingresa el PIN de seguridad de turno (por defecto: `1234`).
+2. Ingresa el PIN de seguridad de 4 dígitos asignado para recepción.
 3. Visualiza en tiempo real el rack con las habitaciones disponibles y ocupadas sincronizadas con Google Sheets.
 4. Al dar clic en **Check-in presencial** sobre una habitación libre, diligencia el nombre, celular, fecha de salida y el medio de pago recibido (efectivo, Nequi, Daviplata o transferencia Bancolombia).
 5. Al confirmar el ingreso, la habitación queda bloqueada de inmediato como ocupada en Google Sheets (evitando reservas duplicadas desde la web o WhatsApp) y se genera la opción de enviar el recibo de bienvenida con la clave del Wi-Fi al WhatsApp del huésped.

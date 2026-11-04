@@ -193,6 +193,7 @@ function Refrescarpantalla() {
   const Titulodos = document.getElementById('loginT2');
   const Botonaccioncuenta = document.getElementById('loginCta');
   const Botonconmutarregistro = document.getElementById('toggleReg');
+  const Textoetiquetagoogle = document.getElementById('googleCta');
 
   if (Camporegistronombre) {
     Camporegistronombre.hidden = !Estadoaplicacion.creandocuenta;
@@ -209,6 +210,9 @@ function Refrescarpantalla() {
   }
   if (Botonconmutarregistro) {
     Botonconmutarregistro.textContent = Estadoaplicacion.creandocuenta ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Créala aquí';
+  }
+  if (Textoetiquetagoogle) {
+    Textoetiquetagoogle.textContent = Estadoaplicacion.creandocuenta ? 'Registrarse con Google' : 'Continuar con Google';
   }
 }
 

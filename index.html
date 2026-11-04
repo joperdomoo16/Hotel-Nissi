@@ -39,72 +39,6 @@
 <link rel="stylesheet" href="css/Habitaciones.css">
 <link rel="stylesheet" href="css/Contacto.css">
 <link rel="stylesheet" href="css/Reservas.css">
-
-<!-- Datos estructurados Schema.org en formato JSON-LD -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Hotel",
-      "@id": "https://hotel-nissi-mingueo.web.app/#hotel",
-      "name": "Hotel Nissi",
-      "description": "Hotel de paso sobre la Troncal del Caribe en Mingueo, municipio de Dibulla, La Guajira, con habitaciones confortables para descansar entre Santa Marta y Riohacha.",
-      "url": "https://hotel-nissi-mingueo.web.app/",
-      "image": "https://hotel-nissi-mingueo.web.app/assets/logo-nissi.png",
-      "telephone": "+573001234567",
-      "priceRange": "$$ (COP 90.000 - 180.000)",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Troncal del Caribe, Mingueo",
-        "addressLocality": "Mingueo, Dibulla",
-        "addressRegion": "La Guajira",
-        "addressCountry": "CO"
-      },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": 11.216310,
-        "longitude": -73.392264
-      },
-      "amenityFeature": [
-        {
-          "@type": "LocationFeatureSpecification",
-          "name": "Aire acondicionado",
-          "value": true
-        },
-        {
-          "@type": "LocationFeatureSpecification",
-          "name": "Wi-Fi",
-          "value": true
-        },
-        {
-          "@type": "LocationFeatureSpecification",
-          "name": "Baño privado",
-          "value": true
-        },
-        {
-          "@type": "LocationFeatureSpecification",
-          "name": "Parqueadero",
-          "value": true
-        }
-      ]
-    },
-    {
-      "@type": "Organization",
-      "@id": "https://hotel-nissi-mingueo.web.app/#organizacion",
-      "name": "Hotel Nissi",
-      "url": "https://hotel-nissi-mingueo.web.app/",
-      "logo": "https://hotel-nissi-mingueo.web.app/assets/logo-nissi.png",
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "telephone": "+573001234567",
-        "contactType": "customer service",
-        "availableLanguage": ["es"]
-      }
-    }
-  ]
-}
-</script>
 <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -286,35 +220,8 @@
   <section class="section sand" id="descanso" aria-labelledby="titulodescanso">
     <img class="water" id="water" src="assets/nissi-mark-dark.png" alt="" width="820" height="820" loading="lazy">
     <h2 class="display rest__h on-light" id="titulodescanso" data-reveal>La infraestructura es sencilla. <em>El descanso, no.</em></h2>
-    <div class="cards">
-      <div class="card" data-reveal data-tilt>
-        <span class="card__n">i.</span>
-        <div>
-          <span class="card__t">Silencio</span>
-          <span class="card__d">Solo seis habitaciones. Sin fiestas, sin ruido de ciudad.</span>
-        </div>
-      </div>
-      <div class="card" data-reveal data-tilt>
-        <span class="card__n">ii.</span>
-        <div>
-          <span class="card__t">Aire frío</span>
-          <span class="card__d">Aire acondicionado para dormir bien en el calor guajiro.</span>
-        </div>
-      </div>
-      <div class="card" data-reveal data-tilt>
-        <span class="card__n">iii.</span>
-        <div>
-          <span class="card__t">Llega tarde</span>
-          <span class="card__d">Avísanos tu hora y te esperamos, aunque sea de madrugada.</span>
-        </div>
-      </div>
-      <div class="card" data-reveal data-tilt>
-        <span class="card__n">iv.</span>
-        <div>
-          <span class="card__t">Parqueadero</span>
-          <span class="card__d">Espacio para tu carro o moto mientras descansas.</span>
-        </div>
-      </div>
+    <div class="cards" id="cardsDescanso">
+      <!-- Generado dinámicamente con Comodidades.js -->
     </div>
   </section>
 
@@ -340,90 +247,33 @@
 
 </main>
 
-<!-- Pie de pagina general con navegacion secundaria y datos de contacto -->
-<footer class="footer" itemscope itemtype="https://schema.org/WPFooter">
-  <div class="footer__top">
-    <div class="footer__cta" data-reveal>
-      <span class="eyebrow">Tu próxima parada</span>
-      <p class="display footer__h">Duerme bien. <em>Sigue tu ruta mañana.</em></p>
-      <div class="row">
-        <a class="btn btn--cream js-wa" href="https://wa.me/573001234567?text=Hola%20Hotel%20Nissi%2C%20quiero%20reservar%20una%20habitaci%C3%B3n." target="_blank" rel="noopener" data-magnetic data-cursor="Chat">
-          <span class="dot dot--wa"></span>Escribir por WhatsApp
-        </a>
-        <button class="btn btn--ghost js-book" type="button" data-cursor="Reservar">Reservar en la web</button>
-      </div>
-    </div>
-    <div class="footer__cols" data-reveal>
-      <nav class="fcol" aria-label="Explorar secciones">
-        <span class="eyebrow">Explorar</span>
-        <ul class="fcol__list">
-          <li><a href="#ubicacion">Ubicación</a></li>
-          <li><a href="#habitaciones">Habitaciones</a></li>
-          <li><a href="#descanso">Descanso</a></li>
-          <li><button class="link-btn js-login" type="button">Ingresar</button></li>
-          <li><a href="Administracion.html" class="link-btn link-admin">Recepción 🔒</a></li>
-        </ul>
-      </nav>
-      <nav class="fcol" aria-label="Información de contacto">
-        <span class="eyebrow">Visítanos</span>
-        <ul class="fcol__list">
-          <li><a class="js-maps" href="https://maps.app.goo.gl/TudMNAdQRpVyzHZGA" target="_blank" rel="noopener">Mingueo (Dibulla)<br>La Guajira, Colombia</a></li>
-          <li class="fcol__apps">
-            <a class="apppill js-maps" href="https://maps.app.goo.gl/TudMNAdQRpVyzHZGA" target="_blank" rel="noopener" aria-label="Abrir en Google Maps">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#iconMaps"></use></svg>
-              Maps
-            </a>
-            <a class="apppill js-waze" href="https://waze.com/ul?ll=11.216310,-73.392264&navigate=yes" target="_blank" rel="noopener" aria-label="Abrir en Waze">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#iconWaze"></use></svg>
-              Waze
-            </a>
-          </li>
-          <li><a class="js-wa js-wa-num" href="https://wa.me/573001234567" target="_blank" rel="noopener">+573001234567</a></li>
-          <li><small>Recepción 24 horas</small></li>
-        </ul>
-      </nav>
-    </div>
-  </div>
-  <div class="footer__mark">
-    <div class="footer__line" data-reveal="line"></div>
-    <div class="footer__word">
-      <div>N<em>issi</em></div>
-      <a href="#inicio" class="footer__seal" data-magnetic data-cursor="Inicio" aria-label="Volver al inicio de Hotel Nissi">
-        <svg class="ring" viewBox="0 0 200 200" aria-hidden="true">
-          <text textLength="510" lengthAdjust="spacing">
-            <textPath href="#ringPath">Hotel Nissi · Mingueo · La Guajira · </textPath>
-          </text>
-        </svg>
-        <img src="assets/nissi-mark.png" alt="Emblema Hotel Nissi" width="120" height="120">
-      </a>
-    </div>
-  </div>
-  <div class="footer__bar">
-    <span>© 2026 Hotel Nissi</span>
-    <span>Santa Marta · Palomino · Riohacha</span>
-    <a href="#inicio">Volver arriba <span>↑</span></a>
-  </div>
+<!-- Pie de página general con navegación secundaria y datos de contacto -->
+<footer class="footer" id="piePagina" itemscope itemtype="https://schema.org/WPFooter">
+  <!-- Generado dinámicamente con Piedepagina.js -->
 </footer>
 
 <a class="wa-float js-wa" href="https://wa.me/573001234567?text=Hola%20Hotel%20Nissi%2C%20quiero%20reservar%20una%20habitaci%C3%B3n." target="_blank" rel="noopener" data-magnetic data-cursor="Chat" aria-label="Reservar por WhatsApp">
   <span class="dot dot--pulse"></span>Reservar por WhatsApp
 </a>
 
-<!-- Ventana modal modular de reserva y cotizacion -->
+<!-- Ventana modal modular de reserva y cotización -->
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
   <!-- Ensamblado de forma modular mediante Modalreservas.js -->
 </div>
 
-<!-- Librerias oficiales de Firebase (CDN) -->
+<!-- Librerías oficiales de Firebase (CDN) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
 <!-- Scripts en orden estricto de dependencias -->
 <script src="js/Datosinicial.js"></script>
+<script src="js/Datosestructurados.js"></script>
+<script src="js/Comodidades.js"></script>
 <script src="js/Almacenamiento.js"></script>
 <script src="js/Validaciones.js"></script>
 <script src="js/Autenticacion.js"></script>
 <script src="js/Modalreservas.js"></script>
+<script src="js/Piedepagina.js"></script>
 <script src="js/Interfaz.js"></script>
 <script src="js/Animaciones.js"></script>
 <script src="js/script.js"></script>

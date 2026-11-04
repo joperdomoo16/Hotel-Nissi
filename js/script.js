@@ -1,12 +1,18 @@
 // Coordinador general de la aplicacion, eventos de reservas y conexion de modulos
 
 document.addEventListener('DOMContentLoaded', function() {
-  // Construccion modular de la ventana modal y del catalogo de habitaciones
+  // Construccion modular de componentes de interfaz
   if (typeof Construirmodalreservas === 'function') {
     Construirmodalreservas();
   }
   if (typeof Renderizarcatalogohabitaciones === 'function') {
     Renderizarcatalogohabitaciones();
+  }
+  if (typeof Renderizardescanso === 'function') {
+    Renderizardescanso();
+  }
+  if (typeof Renderizarpiedepagina === 'function') {
+    Renderizarpiedepagina();
   }
 
   // Carga de sesion previa si existe en almacenamiento local
@@ -201,6 +207,39 @@ document.addEventListener('DOMContentLoaded', function() {
             Botonenvio.disabled = false;
             Botonenvio.innerHTML = Textobotonoriginal;
           }
+        });
+    });
+  }
+
+  // Autenticacion y registro con cuenta de Google
+  const Botongoogle = document.getElementById('btnGoogleAuth');
+  if (Botongoogle) {
+    Botongoogle.addEventListener('click', function() {
+      Mostrarmensajeerror('');
+      const Contenidobotonoriginal = Botongoogle.innerHTML;
+      Botongoogle.disabled = true;
+      Botongoogle.textContent = 'Conectando con Google...';
+
+      Autenticarcongoogle()
+        .then(function(Respuesta) {
+          const Usuariodatos = Respuesta.user || Respuesta;
+          const Nombreasignado = Usuariodatos.displayName || (Usuariodatos.email ? Usuariodatos.email.split('@')[0] : 'viajero');
+          Estadoaplicacion.usuariologueado = Nombreasignado;
+          Estadoaplicacion.nombreviajero = Nombreasignado;
+          if (Usuariodatos.email) {
+            Estadoaplicacion.correoviajero = Usuariodatos.email;
+          }
+          Guardardatossesion(Nombreasignado);
+          Mostrarmensajeerror('');
+          Cambiarpasomodal('dates');
+        })
+        .catch(function(Errorautenticacion) {
+          const Codigoerror = Errorautenticacion.code || '';
+          Mostrarmensajeerror(Traducirerrorfirebase(Codigoerror));
+        })
+        .finally(function() {
+          Botongoogle.disabled = false;
+          Botongoogle.innerHTML = Contenidobotonoriginal;
         });
     });
   }

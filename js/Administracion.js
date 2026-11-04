@@ -2,7 +2,7 @@
 
 const Estadorecepcion = {
   autenticado: false,
-  pincorrecto: '1234',
+  pincorrecto: '1973',
   pinactual: '',
   habitaciones: [],
   habitacionseleccionada: null,
