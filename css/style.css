@@ -52,6 +52,17 @@ img {
   height: auto;
 }
 
+/* Contenedor de simbolos vectoriales reutilizables sin ocupar espacio */
+.simbolos,
+svg[hidden] {
+  display: none !important;
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 button, input {
   font-family: var(--sans);
 }

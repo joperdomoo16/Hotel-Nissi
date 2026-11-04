@@ -28,16 +28,16 @@
   justify-content: space-between;
   gap: 24px;
   padding: 12px var(--pad);
-  background: rgba(26, 28, 19, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(242, 234, 219, 0.08);
-  transition: background 0.3s, border-color 0.3s;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), backdrop-filter 0.4s, border-color 0.4s;
 }
 
 .nav.is-scrolled {
-  background: rgba(26, 28, 19, 0.94);
-  border-bottom-color: rgba(242, 234, 219, 0.14);
+  background: rgba(26, 28, 19, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom-color: rgba(242, 234, 219, 0.1);
 }
 
 .brand {
