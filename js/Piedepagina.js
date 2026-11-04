@@ -1,9 +1,12 @@
 // Modulo de construccion y renderizado dinamico del pie de pagina
 
 function Renderizarpiedepagina() {
-  const Contenedorpie = document.getElementById('piePagina');
+  const Contenedorpie = document.getElementById('piePagina') || document.querySelector('footer.footer');
   if (!Contenedorpie) {
     return;
+  }
+  if (!Contenedorpie.id) {
+    Contenedorpie.id = 'piePagina';
   }
 
   Contenedorpie.innerHTML = `

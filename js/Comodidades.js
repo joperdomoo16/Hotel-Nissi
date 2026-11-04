@@ -24,9 +24,12 @@ const Tarjetasdescanso = [
 ];
 
 function Renderizardescanso() {
-  const Contenedordescanso = document.getElementById('cardsDescanso');
+  const Contenedordescanso = document.getElementById('cardsDescanso') || document.querySelector('#descanso .cards');
   if (!Contenedordescanso) {
     return;
+  }
+  if (!Contenedordescanso.id) {
+    Contenedordescanso.id = 'cardsDescanso';
   }
 
   let Htmltarjetas = '';
