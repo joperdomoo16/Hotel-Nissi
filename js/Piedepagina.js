@@ -28,7 +28,8 @@ function Renderizarpiedepagina() {
             <li><a href="#ubicacion">Ubicación</a></li>
             <li><a href="#habitaciones">Habitaciones</a></li>
             <li><a href="#descanso">Descanso</a></li>
-            <li><button class="link-btn js-login" type="button">Ingresar</button></li>
+            <li id="footerLoginItem"><button class="link-btn js-login" type="button">Ingresar</button></li>
+            <li id="footerLogoutItem" hidden><button class="link-btn js-logout" type="button" style="color:var(--rust);">Cerrar sesión ⎋</button></li>
           </ul>
         </nav>
         <nav class="fcol" aria-label="Información de contacto">

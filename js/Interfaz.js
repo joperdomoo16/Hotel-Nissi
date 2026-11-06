@@ -155,11 +155,37 @@ function Refrescarpantalla() {
     }
   });
 
+  const Eslogueado = Boolean(Estadoaplicacion.usuariologueado);
+  const Nombrecorto = Eslogueado ? Estadoaplicacion.usuariologueado.split(' ')[0] : '';
+  const Nombrecompleto = Estadoaplicacion.nombreviajero || Estadoaplicacion.usuariologueado || 'Viajero';
+  const Correousuario = Estadoaplicacion.correoviajero || '';
+
+  // Actualizacion de botones generales de login
   document.querySelectorAll('.js-login').forEach(function(Botonusuario) {
-    Botonusuario.textContent = Estadoaplicacion.usuariologueado
-      ? `Hola, ${Estadoaplicacion.usuariologueado.split(' ')[0]}`
-      : 'Ingresar';
+    Botonusuario.textContent = Eslogueado ? `Hola, ${Nombrecorto}` : 'Ingresar';
   });
+
+  // Barra de navegacion superior: boton ingresar vs menu de usuario
+  const Botonnavlogin = document.getElementById('btnNavLogin');
+  const Cajausuarionav = document.getElementById('navUserAuth');
+  const Textonombreusuario = document.getElementById('navUserName');
+  const Textodropnombre = document.getElementById('userDropName');
+  const Textodropcorreo = document.getElementById('userDropEmail');
+
+  if (Botonnavlogin) Botonnavlogin.hidden = Eslogueado;
+  if (Cajausuarionav) Cajausuarionav.hidden = !Eslogueado;
+  if (Textonombreusuario) Textonombreusuario.textContent = `Hola, ${Nombrecorto}`;
+  if (Textodropnombre) Textodropnombre.textContent = Nombrecompleto;
+  if (Textodropcorreo) Textodropcorreo.textContent = Correousuario;
+
+  // Pie de pagina
+  const Footerlogin = document.getElementById('footerLoginItem');
+  const Footerlogout = document.getElementById('footerLogoutItem');
+  if (Footerlogin) {
+    const Btnlogin = Footerlogin.querySelector('button');
+    if (Btnlogin) Btnlogin.textContent = Eslogueado ? `Hola, ${Nombrecorto}` : 'Ingresar';
+  }
+  if (Footerlogout) Footerlogout.hidden = !Eslogueado;
 
   Actualizarmensajeswhatsapp();
 
@@ -185,10 +211,37 @@ function Refrescarpantalla() {
     Etiquetapaso.textContent = Textospasos[Indicemodales] || '';
   }
   if (Etiquetausuario) {
-    Etiquetausuario.textContent = Estadoaplicacion.usuariologueado
-      ? `Sesión: ${Estadoaplicacion.usuariologueado}`
+    Etiquetausuario.textContent = Eslogueado
+      ? `Sesión: ${Nombrecorto}`
       : 'Invitado';
   }
+  const Botonlogoutmodal = document.getElementById('modalLogoutBtn');
+  if (Botonlogoutmodal) {
+    Botonlogoutmodal.hidden = !Eslogueado;
+  }
+
+  // Modal Paso 1: texto descriptivo de la eleccion de usuario
+  const Textologineleccion = document.getElementById('choiceLoginText');
+  const Eletiquetachoice = document.getElementById('choiceLoginTag');
+  if (Textologineleccion) {
+    Textologineleccion.innerHTML = Eslogueado
+      ? `<b>Sesión activa</b>Conectado como ${Nombrecorto}. Continúa o administra tu cuenta.`
+      : `<b>Iniciar sesión</b>Tus datos guardados y el historial de tus estadías.`;
+  }
+  if (Eletiquetachoice) {
+    Eletiquetachoice.textContent = Eslogueado ? 'Sesión iniciada' : 'Usuario registrado';
+  }
+
+  // Modal Paso 2: tarjeta de sesion activa vs formulario
+  const Tarjetausuarioactivo = document.getElementById('userActiveCard');
+  const Formularioingreso = document.getElementById('loginForm');
+  const Textonombreactivo = document.getElementById('userActiveName');
+  const Textocorreoactivo = document.getElementById('userActiveEmail');
+
+  if (Tarjetausuarioactivo) Tarjetausuarioactivo.hidden = !Eslogueado;
+  if (Formularioingreso) Formularioingreso.hidden = Eslogueado;
+  if (Textonombreactivo) Textonombreactivo.textContent = Nombrecompleto;
+  if (Textocorreoactivo) Textocorreoactivo.textContent = Correousuario;
 
   const Camporegistronombre = document.getElementById('regName');
   const Titulouno = document.getElementById('loginT1');
@@ -202,10 +255,10 @@ function Refrescarpantalla() {
     Camporegistronombre.classList.toggle('is-hidden', !Estadoaplicacion.creandocuenta);
   }
   if (Titulouno) {
-    Titulouno.textContent = Estadoaplicacion.creandocuenta ? 'Crea tu' : 'Iniciar';
+    Titulouno.textContent = Eslogueado ? 'Tu' : (Estadoaplicacion.creandocuenta ? 'Crea tu' : 'Iniciar');
   }
   if (Titulodos) {
-    Titulodos.textContent = Estadoaplicacion.creandocuenta ? 'cuenta.' : 'sesión.';
+    Titulodos.textContent = Eslogueado ? 'cuenta.' : (Estadoaplicacion.creandocuenta ? 'cuenta.' : 'sesión.');
   }
   if (Botonaccioncuenta) {
     Botonaccioncuenta.textContent = Estadoaplicacion.creandocuenta ? 'Crear cuenta' : 'Ingresar';

@@ -88,7 +88,32 @@
       <a href="#whatsapp">Contacto</a>
     </div>
     <div class="nav__actions">
-      <button class="btn btn--ghost btn--sm js-login" type="button">Ingresar</button>
+      <div class="nav__user" id="navUserMenu">
+        <button class="btn btn--ghost btn--sm js-login" type="button" id="btnNavLogin">Ingresar</button>
+        <div class="nav__user-auth" id="navUserAuth" hidden>
+          <button class="btn btn--ghost btn--sm nav__user-btn" type="button" id="btnNavUser" aria-expanded="false" aria-haspopup="true">
+            <span class="nav__user-dot"></span>
+            <span id="navUserName">Mi cuenta</span>
+            <svg class="nav__user-arrow" viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="nav__user-dropdown" id="navUserDropdown" hidden>
+            <div class="nav__user-head">
+              <strong id="userDropName">Viajero</strong>
+              <small id="userDropEmail">correo@ejemplo.com</small>
+            </div>
+            <div class="nav__user-menu-list">
+              <button class="nav__user-menu-item js-book" type="button">
+                <span>Nueva reserva</span>
+                <span class="nav__user-arrow-r">→</span>
+              </button>
+              <button class="nav__user-menu-item nav__user-menu-item--danger js-logout" type="button">
+                <span>Cerrar sesión</span>
+                <span>⎋</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <button class="btn btn--cream btn--sm js-book" type="button" data-magnetic data-cursor="Reservar">Reservar</button>
     </div>
   </nav>

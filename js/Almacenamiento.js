@@ -241,6 +241,14 @@ function Obtenerdatossesion() {
   }
 }
 
+function Limpiardatossesion() {
+  try {
+    localStorage.removeItem(Clavealmacenamientousuario);
+  } catch (Erroralmacenamiento) {
+    // Control de almacenamiento
+  }
+}
+
 function Guardarborradorreserva(Datosreserva) {
   try {
     localStorage.setItem(Clavealmacenamientoreserva, JSON.stringify(Datosreserva));

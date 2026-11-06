@@ -27,7 +27,10 @@ function Construirmodalreservas() {
       <div class="mprog" id="mprog" hidden>
         <div class="mprog__labels">
           <span id="stepLabel"></span>
-          <span id="userTag">Invitado</span>
+          <span class="user-tag-wrap">
+            <span id="userTag">Invitado</span>
+            <button class="link-btn js-logout link-logout-inline" type="button" id="modalLogoutBtn" hidden title="Cerrar sesión">Cerrar sesión ⎋</button>
+          </span>
         </div>
         <div class="mprog__bar"><div id="progBar"></div></div>
       </div>
@@ -40,9 +43,9 @@ function Construirmodalreservas() {
             <small>Sin registro</small>
             <span><b>Como invitado</b>Solo tus datos básicos. Listo en un minuto.</span>
           </button>
-          <button class="choice choice--line" type="button" data-go="login">
-            <small>Usuario registrado</small>
-            <span><b>Iniciar sesión</b>Tus datos guardados y el historial de tus estadías.</span>
+          <button class="choice choice--line" type="button" data-go="login" id="choiceLogin">
+            <small id="choiceLoginTag">Usuario registrado</small>
+            <span id="choiceLoginText"><b>Iniciar sesión</b>Tus datos guardados y el historial de tus estadías.</span>
           </button>
           <a class="choice choice--olive js-wa" href="https://wa.me/573001234567?text=Hola%20Hotel%20Nissi%2C%20quiero%20reservar%20una%20habitaci%C3%B3n." target="_blank" rel="noopener">
             <small><span class="dot dot--pulse dot--sm"></span>Más rápido</small>
@@ -54,6 +57,15 @@ function Construirmodalreservas() {
       <!-- Paso 2: Inicio de sesion o registro -->
       <div class="step two" data-step="login" hidden>
         <h3 class="display mh"><span id="loginT1">Iniciar</span><br><em id="loginT2">sesión.</em></h3>
+        <div class="user-active-card" id="userActiveCard" hidden>
+          <div class="user-active-avatar">👤</div>
+          <h4 id="userActiveName">Viajero</h4>
+          <p id="userActiveEmail">correo@ejemplo.com</p>
+          <div class="row row--amplia" style="margin-top:16px;">
+            <button class="btn btn--dark" type="button" data-go="dates">Continuar con la reserva →</button>
+            <button class="btn btn--outline-dark js-logout" type="button">Cerrar sesión</button>
+          </div>
+        </div>
         <form class="form" id="loginForm" novalidate>
           <label class="field is-hidden" id="regName" hidden>
             <span>Nombre completo</span>

@@ -35,6 +35,13 @@ document.addEventListener('DOMContentLoaded', function() {
           Estadoaplicacion.correoviajero = Usuario.email;
         }
         Guardardatossesion(Nombreidentificado);
+      } else {
+        Estadoaplicacion.usuariologueado = '';
+        Estadoaplicacion.nombreviajero = '';
+        Estadoaplicacion.correoviajero = '';
+        if (typeof Limpiardatossesion === 'function') {
+          Limpiardatossesion();
+        }
       }
       Refrescarpantalla();
     });
@@ -151,6 +158,71 @@ document.addEventListener('DOMContentLoaded', function() {
     if (Eventoteclado.key === 'Escape' && Modaldom && Modaldom.classList.contains('is-open')) {
       Cerrarventanamodal();
     }
+    const Dropdownusuario = document.getElementById('navUserDropdown');
+    const Botonmenuusuario = document.getElementById('btnNavUser');
+    if (Eventoteclado.key === 'Escape' && Dropdownusuario && !Dropdownusuario.hidden) {
+      Dropdownusuario.hidden = true;
+      if (Botonmenuusuario) Botonmenuusuario.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // Control de apertura y cierre del menu desplegable de usuario
+  const Botonmenuusuario = document.getElementById('btnNavUser');
+  const Dropdownusuario = document.getElementById('navUserDropdown');
+  if (Botonmenuusuario && Dropdownusuario) {
+    Botonmenuusuario.addEventListener('click', function(Evento) {
+      Evento.stopPropagation();
+      const Estaoculto = Dropdownusuario.hidden;
+      Dropdownusuario.hidden = !Estaoculto;
+      Botonmenuusuario.setAttribute('aria-expanded', Estaoculto ? 'true' : 'false');
+    });
+
+    document.addEventListener('click', function(Evento) {
+      if (!Evento.target.closest('#navUserMenu')) {
+        Dropdownusuario.hidden = true;
+        Botonmenuusuario.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  // Cierre de sesion en todos los componentes (.js-logout)
+  document.addEventListener('click', function(Evento) {
+    const Botoncerrarsesion = Evento.target.closest('.js-logout');
+    if (!Botoncerrarsesion) {
+      return;
+    }
+    Evento.preventDefault();
+    if (Dropdownusuario) {
+      Dropdownusuario.hidden = true;
+      if (Botonmenuusuario) Botonmenuusuario.setAttribute('aria-expanded', 'false');
+    }
+    const Accioncierre = typeof Cerrarsesionusuario === 'function'
+      ? Cerrarsesionusuario()
+      : Promise.resolve();
+
+    Accioncierre
+      .then(function() {
+        Estadoaplicacion.usuariologueado = '';
+        Estadoaplicacion.nombreviajero = '';
+        Estadoaplicacion.correoviajero = '';
+        Estadoaplicacion.claveviajero = '';
+        if (typeof Limpiardatossesion === 'function') {
+          Limpiardatossesion();
+        }
+        Refrescarpantalla();
+        if (Estadoaplicacion.pasomodal === 'login') {
+          Cambiarpasomodal('choose');
+        }
+      })
+      .catch(function() {
+        Estadoaplicacion.usuariologueado = '';
+        Estadoaplicacion.nombreviajero = '';
+        Estadoaplicacion.correoviajero = '';
+        if (typeof Limpiardatossesion === 'function') {
+          Limpiardatossesion();
+        }
+        Refrescarpantalla();
+      });
   });
 
   // Conmutador y envio de formulario de inicio de sesion o registro
