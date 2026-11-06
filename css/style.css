@@ -52,6 +52,11 @@ img {
   height: auto;
 }
 
+/* Ocultamiento estricto para elementos con atributo hidden */
+[hidden] {
+  display: none !important;
+}
+
 /* Contenedor de simbolos vectoriales reutilizables sin ocupar espacio */
 .simbolos,
 svg[hidden] {

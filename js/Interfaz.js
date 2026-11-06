@@ -160,20 +160,30 @@ function Refrescarpantalla() {
   const Nombrecompleto = Estadoaplicacion.nombreviajero || Estadoaplicacion.usuariologueado || 'Viajero';
   const Correousuario = Estadoaplicacion.correoviajero || '';
 
-  // Actualizacion de botones generales de login
+  // Actualizacion de botones generales de login (excluyendo el del navbar que tiene menu con punto verde)
   document.querySelectorAll('.js-login').forEach(function(Botonusuario) {
-    Botonusuario.textContent = Eslogueado ? `Hola, ${Nombrecorto}` : 'Ingresar';
+    if (Botonusuario.id !== 'btnNavLogin') {
+      Botonusuario.textContent = Eslogueado ? `Hola, ${Nombrecorto}` : 'Ingresar';
+    } else {
+      Botonusuario.textContent = 'Ingresar';
+    }
   });
 
-  // Barra de navegacion superior: boton ingresar vs menu de usuario
+  // Barra de navegacion superior: boton ingresar vs menu de usuario con punto verde
   const Botonnavlogin = document.getElementById('btnNavLogin');
   const Cajausuarionav = document.getElementById('navUserAuth');
   const Textonombreusuario = document.getElementById('navUserName');
   const Textodropnombre = document.getElementById('userDropName');
   const Textodropcorreo = document.getElementById('userDropEmail');
 
-  if (Botonnavlogin) Botonnavlogin.hidden = Eslogueado;
-  if (Cajausuarionav) Cajausuarionav.hidden = !Eslogueado;
+  if (Botonnavlogin) {
+    Botonnavlogin.hidden = Eslogueado;
+    Botonnavlogin.style.display = Eslogueado ? 'none' : '';
+  }
+  if (Cajausuarionav) {
+    Cajausuarionav.hidden = !Eslogueado;
+    Cajausuarionav.style.display = Eslogueado ? 'inline-flex' : 'none';
+  }
   if (Textonombreusuario) Textonombreusuario.textContent = `Hola, ${Nombrecorto}`;
   if (Textodropnombre) Textodropnombre.textContent = Nombrecompleto;
   if (Textodropcorreo) Textodropcorreo.textContent = Correousuario;

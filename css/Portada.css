@@ -111,7 +111,8 @@
   align-items: center;
 }
 
-.nav__user-auth[hidden] {
+.nav__user-auth[hidden],
+#btnNavLogin[hidden] {
   display: none !important;
 }
 
