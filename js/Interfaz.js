@@ -234,8 +234,9 @@ function Refrescarpantalla() {
   const Textologineleccion = document.getElementById('choiceLoginText');
   const Eletiquetachoice = document.getElementById('choiceLoginTag');
   if (Textologineleccion) {
+    const Nombreseguro = typeof Escaparhtml === 'function' ? Escaparhtml(Nombrecorto) : Nombrecorto;
     Textologineleccion.innerHTML = Eslogueado
-      ? `<b>Sesión activa</b>Conectado como ${Nombrecorto}. Continúa o administra tu cuenta.`
+      ? `<b>Sesión activa</b>Conectado como ${Nombreseguro}. Continúa o administra tu cuenta.`
       : `<b>Iniciar sesión</b>Tus datos guardados y el historial de tus estadías.`;
   }
   if (Eletiquetachoice) {

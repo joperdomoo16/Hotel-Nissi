@@ -1,0 +1,284 @@
+/* Modulo de rack de habitaciones en tiempo real y modal de check-in presencial */
+
+/* Tablero de Rack de Habitaciones */
+.rack-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.rack-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 300;
+}
+
+.rack-legend {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.is-free {
+  background: #2FB45A;
+  box-shadow: 0 0 10px rgba(47, 180, 90, 0.4);
+}
+
+.legend-dot.is-busy {
+  background: #D94436;
+  box-shadow: 0 0 10px rgba(217, 68, 54, 0.4);
+}
+
+.rack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.room-card {
+  background: var(--ink2);
+  border: 1px solid rgba(242, 234, 219, 0.14);
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.3s var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.room-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+.room-card.is-available::before {
+  background: #2FB45A;
+}
+
+.room-card.is-occupied::before {
+  background: #D94436;
+}
+
+.room-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.room-card-num {
+  font-family: var(--serif);
+  font-size: 38px;
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1;
+}
+
+.room-card-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.room-card.is-available .room-card-status {
+  background: rgba(47, 180, 90, 0.15);
+  color: #55E482;
+  border: 1px solid rgba(47, 180, 90, 0.3);
+}
+
+.room-card.is-occupied .room-card-status {
+  background: rgba(217, 68, 54, 0.15);
+  color: #FF7B6E;
+  border: 1px solid rgba(217, 68, 54, 0.3);
+}
+
+.room-card-type {
+  font-family: var(--serif);
+  font-size: 22px;
+  margin: 0;
+}
+
+.room-card-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--muted);
+  border-top: 1px solid rgba(242, 234, 219, 0.08);
+  padding-top: 12px;
+}
+
+.room-card-price {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--sand);
+}
+
+/* Modal de Check-in Presencial */
+.modal-admin {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: rgba(14, 15, 10, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.modal-admin[hidden] {
+  display: none !important;
+}
+
+.admin-dialog {
+  width: min(100%, 540px);
+  background: var(--ink);
+  border: 1px solid rgba(242, 234, 219, 0.2);
+  border-radius: 28px;
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.8);
+}
+
+.admin-dialog-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-dialog-head h3 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.admin-dialog-head h3 em {
+  color: var(--rust);
+}
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.admin-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-field span {
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.admin-field input,
+.admin-field select {
+  background: rgba(242, 234, 219, 0.05);
+  border: 1px solid rgba(242, 234, 219, 0.2);
+  border-radius: 12px;
+  color: var(--cream);
+  font-size: 16px;
+  padding: 12px 14px;
+  outline: none;
+  font-family: var(--sans);
+}
+
+.admin-field input:focus,
+.admin-field select:focus {
+  border-color: var(--sand);
+  background: rgba(242, 234, 219, 0.09);
+}
+
+.admin-field select option {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.admin-total-box {
+  background: rgba(242, 234, 219, 0.05);
+  border: 1px solid rgba(242, 234, 219, 0.12);
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.admin-total-box span {
+  font-size: 13px;
+  color: var(--sand);
+}
+
+.admin-total-box b {
+  font-family: var(--serif);
+  font-size: 26px;
+  color: var(--cream);
+}
+
+.room-card-action {
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.room-card-action .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.admin-form .err {
+  min-height: 18px;
+}
+
+.admin-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.admin-form-actions .btn--cream {
+  flex: 1;
+  justify-content: center;
+}
+
