@@ -1,3 +1,5 @@
 # Cache local de despliegue de Firebase
 .firebase/
 
+# Carpeta de distribucion limpia generada para hosting
+dist/

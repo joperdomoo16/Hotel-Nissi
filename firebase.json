@@ -1,6 +1,9 @@
 {
   "hosting": {
-    "public": ".",
+    "public": "dist",
+    "predeploy": [
+      "node Compilador.js"
+    ],
     "ignore": [
       "firebase.json",
       ".firebaserc",
@@ -49,4 +52,3 @@
     ]
   }
 }
-
