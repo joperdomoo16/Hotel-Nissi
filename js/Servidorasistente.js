@@ -1,4 +1,4 @@
-// Servidor Asistente IA, WhatsApp Cloud API, Vision Comprobantes y Correo Diario para Hotel Nissi
+// Servidor Asistente IA, WhatsApp Cloud API, Vision Comprobantes y Correo Diario para Hospedaje Nissi
 
 // Reloj automatico diario: envia informe completo al correo del administrador
 function Enviarinformecorreodiario() {
@@ -60,7 +60,7 @@ function Enviarinformecorreodiario() {
 
   const Cuerpohtml =
     `<div style="font-family:sans-serif;color:#1A1C13;max-width:680px">` +
-    `<h2>Informe Diario · Hotel Nissi (${Hoytexto})</h2>` +
+    `<h2>Informe Diario · Hospedaje Nissi (${Hoytexto})</h2>` +
     `<p><strong>Reservas confirmadas hoy:</strong> ${Confirmadasdia} · ` +
     `<strong>Recaudo validado hoy:</strong> $${Recaudodia.toLocaleString('es-CO')} COP</p>` +
     `<h3>Estado actual de las 6 habitaciones</h3>` +
@@ -75,7 +75,7 @@ function Enviarinformecorreodiario() {
 
   MailApp.sendEmail({
     to: Credenciales.correoadmin,
-    subject: `Informe Diario Hotel Nissi · ${Hoytexto}`,
+    subject: `Informe Diario Hospedaje Nissi · ${Hoytexto}`,
     htmlBody: Cuerpohtml
   });
 }
@@ -156,7 +156,7 @@ function Procesarmensajecongemini(Celularcliente, Textomensaje) {
 
   const Hoy = Utilities.formatDate(new Date(), 'America/Bogota', 'yyyy-MM-dd');
   const Instruccionessistema =
-    `Eres el asistente de recepción 24/7 de Hotel Nissi en Mingueo, municipio de Dibulla, La Guajira (Troncal del Caribe, entre Santa Marta y Riohacha). ` +
+    `Eres el asistente de recepción 24/7 de Hospedaje Nissi en Mingueo, municipio de Dibulla, La Guajira (Troncal del Caribe, entre Santa Marta y Riohacha). ` +
     `Hoy es ${Hoy}. Hablas en español colombiano amable, breve y claro. ` +
     `Usa siempre las herramientas para consultar qué habitaciones están disponibles en Google Sheets, registrar solicitudes y validar pagos cuando el huésped envíe un comprobante. ` +
     `Precios por noche en pesos colombianos: Sencilla (01 y 02) $90.000 COP, Doble (03 y 04) $120.000 COP, Triple (05) $150.000 COP, Familiar (06) $180.000 COP.`;

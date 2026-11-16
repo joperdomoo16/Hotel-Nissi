@@ -1,10 +1,10 @@
-// Catalogo de habitaciones, tarifas en pesos colombianos y datos iniciales del hotel
+// Catalogo de habitaciones, tarifas en pesos colombianos y datos iniciales del hospedaje
 const Configuracionhotel = {
   celular: '573001234567',
   urlservidor: 'https://script.google.com/macros/s/AKfycbyEAwa8yflxqsW7UwagAJ4AvCYHfSSvZ7djEKnNLS1gprzAjWKqG5zjDGBZ5a4cMyAJew/exec',
   mostrarcortina: true,
   cursorpersonalizado: true,
-  nombre: 'Hotel Nissi',
+  nombre: 'Hospedaje Nissi',
   corregimiento: 'Mingueo',
   municipio: 'Dibulla',
   departamento: 'La Guajira',
@@ -78,7 +78,7 @@ const Habitacioneshotel = [
 
 const Mensajeschat = [
   { mio: true, texto: 'Hola, ¿tienen habitación para esta noche? Somos 2.' },
-  { mio: false, texto: 'Hola, soy el asistente de Hotel Nissi. Hoy tenemos disponible la 03 (doble). ¿A qué hora llegan?' },
+  { mio: false, texto: 'Hola, soy el asistente de Hospedaje Nissi. Hoy tenemos disponible la 03 (doble). ¿A qué hora llegan?' },
   { mio: true, texto: 'Como a las 10 pm, venimos de Santa Marta.' },
   { mio: false, texto: 'Perfecto. Te envío el resumen y la tarifa para confirmar. La recepción queda avisada.' }
 ];

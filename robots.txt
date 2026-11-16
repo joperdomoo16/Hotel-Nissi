@@ -2,4 +2,4 @@ User-agent: *
 Disallow: /Administracion.html
 Allow: /
 
-Sitemap: https://hotel-nissi-mingueo.web.app/sitemap.xml
+Sitemap: https://hospedaje-nissi-mingueo.web.app/sitemap.xml

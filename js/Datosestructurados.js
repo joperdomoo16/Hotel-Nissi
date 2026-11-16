@@ -11,12 +11,12 @@ function Inyectardatosestructurados() {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "Hotel",
-        "@id": "https://hotel-nissi-mingueo.web.app/#hotel",
-        "name": "Hotel Nissi",
-        "description": "Hotel de paso sobre la Troncal del Caribe en Mingueo, municipio de Dibulla, La Guajira, con habitaciones confortables para descansar entre Santa Marta y Riohacha.",
-        "url": "https://hotel-nissi-mingueo.web.app/",
-        "image": "https://hotel-nissi-mingueo.web.app/assets/logo-nissi.png",
+        "@type": "LodgingBusiness",
+        "@id": "https://hospedaje-nissi-mingueo.web.app/#hospedaje",
+        "name": "Hospedaje Nissi",
+        "description": "Hospedaje de paso sobre la Troncal del Caribe en Mingueo, municipio de Dibulla, La Guajira, con habitaciones confortables para descansar entre Santa Marta y Riohacha.",
+        "url": "https://hospedaje-nissi-mingueo.web.app/",
+        "image": "https://hospedaje-nissi-mingueo.web.app/assets/logo-nissi.png",
         "telephone": "+573001234567",
         "priceRange": "$$ (COP 90.000 - 180.000)",
         "address": {
@@ -40,10 +40,10 @@ function Inyectardatosestructurados() {
       },
       {
         "@type": "Organization",
-        "@id": "https://hotel-nissi-mingueo.web.app/#organizacion",
-        "name": "Hotel Nissi",
-        "url": "https://hotel-nissi-mingueo.web.app/",
-        "logo": "https://hotel-nissi-mingueo.web.app/assets/logo-nissi.png",
+        "@id": "https://hospedaje-nissi-mingueo.web.app/#organizacion",
+        "name": "Hospedaje Nissi",
+        "url": "https://hospedaje-nissi-mingueo.web.app/",
+        "logo": "https://hospedaje-nissi-mingueo.web.app/assets/logo-nissi.png",
         "contactPoint": {
           "@type": "ContactPoint",
           "telephone": "+573001234567",

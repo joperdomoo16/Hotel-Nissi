@@ -45,7 +45,7 @@ function Renderizarcatalogohabitaciones() {
             <div class="tags">${Etiquetas}</div>
             <div class="row">
               <button class="btn btn--cream btn--sm" type="button" data-book="${Indice}">Reservar la ${Hab.numero} →</button>
-              <a class="btn btn--ghost btn--sm" href="https://wa.me/${Configuracionhotel.celular}?text=${encodeURIComponent('Hola Hotel Nissi, quiero información de la habitación ' + Hab.numero + ' (' + Hab.tipo + ').')}" target="_blank" rel="noopener" data-wa="Hola Hotel Nissi, quiero información de la habitación ${Hab.numero} (${Hab.tipo}).">Preguntar por WhatsApp</a>
+              <a class="btn btn--ghost btn--sm" href="https://wa.me/${Configuracionhotel.celular}?text=${encodeURIComponent('Hola Hospedaje Nissi, quiero información de la habitación ' + Hab.numero + ' (' + Hab.tipo + ').')}" target="_blank" rel="noopener" data-wa="Hola Hospedaje Nissi, quiero información de la habitación ${Hab.numero} (${Hab.tipo}).">Preguntar por WhatsApp</a>
             </div>
           </div>
         </div>
@@ -72,11 +72,11 @@ function Actualizarmensajeswhatsapp() {
   const Nochesnumero = Calcularnochesestadia(Estadoaplicacion.fechallegada, Estadoaplicacion.fechasalida);
   const Habitacionactual = Habitacioneshotel[Estadoaplicacion.habitacionseleccionada];
   
-  let Mensajegeneral = 'Hola Hotel Nissi, quiero reservar una habitación.';
+  let Mensajegeneral = 'Hola Hospedaje Nissi, quiero reservar una habitación.';
   if (Estadoaplicacion.fechallegada) {
     const Llegadatexto = Formatearfechalegible(Estadoaplicacion.fechallegada);
     const Salidatexto = Formatearfechalegible(Estadoaplicacion.fechasalida) || '?';
-    Mensajegeneral = `Hola Hotel Nissi, quiero reservar del ${Llegadatexto} al ${Salidatexto} para ${Estadoaplicacion.cantidadhuespedes} persona(s).`;
+    Mensajegeneral = `Hola Hospedaje Nissi, quiero reservar del ${Llegadatexto} al ${Salidatexto} para ${Estadoaplicacion.cantidadhuespedes} persona(s).`;
   }
   
   document.querySelectorAll('.js-wa').forEach(function(Botonenlace) {
@@ -105,7 +105,7 @@ function Actualizarmensajeswhatsapp() {
       ? `${Formatearfechalegible(Estadoaplicacion.fechallegada)} → ${Formatearfechalegible(Estadoaplicacion.fechasalida)}`
       : 'Fechas por definir';
     const Cedulatexto = Estadoaplicacion.cedulaviajero ? ` (C.C. ${Estadoaplicacion.cedulaviajero})` : '';
-    const Textoconfirmacion = `Hola Hotel Nissi, confirmo mi solicitud ${Estadoaplicacion.codigoreserva}: habitación ${Habitacionactual.numero} (${Habitacionactual.tipo}), ${Textorango}, ${Estadoaplicacion.cantidadhuespedes} huésped(es). A nombre de ${Estadoaplicacion.nombreviajero}${Cedulatexto}${Estadoaplicacion.horallegada ? ', llegada ' + Estadoaplicacion.horallegada : ''}.`;
+    const Textoconfirmacion = `Hola Hospedaje Nissi, confirmo mi solicitud ${Estadoaplicacion.codigoreserva}: habitación ${Habitacionactual.numero} (${Habitacionactual.tipo}), ${Textorango}, ${Estadoaplicacion.cantidadhuespedes} huésped(es). A nombre de ${Estadoaplicacion.nombreviajero}${Cedulatexto}${Estadoaplicacion.horallegada ? ', llegada ' + Estadoaplicacion.horallegada : ''}.`;
     Confirmacionenlace.href = Construirenlasewhatsapp(Textoconfirmacion);
   }
 }

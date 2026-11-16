@@ -277,7 +277,7 @@ function Finalizarcheckinpresencial(Codigo, Nombre, Hab, Celular) {
 
   const Enviarwa = confirm(`¡Ingreso registrado con éxito! Código: ${Codigo}.\n\n¿Deseas enviar el recibo y la bienvenida por WhatsApp al huésped?`);
   if (Enviarwa) {
-    const Mensajebienvenida = `¡Bienvenido al Hotel Nissi, ${Nombre}! Tu ingreso a la habitación ${Hab.numero} (${Hab.tipo}) ha sido confirmado. Código: ${Codigo}. Red Wi-Fi: HotelNissi_Huespedes. ¡Que tengas un excelente descanso en Mingueo!`;
+    const Mensajebienvenida = `¡Bienvenido al Hospedaje Nissi, ${Nombre}! Tu ingreso a la habitación ${Hab.numero} (${Hab.tipo}) ha sido confirmado. Código: ${Codigo}. Red Wi-Fi: HospedajeNissi_Huespedes. ¡Que tengas un excelente descanso en Mingueo!`;
     window.open(`https://wa.me/57${Celular.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(Mensajebienvenida)}`, '_blank', 'noopener,noreferrer');
   }
 }

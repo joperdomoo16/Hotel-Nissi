@@ -1,10 +1,10 @@
-# Hotel Nissi · Mingueo, Dibulla, La Guajira
+# Hospedaje Nissi · Mingueo, Dibulla, La Guajira
 
-Sitio web oficial y cotizador de estadías para el Hotel Nissi, situado a orillas de la Troncal del Caribe en el corregimiento de Mingueo, municipio de Dibulla (La Guajira), a mitad de camino entre Santa Marta y Riohacha, muy cerca de Palomino.
+Sitio web oficial y cotizador de estadías para el Hospedaje Nissi, situado a orillas de la Troncal del Caribe en el corregimiento de Mingueo, municipio de Dibulla (La Guajira), a mitad de camino entre Santa Marta y Riohacha, muy cerca de Palomino.
 
 ## Propósito del Proyecto
 
-El sitio permite a los viajeros conocer las habitaciones del hotel, verificar las comodidades para descansar durante su ruta por La Guajira, calcular las noches de estadía y solicitar su reserva directamente por WhatsApp con atención continua.
+El sitio permite a los viajeros conocer las habitaciones del hospedaje, verificar las comodidades para descansar durante su ruta por La Guajira, calcular las noches de estadía y solicitar su reserva directamente por WhatsApp con atención continua.
 
 ## Estructura Modular del Código
 
@@ -40,10 +40,10 @@ El sitio permite a los viajeros conocer las habitaciones del hotel, verificar la
 
 El proyecto se encuentra configurado y desplegado en **Firebase**:
 
-- **Identificador del proyecto:** `hotel-nissi-mingueo`
-- **Nombre en consola:** `Hotel Nissi`
+- **Identificador del sitio Hosting:** `hospedaje-nissi-mingueo`
+- **Nombre en consola:** `Hospedaje Nissi`
 - **Consola del proyecto:** [https://console.firebase.google.com/project/hotel-nissi-mingueo/overview](https://console.firebase.google.com/project/hotel-nissi-mingueo/overview)
-- **Sitio web en vivo (Hosting):** [https://hotel-nissi-mingueo.web.app](https://hotel-nissi-mingueo.web.app)
+- **Sitio web en vivo (Hosting):** [https://hospedaje-nissi-mingueo.web.app](https://hospedaje-nissi-mingueo.web.app)
 
 ### Activar Registro con Correo y Contraseña
 Para que los huéspedes puedan crear su cuenta y registrarse en la web:
@@ -65,7 +65,7 @@ firebase deploy --only hosting
 
 ## Panel de Recepción y Control Presencial
 
-Para registrar huéspedes que llegan directamente al hotel en Mingueo sin reserva previa en la web:
+Para registrar huéspedes que llegan directamente al hospedaje en Mingueo sin reserva previa en la web:
 
 1. Abre el archivo `Administracion.html` en el navegador del computador o celular de recepción (también accesible desde el enlace discreto del pie de página en `index.html`).
 2. Ingresa el PIN de seguridad de 4 dígitos asignado para recepción.
@@ -78,7 +78,7 @@ Para registrar huéspedes que llegan directamente al hotel en Mingueo sin reserv
 El archivo `js/Servidorreservas.js` contiene el código listo para implementarse en **Google Apps Script**:
 
 1. **Crear la hoja de cálculo:**
-   - Abre Google Sheets y crea una hoja nueva llamada `Hotel Nissi Reservas`.
+   - Abre Google Sheets y crea una hoja nueva llamada `Hospedaje Nissi Reservas`.
    - Dirígete al menú superior **Extensiones → Apps Script**.
    - Borra cualquier código de ejemplo y pega todo el contenido de `js/Servidorreservas.js`.
 2. **Configurar credenciales seguras:**
@@ -92,7 +92,7 @@ El archivo `js/Servidorreservas.js` contiene el código listo para implementarse
      - `CORREOADMIN`: Correo electrónico del administrador que recibirá el informe diario.
 3. **Inicializar pestañas y relojes automáticos:**
    - En el editor de Apps Script selecciona la función `Inicializarhojas` en el selector superior y da clic en **Ejecutar**.
-   - Esto creará automáticamente las pestañas `Habitaciones` y `Reservas` con las 6 habitaciones del hotel, y dejará programados los dos relojes automáticos:
+   - Esto creará automáticamente las pestañas `Habitaciones` y `Reservas` con las 6 habitaciones del hospedaje, y dejará programados los dos relojes automáticos:
      - Reloj de cada hora: revisa salidas y cambia habitaciones vencidas a `Disponible`.
      - Reloj diario: envía el informe por correo con llegadas, habitaciones y pagos validados.
 4. **Implementar como aplicación web:**

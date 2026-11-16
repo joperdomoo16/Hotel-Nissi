@@ -47,7 +47,7 @@ function Construirmodalreservas() {
             <small id="choiceLoginTag">Usuario registrado</small>
             <span id="choiceLoginText"><b>Iniciar sesión</b>Tus datos guardados y el historial de tus estadías.</span>
           </button>
-          <a class="choice choice--olive js-wa" href="https://wa.me/573001234567?text=Hola%20Hotel%20Nissi%2C%20quiero%20reservar%20una%20habitaci%C3%B3n." target="_blank" rel="noopener">
+          <a class="choice choice--olive js-wa" href="https://wa.me/573001234567?text=Hola%20Hospedaje%20Nissi%2C%20quiero%20reservar%20una%20habitaci%C3%B3n." target="_blank" rel="noopener">
             <small><span class="dot dot--pulse dot--sm"></span>Más rápido</small>
             <span><b>Por WhatsApp ↗</b>El asistente te atiende al instante.</span>
           </a>

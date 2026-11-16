@@ -1,4 +1,4 @@
-// Servidor en Google Apps Script para Hotel Nissi: Base de Datos Google Sheets, Disponibilidad e Inventario
+// Servidor en Google Apps Script para Hospedaje Nissi: Base de Datos Google Sheets, Disponibilidad e Inventario
 
 const Parametrosistema = {
   modeloia: 'gemini-3.8-flash',
@@ -307,7 +307,7 @@ function Confirmarpagoyocuparhabitacion(Codigoreserva, Montopagado, Referenciapa
       Cambiarocupacionhabitacion(Hojahabitaciones, Numerohab, 'Ocupada');
 
       const Resumenadmin =
-        `Nueva reserva confirmada en Hotel Nissi\n` +
+        `Nueva reserva confirmada en Hospedaje Nissi\n` +
         `Código: ${Codigoreserva}\n` +
         `Habitación: ${Numerohab} (marcada como Ocupada)\n` +
         `Huésped: ${Nombrehuesped} (+${Celularhuesped})\n` +

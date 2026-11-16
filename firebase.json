@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "hospedaje-nissi-mingueo",
     "public": "dist",
     "predeploy": [
       "node Compilador.js"
