@@ -1,6 +1,15 @@
 // Coordinador general de la aplicacion, eventos de reservas y conexion de modulos
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Llegada desde la pagina de nueva contraseña: se abre directo el inicio de sesion
+  const Abririniciosesion = new URLSearchParams(window.location.search).get('ingresar') === '1';
+  if (Abririniciosesion) {
+    Configuracionhotel.mostrarcortina = false;
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+    }
+  }
+
   // Construccion modular de componentes de interfaz
   if (typeof Construirmodalreservas === 'function') {
     Construirmodalreservas();
@@ -45,6 +54,9 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       Refrescarpantalla();
     });
+    if (typeof Verificarresultadoredireccion === 'function') {
+      Verificarresultadoredireccion(Mostrarmensajeerror);
+    }
   }
 
   // Establecer fecha minima de llegada para el dia de hoy
@@ -287,6 +299,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Recuperacion de contraseña con el correo escrito en el formulario
+  const Botonolvideclave = document.getElementById('forgotPass');
+  if (Botonolvideclave) {
+    Botonolvideclave.addEventListener('click', function() {
+      const Correolimpio = (Estadoaplicacion.correoviajero || '').trim();
+      if (!Validarcorreoelectronico(Correolimpio)) {
+        return Mostrarmensajeerror('Escribe tu correo arriba y vuelve a tocar «¿Olvidaste tu contraseña?».');
+      }
+
+      const Textooriginal = Botonolvideclave.textContent;
+      Botonolvideclave.disabled = true;
+      Botonolvideclave.textContent = 'Enviando enlace...';
+
+      Solicitarrecuperacionclave(Correolimpio)
+        .then(function() {
+          Mostrarmensajeerror('');
+          Mostrarmensajeexito(`Si ${Correolimpio} tiene una cuenta, te llegará un enlace para crear una nueva contraseña. Revisa también la carpeta de spam.`);
+        })
+        .catch(function(Errorrecuperacion) {
+          Mostrarmensajeerror(Traducirerrorfirebase((Errorrecuperacion && Errorrecuperacion.code) || ''));
+        })
+        .finally(function() {
+          Botonolvideclave.disabled = false;
+          Botonolvideclave.textContent = Textooriginal;
+        });
+    });
+  }
+
   // Autenticacion y registro con cuenta de Google
   const Botongoogle = document.getElementById('btnGoogleAuth');
   if (Botongoogle) {
@@ -298,20 +338,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
       Autenticarcongoogle()
         .then(function(Respuesta) {
+          if (!Respuesta) { return; }
           const Usuariodatos = Respuesta.user || Respuesta;
-          const Nombreasignado = Usuariodatos.displayName || (Usuariodatos.email ? Usuariodatos.email.split('@')[0] : 'viajero');
+          if (!Usuariodatos || (!Usuariodatos.displayName && !Usuariodatos.email)) { return; }
+          const Nombreasignado = Usuariodatos.displayName || Usuariodatos.email.split('@')[0];
           Estadoaplicacion.usuariologueado = Nombreasignado;
           Estadoaplicacion.nombreviajero = Nombreasignado;
-          if (Usuariodatos.email) {
-            Estadoaplicacion.correoviajero = Usuariodatos.email;
-          }
+          if (Usuariodatos.email) { Estadoaplicacion.correoviajero = Usuariodatos.email; }
           Guardardatossesion(Nombreasignado);
           Mostrarmensajeerror('');
           Cambiarpasomodal('dates');
         })
         .catch(function(Errorautenticacion) {
-          const Codigoerror = Errorautenticacion.code || '';
-          Mostrarmensajeerror(Traducirerrorfirebase(Codigoerror));
+          Mostrarmensajeerror(Traducirerrorfirebase((Errorautenticacion && Errorautenticacion.code) || ''));
         })
         .finally(function() {
           Botongoogle.disabled = false;
@@ -406,4 +445,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Primer pintado y refresco de interfaz
   Refrescarpantalla();
+
+  if (Abririniciosesion) {
+    Estadoaplicacion.creandocuenta = false;
+    Abrirventanamodal(null, 'login');
+  }
 });

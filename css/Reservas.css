@@ -326,6 +326,57 @@
   min-height: 20px;
 }
 
+/* Mensaje de confirmacion (enlace de recuperacion enviado) */
+.ok {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--olive);
+  margin-top: -14px;
+}
+
+/* Enlace de recuperar contraseña bajo el campo de clave */
+.login-aux {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -12px;
+}
+
+.login-aux .link-btn {
+  font-size: 13px;
+  color: var(--muted-dark);
+  transition: color 0.3s var(--ease);
+}
+
+.login-aux .link-btn:hover {
+  color: var(--rust);
+}
+
+.login-aux .link-btn:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+/* Ayuda por WhatsApp al final del formulario de acceso */
+.login-help {
+  margin: 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(26, 28, 19, 0.12);
+  font-size: 14px;
+  color: var(--muted-dark);
+}
+
+.modal .login-help a {
+  color: var(--rust);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color 0.3s var(--ease);
+}
+
+.modal .login-help a:hover {
+  color: var(--ink);
+}
+
 .fields3 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));

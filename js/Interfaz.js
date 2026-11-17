@@ -280,9 +280,23 @@ function Refrescarpantalla() {
   if (Textoetiquetagoogle) {
     Textoetiquetagoogle.textContent = Estadoaplicacion.creandocuenta ? 'Registrarse con Google' : 'Continuar con Google';
   }
+
+  // El enlace de recuperar contraseña solo aplica al iniciar sesion, no al crear cuenta
+  const Bloquerecuperar = document.getElementById('loginAux');
+  if (Bloquerecuperar) {
+    Bloquerecuperar.hidden = Boolean(Estadoaplicacion.creandocuenta);
+  }
+}
+
+function Mostrarmensajeexito(Mensajeexito) {
+  document.querySelectorAll('[data-ok]').forEach(function(Contenedorexito) {
+    Contenedorexito.textContent = Mensajeexito || '';
+    Contenedorexito.hidden = !Mensajeexito;
+  });
 }
 
 function Mostrarmensajeerror(Mensajeerror) {
+  Mostrarmensajeexito('');
   document.querySelectorAll('[data-err]').forEach(function(Contenedorerror) {
     Contenedorerror.textContent = Mensajeerror || '';
   });

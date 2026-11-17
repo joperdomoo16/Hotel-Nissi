@@ -79,7 +79,11 @@ function Construirmodalreservas() {
             <span>Contraseña</span>
             <input type="password" data-bind="claveviajero" autocomplete="current-password">
           </label>
+          <div class="login-aux" id="loginAux">
+            <button class="link-btn link-btn--subrayado" type="button" id="forgotPass">¿Olvidaste tu contraseña?</button>
+          </div>
           <span class="err" data-err></span>
+          <span class="ok" data-ok role="status" aria-live="polite" hidden></span>
           <div class="row row--amplia">
             <button class="btn btn--dark" type="submit"><span id="loginCta">Ingresar</span> →</button>
             <button class="link-btn link-btn--subrayado" type="button" id="toggleReg">¿No tienes cuenta? Créala aquí</button>
@@ -97,6 +101,10 @@ function Construirmodalreservas() {
             <span id="googleCta">Continuar con Google</span>
           </button>
           <button class="link-btn link-btn--tenue" type="button" data-go="dates">o continuar como invitado</button>
+          <p class="login-help">
+            ¿Necesitas ayuda?
+            <a href="https://wa.me/573001234567" data-wa="Hola Hospedaje Nissi, necesito ayuda para ingresar a mi cuenta." target="_blank" rel="noopener">Contáctanos</a>
+          </p>
         </form>
       </div>
 

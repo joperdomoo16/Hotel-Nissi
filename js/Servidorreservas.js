@@ -1,11 +1,12 @@
-// Servidor en Google Apps Script para Hospedaje Nissi: Base de Datos Google Sheets, Disponibilidad e Inventario
+// Servidor en Google Apps Script para Hospedaje Nissi: Base de Datos Google Sheets, Apartados e Inventario
 
 const Parametrosistema = {
   modeloia: 'gemini-3.8-flash',
   urlgemini: 'https://generativelanguage.googleapis.com/v1beta/interactions',
   versionapi: '2026-05-20',
   horacheckout: 12,
-  horainformediario: 19
+  horainformediario: 19,
+  zonahoraria: 'America/Bogota'
 };
 
 const Catalogoinicial = [
@@ -17,7 +18,21 @@ const Catalogoinicial = [
   ['06', 'Familiar', '4 personas', 4, 180000, 'Disponible']
 ];
 
-// Funciones de sanitizacion contra inyeccion de formulas en Sheets y XSS en correos
+const Configuracionbase = [
+  ['PAGOMINIMOPORCENTAJE', '100', 'Porcentaje mínimo exigido para confirmar por transferencia (100%)'],
+  ['MINUTOSAPARTADO', '30', 'Minutos para enviar el comprobante después de apartar'],
+  ['MINUTOSESPERACORREO', '20', 'Minutos máximos esperando el correo del banco antes de pasar a administrador'],
+  ['MINUTOSAVISOCANAL', '15', 'Minutos para avisar al cliente si el administrador no ha respondido'],
+  ['MINUTOSRECORDATORIOCANAL', '10', 'Minutos entre cada recordatorio al administrador mientras haya un canal abierto'],
+  ['MINUTOSCIERREAUTO', '120', 'Minutos para cierre automático de un canal sin respuesta (2 horas)'],
+  ['CELULARADMIN', '573123639298', 'WhatsApp personal del administrador (recibe canales y avisos)'],
+  ['MODOSOMBRA', 'NO', 'SI para pedir confirmación al admin antes de validar transferencia; NO para automático'],
+  ['CUENTANEQUI', 'Nequi: 3123639298 (Hospedaje Nissi)', 'Datos de pago Nequi que la IA envía al huésped'],
+  ['CUENTADAVIPLATA', 'Daviplata: 3123639298 (Hospedaje Nissi)', 'Datos de pago Daviplata que la IA envía al huésped'],
+  ['CUENTABANCOLOMBIA', 'Bancolombia Ahorros: Por definir en esta celda', 'Datos de cuenta Bancolombia que la IA envía al huésped'],
+  ['REMITENTESBANCOS', 'bancolombia.com.co,notificacionesbancolombia.com,nequi.com.co,nequi.com,daviplata.com,davivienda.com', 'Dominios de correo autorizados de bancos']
+];
+
 function Sanitizarcelda(Valor, Maximo) {
   const Limite = Maximo || 120;
   let Limpio = String(Valor == null ? '' : Valor)
@@ -40,68 +55,157 @@ function Escaparhtmlservidor(Texto) {
     .replace(/'/g, '&#39;');
 }
 
-// Lee las claves guardadas en Propiedades del Script (Clave Gemini, Token WhatsApp, Celular y Correo Admin)
+function Formatearfechahora(Fecha) {
+  return Utilities.formatDate(Fecha || new Date(), Parametrosistema.zonahoraria, 'yyyy-MM-dd HH:mm:ss');
+}
+
 function Obtenercredenciales() {
   const Propiedades = PropertiesService.getScriptProperties().getProperties();
+  const Confighoja = Leerconfiguracionhoja();
   return {
     clavegemini: Propiedades.CLAVEGEMINI || '',
     tokenwhatsapp: Propiedades.TOKENWHATSAPP || '',
     idtelefonowhatsapp: Propiedades.IDTELEFONOWHATSAPP || '',
-    tokenverificacion: Propiedades.TOKENVERIFICACION || 'nissiverificacion',
-    celularadmin: Propiedades.CELULARADMIN || '573001234567',
-    correoadmin: Propiedades.CORREOADMIN || Session.getActiveUser().getEmail()
+    tokenverificacion: Propiedades.TOKENVERIFICACION || 'nissiverificacion2026',
+    celularadmin: String(Confighoja.CELULARADMIN || Propiedades.CELULARADMIN || '573123639298').replace(/\D/g, ''),
+    correoadmin: Propiedades.CORREOADMIN || Session.getActiveUser().getEmail(),
+    clavefirebase: Propiedades.CLAVEFIREBASE || 'AIzaSyDejKbwGSI3t4_gw6YRXeDwEDnhBIKjI0o'
   };
 }
 
-// Crea las pestañas Habitaciones y Reservas si no existen y programa los relojes automaticos
+function Leerconfiguracionhoja() {
+  const Mapa = {
+    PAGOMINIMOPORCENTAJE: 100,
+    MINUTOSAPARTADO: 30,
+    MINUTOSESPERACORREO: 20,
+    MINUTOSAVISOCANAL: 15,
+    MINUTOSRECORDATORIOCANAL: 10,
+    MINUTOSCIERREAUTO: 120,
+    CELULARADMIN: '573123639298',
+    MODOSOMBRA: 'NO',
+    CUENTANEQUI: 'Nequi: 3123639298',
+    CUENTADAVIPLATA: 'Daviplata: 3123639298',
+    CUENTABANCOLOMBIA: 'Bancolombia: Solicitar en recepción',
+    REMITENTESBANCOS: 'bancolombia.com.co,notificacionesbancolombia.com,nequi.com.co,nequi.com,daviplata.com,davivienda.com'
+  };
+  try {
+    const Libro = SpreadsheetApp.getActiveSpreadsheet();
+    const Hoja = Libro && Libro.getSheetByName('Configuracion');
+    if (!Hoja || Hoja.getLastRow() < 2) {
+      return Mapa;
+    }
+    const Filas = Hoja.getRange(2, 1, Hoja.getLastRow() - 1, 2).getValues();
+    Filas.forEach(function(Fila) {
+      const Clave = String(Fila[0] || '').trim().toUpperCase();
+      const Valor = String(Fila[1] == null ? '' : Fila[1]).trim();
+      if (Clave && Valor !== '') {
+        Mapa[Clave] = isNaN(Number(Valor)) || Clave === 'CELULARADMIN' ? Valor : Number(Valor);
+      }
+    });
+  } catch (Errorconfig) {}
+  return Mapa;
+}
+
+function Registrarbitacora(Modulo, Accion, Detalle) {
+  try {
+    const Libro = SpreadsheetApp.getActiveSpreadsheet();
+    let Hoja = Libro.getSheetByName('Registro');
+    if (!Hoja) {
+      Hoja = Libro.insertSheet('Registro');
+      Hoja.appendRow(['Fechahora', 'Modulo', 'Accion', 'Detalle']);
+    }
+    Hoja.appendRow([
+      Formatearfechahora(new Date()),
+      Sanitizarcelda(Modulo, 40),
+      Sanitizarcelda(Accion, 80),
+      Sanitizarcelda(typeof Detalle === 'string' ? Detalle : JSON.stringify(Detalle), 500)
+    ]);
+  } catch (Errorbitacora) {}
+}
+
+// Crea o actualiza las pestañas y columnas necesarias sin alterar los datos existentes
 function Inicializarhojas() {
   const Libro = SpreadsheetApp.getActiveSpreadsheet();
 
   let Hojahabitaciones = Libro.getSheetByName('Habitaciones');
   if (!Hojahabitaciones) {
     Hojahabitaciones = Libro.insertSheet('Habitaciones');
-    Hojahabitaciones.appendRow([
-      'Numero', 'Tipo', 'Capacidad', 'Huespedesmaximos', 'Tarifanoche', 'Estadoactual', 'Ultimaactualizacion'
-    ]);
-    const Fechahoy = Utilities.formatDate(new Date(), 'America/Bogota', 'yyyy-MM-dd HH:mm');
-    Catalogoinicial.forEach(function(Filahabitacion) {
-      Hojahabitaciones.appendRow(Filahabitacion.concat([Fechahoy]));
-    });
+    Hojahabitaciones.appendRow(['Numero', 'Tipo', 'Capacidad', 'Huespedesmaximos', 'Tarifanoche', 'Estadoactual', 'Ultimaactualizacion']);
+    const Fechahoy = Formatearfechahora(new Date()).slice(0, 16);
+    Catalogoinicial.forEach(function(Filahabitacion) { Hojahabitaciones.appendRow(Filahabitacion.concat([Fechahoy])); });
   }
-
+  const Columnasreservas = [
+    'Codigo', 'Fecharegistro', 'Nombre', 'Celular', 'Habitacion', 'Fechallegada', 'Fechasalida', 'Noches', 'Huespedes', 'Horallegada',
+    'Montototal', 'Montopagado', 'Referenciapago', 'Entidadpago', 'Estado', 'Canal', 'Venceapartado', 'Mediopago', 'Montocomprobante',
+    'Referenciacomprobante', 'Fechacomprobante', 'Idpagobanco', 'Observaciones'
+  ];
   let Hojareservas = Libro.getSheetByName('Reservas');
   if (!Hojareservas) {
     Hojareservas = Libro.insertSheet('Reservas');
-    Hojareservas.appendRow([
-      'Codigo', 'Fecharegistro', 'Nombre', 'Celular', 'Habitacion',
-      'Fechallegada', 'Fechasalida', 'Noches', 'Huespedes', 'Horallegada',
-      'Montototal', 'Montopagado', 'Referenciapago', 'Entidadpago', 'Estado'
+    Hojareservas.appendRow(Columnasreservas);
+  } else {
+    const Encabezadosactuales = Hojareservas.getRange(1, 1, 1, Hojareservas.getLastColumn()).getValues()[0].map(String);
+    Columnasreservas.forEach(function(Nombrecol, Indice) {
+      if (Indice >= Encabezadosactuales.length) { Hojareservas.getRange(1, Indice + 1).setValue(Nombrecol); }
+    });
+  }
+  let Hojaconfig = Libro.getSheetByName('Configuracion');
+  if (!Hojaconfig) {
+    Hojaconfig = Libro.insertSheet('Configuracion');
+    Hojaconfig.appendRow(['Parametro', 'Valor', 'Descripcion']);
+    Configuracionbase.forEach(function(Fila) { Hojaconfig.appendRow(Fila); });
+  }
+  if (!Libro.getSheetByName('Conversaciones')) {
+    Libro.insertSheet('Conversaciones').appendRow([
+      'Celular', 'Nombre', 'Modo', 'Codigoreserva', 'Ultimomensajecliente',
+      'Ultimomensajeadmin', 'Aperturacanal', 'Avisodemoracanal', 'Ultimorecordatorioadmin', 'Idinteraccionia'
     ]);
   }
-
+  if (!Libro.getSheetByName('Mensajescanal')) {
+    Libro.insertSheet('Mensajescanal').appendRow(['Idmensajemeta', 'Celularcliente', 'Codigoreserva', 'Direccion', 'Fechahora']);
+  }
+  if (!Libro.getSheetByName('Pagosrecibidos')) {
+    Libro.insertSheet('Pagosrecibidos').appendRow([
+      'Idpago', 'Fechacorreo', 'Entidad', 'Monto', 'Referencia', 'Pagador', 'Remitente', 'Dkimvalido', 'Estado'
+    ]);
+  }
+  if (!Libro.getSheetByName('Registro')) {
+    Libro.insertSheet('Registro').appendRow(['Fechahora', 'Modulo', 'Accion', 'Detalle']);
+  }
+  if (typeof Obtenerhojausuarios === 'function') { Obtenerhojausuarios(); }
   Programarrelojesautomaticos();
+  Registrarbitacora('Sistema', 'Inicializarhojas', 'Pestañas, columnas y relojes verificados correctamente.');
 }
 
-// Configura el reloj cada hora (liberar habitaciones vencidas) y el reloj diario (enviar correo de informe)
 function Programarrelojesautomaticos() {
   const Disparadoresactuales = ScriptApp.getProjectTriggers();
   Disparadoresactuales.forEach(function(Disparador) {
     ScriptApp.deleteTrigger(Disparador);
   });
 
-  ScriptApp.newTrigger('Liberarhabitacionesvencidas')
-    .timeBased()
-    .everyHours(1)
-    .create();
-
-  ScriptApp.newTrigger('Enviarinformecorreodiario')
-    .timeBased()
-    .everyDays(1)
-    .atHour(Parametrosistema.horainformediario)
-    .create();
+  ScriptApp.newTrigger('Revisarapartados').timeBased().everyMinutes(5).create();
+  ScriptApp.newTrigger('Leercorreospago').timeBased().everyMinutes(5).create();
+  ScriptApp.newTrigger('Liberarhabitacionesvencidas').timeBased().everyHours(1).create();
+  ScriptApp.newTrigger('Enviarinformecorreodiario').timeBased().everyDays(1).atHour(Parametrosistema.horainformediario).create();
 }
 
-// Devuelve las habitaciones libres cruzando el estado actual y los rangos de fechas en Reservas
+// Comprueba si un estado de reserva bloquea la habitacion actualmente
+function Reservaestabloqueando(Filareserva, Ahorams) {
+  const Estado = String(Filareserva[14] || '').trim();
+  if (Estado === 'Confirmada' || Estado === 'Verificando' || Estado === 'En canal') {
+    return true;
+  }
+  if (Estado === 'Apartada') {
+    const Vencetexto = Filareserva[16];
+    if (!Vencetexto) {
+      return true;
+    }
+    const Vencems = new Date(Vencetexto).getTime();
+    return isNaN(Vencems) || Vencems > (Ahorams || Date.now());
+  }
+  return false;
+}
+
 function Consultardisponibilidad(Fechallegada, Fechasalida, Cantidadhuespedes) {
   const Libro = SpreadsheetApp.getActiveSpreadsheet();
   const Hojahabitaciones = Libro.getSheetByName('Habitaciones');
@@ -113,20 +217,17 @@ function Consultardisponibilidad(Fechallegada, Fechasalida, Cantidadhuespedes) {
   const Llegadasolicitada = Fechallegada ? new Date(Fechallegada) : null;
   const Salidasolicitada = Fechasalida ? new Date(Fechasalida) : null;
   const Huespedesminimos = parseInt(Cantidadhuespedes || 1, 10);
-
+  const Ahorams = Date.now();
   const Habitacionesocupadasenrango = {};
 
   if (Llegadasolicitada && Salidasolicitada) {
     Filasreservas.forEach(function(Filareserva) {
-      const Numerohab = String(Filareserva[4]).padStart(2, '0');
-      const Llegadaexistente = new Date(Filareserva[5]);
-      const Salidaexistente = new Date(Filareserva[6]);
-      const Estadoreserva = String(Filareserva[14]);
-
-      if (Estadoreserva === 'Confirmada') {
-        const Haycruce = Llegadasolicitada < Salidaexistente && Salidasolicitada > Llegadaexistente;
-        if (Haycruce) {
-          Habitacionesocupadasenrango[Numerohab] = true;
+      if (Reservaestabloqueando(Filareserva, Ahorams)) {
+        const Numerohab = String(Filareserva[4]).padStart(2, '0');
+        const Llegadaexistente = new Date(Filareserva[5]);
+        const Salidaexistente = new Date(Filareserva[6]);
+        if (Llegadasolicitada < Salidaexistente && Salidasolicitada > Llegadaexistente) {
+          Habitacionesocupadasenrango[Numerohab] = String(Filareserva[14]);
         }
       }
     });
@@ -153,7 +254,7 @@ function Consultardisponibilidad(Fechallegada, Fechasalida, Cantidadhuespedes) {
       capacidad: Capacidadtexto,
       huespedesmaximos: Maxhuespedes,
       tarifanoche: Tarifanoche,
-      estadoactual: Ocupadafechas ? 'Ocupada en esas fechas' : Estadopestana,
+      estadoactual: Ocupadafechas ? 'Ocupada' : Estadopestana,
       disponible: Disponible
     };
 
@@ -171,87 +272,102 @@ function Consultardisponibilidad(Fechallegada, Fechasalida, Cantidadhuespedes) {
   };
 }
 
-// Registra una solicitud nueva o actualiza una existente en la pestaña Reservas
-function Registrarosincronizarreserva(Datos) {
-  const Libro = SpreadsheetApp.getActiveSpreadsheet();
-  const Hojareservas = Libro.getSheetByName('Reservas');
-  const Hojahabitaciones = Libro.getSheetByName('Habitaciones');
+// Aparta la habitacion de inmediato cuando el cliente la elige
+function Apartarhabitacion(Celularcliente, Numerohabitacion, Fechallegada, Fechasalida, Cantidadhuespedes, Canalorigen) {
+  const Candado = LockService.getScriptLock();
+  Candado.waitLock(10000);
+  try {
+    const Libro = SpreadsheetApp.getActiveSpreadsheet();
+    const Hojareservas = Libro.getSheetByName('Reservas');
+    const Config = Leerconfiguracionhoja();
+    const Numerohab = String(Numerohabitacion || '01').padStart(2, '0');
+    const Celularlimpio = String(Celularcliente || '').replace(/\D/g, '');
 
-  const Numerohab = String(Datos.habitacion || '01').padStart(2, '0');
-  const Disponibilidad = Consultardisponibilidad(Datos.llegada, Datos.salida, Datos.huespedes);
-  const Habitacionlibre = Disponibilidad.disponibles.find(function(Hab) {
-    return Hab.numero === Numerohab;
-  });
-
-  if (!Habitacionlibre) {
-    return {
-      exito: false,
-      mensaje: `La habitación ${Numerohab} no está disponible para las fechas indicadas.`
-    };
-  }
-
-  const Milisegundosdia = 86400000;
-  const Noches = Math.max(1, Math.round((new Date(Datos.salida) - new Date(Datos.llegada)) / Milisegundosdia));
-  const Montototal = Noches * Habitacionlibre.tarifanoche;
-  const Codigoreserva = Datos.codigo || `NS-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-  const Fecharegistro = Utilities.formatDate(new Date(), 'America/Bogota', 'yyyy-MM-dd HH:mm');
-  const Estadoinicial = Datos.estado || 'Pendiente';
-
-  const Filas = Hojareservas.getDataRange().getValues();
-  let Filaencontrada = -1;
-  for (let Indice = 1; Indice < Filas.length; Indice++) {
-    if (String(Filas[Indice][0]).toUpperCase() === Codigoreserva.toUpperCase()) {
-      Filaencontrada = Indice + 1;
-      break;
+    // Si el cliente ya tenia otro apartado activo, se libera el anterior (solo 1 apartado por cliente)
+    if (Celularlimpio) {
+      Liberarapartadosprevioscliente(Hojareservas, Celularlimpio);
     }
-  }
 
-  const Nombreconcedula = Datos.cedula
-    ? `${Sanitizarcelda(Datos.nombre || 'Viajero', 70)} (C.C. ${Sanitizarcelda(Datos.cedula, 20)})`
-    : Sanitizarcelda(Datos.nombre || 'Viajero', 80);
+    const Disponibilidad = Consultardisponibilidad(Fechallegada, Fechasalida, Cantidadhuespedes || 1);
+    const Hablibre = Disponibilidad.disponibles.find(function(H) {
+      return H.numero === Numerohab;
+    });
 
-  const Nuevafila = [
-    Sanitizarcelda(Codigoreserva, 20),
-    Fecharegistro,
-    Nombreconcedula,
-    Sanitizarcelda(Datos.celular || '', 20),
-    Numerohab,
-    Sanitizarcelda(Datos.llegada, 15),
-    Sanitizarcelda(Datos.salida, 15),
-    Noches,
-    Number(Datos.huespedes || 2),
-    Sanitizarcelda(Datos.horallegada || 'Por confirmar', 40),
-    Montototal,
-    Number(Datos.montopagado || 0),
-    Sanitizarcelda(Datos.referenciapago || '', 60),
-    Sanitizarcelda(Datos.entidadpago || '', 40),
-    Sanitizarcelda(Estadoinicial, 20)
-  ];
+    if (!Hablibre) {
+      return {
+        exito: false,
+        mensaje: `La habitación ${Numerohab} ya no está disponible para esas fechas.`
+      };
+    }
 
-  if (Filaencontrada > 0) {
-    Hojareservas.getRange(Filaencontrada, 1, 1, Nuevafila.length).setValues([Nuevafila]);
-  } else {
+    const Noches = Math.max(1, Math.round((new Date(Fechasalida) - new Date(Fechallegada)) / 86400000));
+    const Montototal = Noches * Hablibre.tarifanoche;
+    const Codigo = `NS-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+    const Ahora = new Date();
+    const Vence = new Date(Ahora.getTime() + Number(Config.MINUTOSAPARTADO || 30) * 60000);
+
+    const Nuevafila = [
+      Codigo, Formatearfechahora(Ahora).slice(0, 16), 'Por confirmar', Sanitizarcelda(Celularlimpio, 20),
+      Numerohab, Sanitizarcelda(Fechallegada, 15), Sanitizarcelda(Fechasalida, 15), Noches,
+      Number(Cantidadhuespedes || 2), 'Por confirmar', Montototal, 0, '', '', 'Apartada',
+      Sanitizarcelda(Canalorigen || 'WhatsApp', 20), Formatearfechahora(Vence), '', '', '', '', '', 'Apartada automáticamente'
+    ];
+
     Hojareservas.appendRow(Nuevafila);
-  }
+    if (typeof Actualizarconversacion === 'function' && Celularlimpio) {
+      Actualizarconversacion(Celularlimpio, { codigoreserva: Codigo });
+    }
+    Registrarbitacora('Apartados', 'Apartarhabitacion', `Hab ${Numerohab} apartada (${Codigo}) hasta ${Formatearfechahora(Vence)}`);
 
-  if (Estadoinicial === 'Confirmada') {
-    Cambiarocupacionhabitacion(Hojahabitaciones, Numerohab, 'Ocupada');
+    return {
+      exito: true,
+      codigo: Codigo,
+      habitacion: Numerohab,
+      tipo: Hablibre.tipo,
+      noches: Noches,
+      montototal: Montototal,
+      minutosapartado: Number(Config.MINUTOSAPARTADO || 30),
+      venceapartado: Formatearfechahora(Vence)
+    };
+  } finally {
+    Candado.releaseLock();
   }
-
-  return {
-    exito: true,
-    codigo: Codigoreserva,
-    habitacion: Numerohab,
-    noches: Noches,
-    montototal: Montototal,
-    estado: Estadoinicial
-  };
 }
 
-// Cambia el estado de una habitacion en la pestaña Habitaciones (Disponible u Ocupada)
+function Liberarapartadosprevioscliente(Hojareservas, Celularlimpio) {
+  const Filas = Hojareservas.getDataRange().getValues();
+  for (let I = 1; I < Filas.length; I++) {
+    const Celularfila = String(Filas[I][3] || '').replace(/\D/g, '');
+    const Estado = String(Filas[I][14] || '');
+    if (Celularfila === Celularlimpio && Estado === 'Apartada') {
+      Hojareservas.getRange(I + 1, 15).setValue('Vencida');
+      Hojareservas.getRange(I + 1, 23).setValue('Liberada por cambio de habitación');
+    }
+  }
+}
+
+function Liberarapartado(Celularcliente, Codigoreserva, Motivo) {
+  const Libro = SpreadsheetApp.getActiveSpreadsheet();
+  const Hojareservas = Libro.getSheetByName('Reservas');
+  const Filas = Hojareservas.getDataRange().getValues();
+  const Celularlimpio = String(Celularcliente || '').replace(/\D/g, '');
+
+  for (let I = Filas.length - 1; I >= 1; I--) {
+    const Coincidecodigo = Codigoreserva && String(Filas[I][0]).toUpperCase() === String(Codigoreserva).toUpperCase();
+    const Coincidecelular = Celularlimpio && String(Filas[I][3]).replace(/\D/g, '') === Celularlimpio;
+    if ((Coincidecodigo || Coincidecelular) && String(Filas[I][14]) === 'Apartada') {
+      Hojareservas.getRange(I + 1, 15).setValue('Vencida');
+      Hojareservas.getRange(I + 1, 23).setValue(Sanitizarcelda(Motivo || 'Desistió el cliente', 120));
+      Registrarbitacora('Apartados', 'Liberarapartado', `Reserva ${Filas[I][0]} liberada.`);
+      return { exito: true, codigo: Filas[I][0], mensaje: 'Apartado liberado correctamente.' };
+    }
+  }
+  return { exito: false, mensaje: 'No se encontró un apartado activo para liberar.' };
+}
+
 function Cambiarocupacionhabitacion(Hojahabitaciones, Numerohabitacion, Nuevoestado) {
   const Datos = Hojahabitaciones.getDataRange().getValues();
-  const Ahora = Utilities.formatDate(new Date(), 'America/Bogota', 'yyyy-MM-dd HH:mm');
+  const Ahora = Formatearfechahora(new Date()).slice(0, 16);
   for (let Indice = 1; Indice < Datos.length; Indice++) {
     if (String(Datos[Indice][0]).padStart(2, '0') === String(Numerohabitacion).padStart(2, '0')) {
       Hojahabitaciones.getRange(Indice + 1, 6).setValue(Nuevoestado);
@@ -261,118 +377,58 @@ function Cambiarocupacionhabitacion(Hojahabitaciones, Numerohabitacion, Nuevoest
   }
 }
 
-// Valida un pago recibido, marca la habitacion como Ocupada y avisa por WhatsApp al administrador
-function Confirmarpagoyocuparhabitacion(Codigoreserva, Montopagado, Referenciapago, Entidadpago) {
+// Guarda nombre completo, cedula y hora estimada de llegada en la reserva activa
+function Guardardatoshuesped(Celularcliente, Codigoreserva, Nombre, Cedula, Horallegada) {
   const Libro = SpreadsheetApp.getActiveSpreadsheet();
   const Hojareservas = Libro.getSheetByName('Reservas');
-  const Hojahabitaciones = Libro.getSheetByName('Habitaciones');
   const Filas = Hojareservas.getDataRange().getValues();
+  const Celularlimpio = String(Celularcliente || '').replace(/\D/g, '');
 
-  // Verificar que la referencia de pago no haya sido usada antes
-  for (let Indice = 1; Indice < Filas.length; Indice++) {
-    const Referenciaexistente = String(Filas[Indice][12] || '').trim();
-    const Codigoexistente = String(Filas[Indice][0] || '').trim();
-    if (Referenciaexistente && Referenciaexistente === String(Referenciapago).trim() && Codigoexistente !== Codigoreserva) {
-      return {
-        exito: false,
-        mensaje: `El comprobante con referencia ${Referenciapago} ya fue registrado previamente en otra reserva.`
-      };
+  for (let I = Filas.length - 1; I >= 1; I--) {
+    const Coincidecodigo = Codigoreserva && String(Filas[I][0]).toUpperCase() === String(Codigoreserva).toUpperCase();
+    const Coincidecelular = Celularlimpio && String(Filas[I][3]).replace(/\D/g, '') === Celularlimpio;
+    const Estado = String(Filas[I][14]);
+    if ((Coincidecodigo || Coincidecelular) && (Estado === 'Apartada' || Estado === 'Verificando' || Estado === 'En canal')) {
+      const Nombreconcedula = Cedula
+        ? `${Sanitizarcelda(Nombre || 'Viajero', 70)} (C.C. ${Sanitizarcelda(Cedula, 20)})`
+        : Sanitizarcelda(Nombre || 'Viajero', 80);
+      Hojareservas.getRange(I + 1, 3).setValue(Nombreconcedula);
+      if (Horallegada) {
+        Hojareservas.getRange(I + 1, 10).setValue(Sanitizarcelda(Horallegada, 40));
+      }
+      if (typeof Actualizarconversacion === 'function' && Celularlimpio) {
+        Actualizarconversacion(Celularlimpio, { nombre: Sanitizarcelda(Nombre, 60), codigoreserva: String(Filas[I][0]) });
+      }
+      return { exito: true, codigo: String(Filas[I][0]), nombre: Nombreconcedula, horallegada: Horallegada || 'Por confirmar' };
     }
   }
-
-  for (let Indice = 1; Indice < Filas.length; Indice++) {
-    if (String(Filas[Indice][0]).toUpperCase() === String(Codigoreserva).toUpperCase()) {
-      const Numerofila = Indice + 1;
-      const Nombrehuesped = Filas[Indice][2];
-      const Celularhuesped = Filas[Indice][3];
-      const Numerohab = String(Filas[Indice][4]).padStart(2, '0');
-      const Fechallegada = Utilities.formatDate(new Date(Filas[Indice][5]), 'America/Bogota', 'yyyy-MM-dd');
-      const Fechasalida = Utilities.formatDate(new Date(Filas[Indice][6]), 'America/Bogota', 'yyyy-MM-dd');
-      const Horallegada = Filas[Indice][9];
-      const Montoesperado = Number(Filas[Indice][10]);
-      const Montorecibido = Number(Montopagado);
-
-      if (Montorecibido < Montoesperado * 0.5) {
-        return {
-          exito: false,
-          mensaje: `El monto del comprobante ($${Montorecibido} COP) es menor al mínimo requerido ($${Montoesperado * 0.5} COP).`
-        };
-      }
-
-      Hojareservas.getRange(Numerofila, 12).setValue(Montorecibido);
-      Hojareservas.getRange(Numerofila, 13).setValue(Referenciapago);
-      Hojareservas.getRange(Numerofila, 14).setValue(Entidadpago || 'Transferencia');
-      Hojareservas.getRange(Numerofila, 15).setValue('Confirmada');
-
-      Cambiarocupacionhabitacion(Hojahabitaciones, Numerohab, 'Ocupada');
-
-      const Resumenadmin =
-        `Nueva reserva confirmada en Hospedaje Nissi\n` +
-        `Código: ${Codigoreserva}\n` +
-        `Habitación: ${Numerohab} (marcada como Ocupada)\n` +
-        `Huésped: ${Nombrehuesped} (+${Celularhuesped})\n` +
-        `Estadía: ${Fechallegada} al ${Fechasalida}\n` +
-        `Llegada estimada: ${Horallegada}\n` +
-        `Pago validado: $${Montorecibido.toLocaleString('es-CO')} COP (${Entidadpago || 'Transferencia'} · Ref: ${Referenciapago})`;
-
-      if (typeof Notificaradministradorwhatsapp === 'function') {
-        Notificaradministradorwhatsapp(Resumenadmin);
-      }
-
-      return {
-        exito: true,
-        codigo: Codigoreserva,
-        habitacion: Numerohab,
-        estado: 'Confirmada',
-        mensaje: 'Pago validado, habitación marcada como Ocupada y administrador notificado por WhatsApp.'
-      };
-    }
-  }
-
-  return {
-    exito: false,
-    mensaje: `No se encontró ninguna solicitud con el código ${Codigoreserva}.`
-  };
+  return { exito: false, mensaje: 'Primero debes apartar una habitación antes de guardar los datos del huésped.' };
 }
 
-// Reloj automatico cada hora: libera habitaciones cuyo tiempo de reserva ya termino
-function Liberarhabitacionesvencidas() {
+// Devuelve las cuentas de transferencia y el monto a pagar desde la hoja Configuracion
+function Enviardatospago(Celularcliente, Codigoreserva) {
   const Libro = SpreadsheetApp.getActiveSpreadsheet();
   const Hojareservas = Libro.getSheetByName('Reservas');
-  const Hojahabitaciones = Libro.getSheetByName('Habitaciones');
-  if (!Hojareservas || !Hojahabitaciones) {
-    return;
-  }
-
-  const Ahora = new Date();
-  const Hoytexto = Utilities.formatDate(Ahora, 'America/Bogota', 'yyyy-MM-dd');
-  const Horaactual = parseInt(Utilities.formatDate(Ahora, 'America/Bogota', 'HH'), 10);
-
+  const Config = Leerconfiguracionhoja();
   const Filas = Hojareservas.getDataRange().getValues();
-  const Habitacionesactivas = {};
+  const Celularlimpio = String(Celularcliente || '').replace(/\D/g, '');
 
-  for (let Indice = 1; Indice < Filas.length; Indice++) {
-    const Estado = String(Filas[Indice][14]);
-    const Numerohab = String(Filas[Indice][4]).padStart(2, '0');
-    const Fechallegada = Utilities.formatDate(new Date(Filas[Indice][5]), 'America/Bogota', 'yyyy-MM-dd');
-    const Fechasalida = Utilities.formatDate(new Date(Filas[Indice][6]), 'America/Bogota', 'yyyy-MM-dd');
-
-    if (Estado === 'Confirmada') {
-      const Venciofecha = Fechasalida < Hoytexto || (Fechasalida === Hoytexto && Horaactual >= Parametrosistema.horacheckout);
-      if (Venciofecha) {
-        Hojareservas.getRange(Indice + 1, 15).setValue('Finalizada');
-      } else if (Fechallegada <= Hoytexto && Fechasalida >= Hoytexto) {
-        Habitacionesactivas[Numerohab] = true;
-      }
+  for (let I = Filas.length - 1; I >= 1; I--) {
+    const Coincidecodigo = Codigoreserva && String(Filas[I][0]).toUpperCase() === String(Codigoreserva).toUpperCase();
+    const Coincidecelular = Celularlimpio && String(Filas[I][3]).replace(/\D/g, '') === Celularlimpio;
+    if ((Coincidecodigo || Coincidecelular) && String(Filas[I][14]) === 'Apartada') {
+      const Total = Number(Filas[I][10] || 0);
+      Hojareservas.getRange(I + 1, 18).setValue('Transferencia');
+      return {
+        exito: true,
+        codigo: String(Filas[I][0]),
+        habitacion: String(Filas[I][4]).padStart(2, '0'),
+        montototal: Total,
+        montoexigido: Total,
+        cuentas: [Config.CUENTANEQUI, Config.CUENTADAVIPLATA, Config.CUENTABANCOLOMBIA],
+        instruccion: `El pago mínimo es del 100% ($${Total.toLocaleString('es-CO')} COP). Tienes ${Config.MINUTOSAPARTADO} minutos para enviar la captura del comprobante por este chat.`
+      };
     }
   }
-
-  const Filashab = Hojahabitaciones.getDataRange().getValues();
-  for (let Indice = 1; Indice < Filashab.length; Indice++) {
-    const Numerohab = String(Filashab[Indice][0]).padStart(2, '0');
-    const Nuevoestado = Habitacionesactivas[Numerohab] ? 'Ocupada' : 'Disponible';
-    if (String(Filashab[Indice][5]) !== Nuevoestado) {
-      Cambiarocupacionhabitacion(Hojahabitaciones, Numerohab, Nuevoestado);
-    }
-  }
+  return { exito: false, mensaje: 'No se encontró una reserva apartada activa para este cliente.' };
 }

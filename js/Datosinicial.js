@@ -1,7 +1,7 @@
 // Catalogo de habitaciones, tarifas en pesos colombianos y datos iniciales del hospedaje
 const Configuracionhotel = {
   celular: '573001234567',
-  urlservidor: 'https://script.google.com/macros/s/AKfycbyEAwa8yflxqsW7UwagAJ4AvCYHfSSvZ7djEKnNLS1gprzAjWKqG5zjDGBZ5a4cMyAJew/exec',
+  urlservidor: 'https://script.google.com/macros/s/AKfycbwtFwQcPEmpUm2thTlLmChpiyg5h81LVBp2dK3ZXI3J-HukMWhzRbzD2nBseM2zJN2H-w/exec',
   mostrarcortina: true,
   cursorpersonalizado: true,
   nombre: 'Hospedaje Nissi',
@@ -10,7 +10,11 @@ const Configuracionhotel = {
   departamento: 'La Guajira',
   direccion: 'Troncal del Caribe, Mingueo, Dibulla, La Guajira',
   mapas: 'https://maps.app.goo.gl/TudMNAdQRpVyzHZGA',
-  waze: 'https://waze.com/ul?ll=11.216310,-73.392264&navigate=yes'
+  waze: 'https://waze.com/ul?ll=11.216310,-73.392264&navigate=yes',
+  urlsitio: 'https://hospedaje-nissi-mingueo.web.app/',
+  // false: el correo de recuperacion lo envia Firebase con la plantilla de la consola
+  // true: lo envia Apps Script con correos/Correorecuperacion.html (alternativa B del README)
+  recuperacionporservidor: true
 };
 
 const Habitacioneshotel = [

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nueva contraseña · Hospedaje Nissi</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#1A1C13">
+<link rel="icon" type="image/png" href="assets/nissi-mark-dark.png" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/png" href="assets/nissi-mark.png" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" href="assets/nissi-mark-dark.png">
+<link rel="apple-touch-icon" href="assets/logo-nissi.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..700;1,6..72,200..700&family=Hanken+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+
+<!-- Estilos globales de la marca y estilos propios de esta pagina -->
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/Recuperarclave.css">
+</head>
+<body class="clave-body">
+
+<main class="clave">
+
+  <!-- Panel de marca -->
+  <aside class="clave__marca">
+    <a class="clave__logo" href="index.html" aria-label="Ir al inicio de Hospedaje Nissi">
+      <img src="assets/nissi-mark.png" alt="" width="44" height="39">
+      <span>Hospedaje Nissi</span>
+    </a>
+    <img class="clave__isotipo" src="assets/nissi-mark.png" alt="" width="567" height="501" aria-hidden="true">
+    <p class="clave__lema">Un lugar de paso<br><em>para descansar bien.</em></p>
+    <p class="clave__direccion">Troncal del Caribe · Mingueo, Dibulla, La Guajira</p>
+  </aside>
+
+  <!-- Contenido segun el estado del enlace -->
+  <section class="clave__contenido" aria-live="polite">
+
+    <!-- Estado 1: verificando el enlace -->
+    <div class="clave__paso" data-estado="cargando">
+      <span class="eyebrow eyebrow--oscuro">Seguridad de tu cuenta</span>
+      <h1 class="display clave__titulo">Verificando<br><em>tu enlace…</em></h1>
+      <div class="clave__cargando" aria-hidden="true"><span></span><span></span><span></span></div>
+    </div>
+
+    <!-- Estado 2: formulario de nueva contraseña -->
+    <div class="clave__paso" data-estado="formulario" hidden>
+      <span class="eyebrow eyebrow--oscuro">Seguridad de tu cuenta</span>
+      <h1 class="display clave__titulo">Crea tu nueva<br><em>contraseña.</em></h1>
+      <p class="clave__texto">Para la cuenta <strong id="claveCorreo"></strong></p>
+
+      <form class="clave__form" id="claveForm" novalidate>
+        <label class="clave__campo">
+          <span>Nueva contraseña</span>
+          <span class="clave__entrada">
+            <input type="password" id="claveNueva" autocomplete="new-password" minlength="6" maxlength="128" required>
+            <button class="clave__ver" type="button" data-ver="claveNueva" aria-label="Mostrar contraseña">Ver</button>
+          </span>
+        </label>
+        <label class="clave__campo">
+          <span>Confirmar contraseña</span>
+          <span class="clave__entrada">
+            <input type="password" id="claveConfirmar" autocomplete="new-password" minlength="6" maxlength="128" required>
+            <button class="clave__ver" type="button" data-ver="claveConfirmar" aria-label="Mostrar contraseña">Ver</button>
+          </span>
+        </label>
+        <p class="clave__ayuda">Mínimo 6 caracteres. Usa una que no uses en otros sitios.</p>
+        <span class="clave__error" id="claveError" role="alert"></span>
+        <button class="btn btn--rust clave__boton" type="submit" id="claveGuardar">Guardar contraseña <span aria-hidden="true">→</span></button>
+      </form>
+    </div>
+
+    <!-- Estado 3: contraseña actualizada -->
+    <div class="clave__paso" data-estado="listo" hidden>
+      <div class="clave__check" aria-hidden="true">✓</div>
+      <span class="eyebrow eyebrow--oscuro">Contraseña actualizada</span>
+      <h1 class="display clave__titulo">Listo, ya puedes<br><em>entrar.</em></h1>
+      <p class="clave__texto">Tu nueva contraseña quedó guardada. Inicia sesión con ella para ver tus datos y reservar más rápido.</p>
+      <a class="btn btn--dark clave__boton" href="index.html?ingresar=1">Iniciar sesión <span aria-hidden="true">→</span></a>
+    </div>
+
+    <!-- Estado 4: enlace vencido o invalido -->
+    <div class="clave__paso" data-estado="error" hidden>
+      <span class="eyebrow eyebrow--oscuro">Enlace no válido</span>
+      <h1 class="display clave__titulo">Este enlace ya<br><em>no funciona.</em></h1>
+      <p class="clave__texto" id="claveMotivo">Los enlaces para cambiar la contraseña vencen en 1 hora y solo se pueden usar una vez.</p>
+      <a class="btn btn--dark clave__boton" href="index.html?ingresar=1">Pedir un enlace nuevo <span aria-hidden="true">→</span></a>
+    </div>
+
+    <p class="clave__soporte">
+      ¿Necesitas ayuda?
+      <a id="claveWhatsapp" href="https://wa.me/573001234567" target="_blank" rel="noopener">Contáctanos por WhatsApp</a>
+    </p>
+
+  </section>
+</main>
+
+<!-- Firebase y configuracion del hospedaje -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="js/Datosinicial.js"></script>
+<script src="js/Autenticacion.js"></script>
+<script src="js/Recuperarclave.js"></script>
+</body>
+</html>

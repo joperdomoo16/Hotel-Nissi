@@ -90,7 +90,7 @@ function Procesardirectoriojs() {
 }
 
 function Procesararchivoshtml() {
-  const Paginas = ['index.html', 'Administracion.html'];
+  const Paginas = ['index.html', 'Administracion.html', 'Recuperarclave.html'];
   Paginas.forEach(function(Nombrepagina) {
     const Rutapagina = path.join(Carpetaraiz, Nombrepagina);
     if (fs.existsSync(Rutapagina)) {

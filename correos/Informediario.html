@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>Informe diario · Hospedaje Nissi</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 0; width: 100% !important; background: #E7DCC6; -webkit-text-size-adjust: 100%; }
+  table { border-collapse: collapse; }
+  img { border: 0; display: block; outline: none; }
+  a { text-decoration: none; }
+  @media only screen and (max-width: 620px) {
+    .contenedor { width: 100% !important; }
+    .px { padding-left: 20px !important; padding-right: 20px !important; }
+    .titular { font-size: 38px !important; line-height: 40px !important; }
+    .cifra-grande { font-size: 40px !important; line-height: 44px !important; }
+    .apilar { display: block !important; width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; padding-bottom: 10px !important; }
+    .ocultar-movil { display: none !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#E7DCC6;">
+
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">Recaudo validado hoy: ${{RECAUDO}} COP · Ocupación {{OCUPADAS}}/{{TOTALHAB}} · {{LLEGADAS}} llegada(s) hoy.</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#E7DCC6" style="background:#E7DCC6;">
+  <tr>
+    <td align="center" style="padding:32px 12px;">
+
+      <table role="presentation" class="contenedor" width="640" cellpadding="0" cellspacing="0" border="0" style="width:640px;max-width:640px;">
+
+        <!-- Encabezado -->
+        <tr>
+          <td bgcolor="#1A1C13" class="px" style="background:#1A1C13;padding:28px 40px 8px;border-radius:24px 24px 0 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td valign="middle" width="40" style="width:40px;">
+                  <img src="https://hospedaje-nissi-mingueo.web.app/assets/nissi-mark.png" width="40" height="35" alt="Nissi" style="width:40px;height:35px;">
+                </td>
+                <td valign="middle" style="padding-left:12px;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-size:20px;line-height:24px;color:#F2EADB;">Hospedaje Nissi</td>
+                <td valign="middle" align="right" style="font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:10px;line-height:14px;letter-spacing:3px;text-transform:uppercase;color:#BDB49F;">Recepción</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Titular con la fecha -->
+        <tr>
+          <td bgcolor="#1A1C13" class="px" style="background:#1A1C13;padding:38px 40px 40px;">
+            <p style="margin:0 0 14px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;letter-spacing:3px;text-transform:uppercase;color:#BDB49F;">
+              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4DD678;vertical-align:middle;"></span>&nbsp;&nbsp;Informe diario de ventas
+            </p>
+            <h1 class="titular" style="margin:0;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-weight:300;font-size:50px;line-height:50px;letter-spacing:-1px;color:#F2EADB;">
+              {{DIASEMANA}},<br><em style="font-style:italic;color:#E7DCC6;">{{FECHACORTA}}</em>
+            </h1>
+            <p style="margin:16px 0 0;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;line-height:20px;color:#BDB49F;">Generado a las {{HORAGENERADO}} · Hora de Colombia</p>
+          </td>
+        </tr>
+
+        <!-- Recaudo del dia -->
+        <tr>
+          <td bgcolor="#F2EADB" class="px" style="background:#F2EADB;padding:32px 40px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#8C3B1F" style="background:#8C3B1F;border-radius:20px;">
+              <tr>
+                <td style="padding:28px 30px;">
+                  <p style="margin:0;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;letter-spacing:3px;text-transform:uppercase;color:#E7DCC6;">Recaudo validado hoy</p>
+                  <p class="cifra-grande" style="margin:10px 0 0;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-weight:300;font-size:52px;line-height:56px;letter-spacing:-1px;color:#F2EADB;">${{RECAUDO}} <span style="font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;letter-spacing:2px;color:#E7DCC6;">COP</span></p>
+                  <p style="margin:8px 0 0;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#F2EADB;">{{TEXTOCONFIRMADAS}}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Indicadores -->
+        <tr>
+          <td bgcolor="#F2EADB" class="px" style="background:#F2EADB;padding:12px 40px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td class="apilar" width="40%" valign="top" style="padding-right:6px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1A1C13" style="background:#1A1C13;border-radius:18px;">
+                    <tr>
+                      <td style="padding:22px 22px 20px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;">
+                        <span style="display:block;font-size:10px;line-height:14px;letter-spacing:2px;text-transform:uppercase;color:#BDB49F;">Ocupación esta noche</span>
+                        <span style="display:block;margin-top:8px;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-size:36px;line-height:38px;font-weight:300;color:#F2EADB;">{{OCUPADAS}}<span style="font-size:20px;color:#BDB49F;">/{{TOTALHAB}}</span></span>
+<!--INICIO:BARRA-->
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;">
+                          <tr>
+                            <td width="67%" height="6" bgcolor="#4DD678" style="background:#4DD678;height:6px;font-size:0;line-height:0;border-radius:6px 0 0 6px;">&nbsp;</td>
+                            <td width="33%" height="6" bgcolor="#2A2D20" style="background:#2A2D20;height:6px;font-size:0;line-height:0;border-radius:0 6px 6px 0;">&nbsp;</td>
+                          </tr>
+                        </table>
+<!--FIN:BARRA-->
+                        <span style="display:block;margin-top:8px;font-size:12px;line-height:16px;color:#BDB49F;">{{PORCENTAJE}}% de las habitaciones</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+                <td class="apilar" width="30%" valign="top" style="padding:0 3px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#E7DCC6" style="background:#E7DCC6;border-radius:18px;">
+                    <tr>
+                      <td style="padding:22px 20px 20px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;">
+                        <span style="display:block;font-size:10px;line-height:14px;letter-spacing:2px;text-transform:uppercase;color:#5A5C4E;">Llegadas hoy</span>
+                        <span style="display:block;margin-top:8px;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-size:36px;line-height:38px;font-weight:300;color:#1A1C13;">{{LLEGADAS}}</span>
+                        <span style="display:block;margin-top:8px;font-size:12px;line-height:16px;color:#5A5C4E;">Check-in confirmados</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+                <td class="apilar" width="30%" valign="top" style="padding-left:6px;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#E7DCC6" style="background:#E7DCC6;border-radius:18px;">
+                    <tr>
+                      <td style="padding:22px 20px 20px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;">
+                        <span style="display:block;font-size:10px;line-height:14px;letter-spacing:2px;text-transform:uppercase;color:#5A5C4E;">Salidas hoy</span>
+                        <span style="display:block;margin-top:8px;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-size:36px;line-height:38px;font-weight:300;color:#1A1C13;">{{SALIDAS}}</span>
+                        <span style="display:block;margin-top:8px;font-size:12px;line-height:16px;color:#5A5C4E;">Check-out del día</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Indicadores secundarios -->
+        <tr>
+          <td bgcolor="#F2EADB" class="px" style="background:#F2EADB;padding:12px 40px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #D9CDB5;border-bottom:1px solid #D9CDB5;">
+              <tr>
+                <td width="50%" style="padding:16px 0;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#3A3C30;">
+                  <strong style="font-family:'Newsreader',Georgia,'Times New Roman',serif;font-size:22px;font-weight:400;color:#8C3B1F;">{{PENDIENTES}}</strong>&nbsp; solicitudes pendientes de pago
+                </td>
+                <td width="50%" style="padding:16px 0 16px 12px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#3A3C30;">
+                  <strong style="font-family:'Newsreader',Georgia,'Times New Roman',serif;font-size:22px;font-weight:400;color:#4F5A2E;">{{NUEVOSUSUARIOS}}</strong>&nbsp; cuentas nuevas en la web
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Estado de las habitaciones -->
+        <tr>
+          <td bgcolor="#F2EADB" class="px" style="background:#F2EADB;padding:40px 40px 0;">
+            <p style="margin:0 0 6px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;letter-spacing:3px;text-transform:uppercase;color:#5A5C4E;">Rack de habitaciones</p>
+            <h2 style="margin:0 0 16px;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-weight:300;font-size:30px;line-height:32px;color:#1A1C13;">Estado <em style="font-style:italic;color:#8C3B1F;">actual.</em></h2>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<!--INICIO:HABITACIONES-->
+              <tr>
+                <td width="56" valign="middle" style="width:56px;padding:14px 0;border-top:1px solid #D9CDB5;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-size:26px;line-height:28px;font-weight:300;color:#1A1C13;">01</td>
+                <td valign="middle" style="padding:14px 0;border-top:1px solid #D9CDB5;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#3A3C30;"><strong style="color:#1A1C13;font-weight:600;">Sencilla</strong><br><span style="font-size:12px;color:#5A5C4E;">1 a 2 personas</span></td>
+                <td valign="middle" align="right" style="padding:14px 0;border-top:1px solid #D9CDB5;"><span style="display:inline-block;padding:6px 14px;border-radius:999px;background:#EBD3C6;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:12px;line-height:16px;font-weight:600;color:#8C3B1F;">Ocupada</span></td>
+              </tr>
+              <tr>
+                <td width="56" valign="middle" style="width:56px;padding:14px 0;border-top:1px solid #D9CDB5;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-size:26px;line-height:28px;font-weight:300;color:#1A1C13;">02</td>
+                <td valign="middle" style="padding:14px 0;border-top:1px solid #D9CDB5;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#3A3C30;"><strong style="color:#1A1C13;font-weight:600;">Sencilla</strong><br><span style="font-size:12px;color:#5A5C4E;">1 a 2 personas</span></td>
+                <td valign="middle" align="right" style="padding:14px 0;border-top:1px solid #D9CDB5;"><span style="display:inline-block;padding:6px 14px;border-radius:999px;background:#DDE2CC;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:12px;line-height:16px;font-weight:600;color:#4F5A2E;">Disponible</span></td>
+              </tr>
+<!--FIN:HABITACIONES-->
+            </table>
+          </td>
+        </tr>
+
+        <!-- Llegadas del dia -->
+        <tr>
+          <td bgcolor="#F2EADB" class="px" style="background:#F2EADB;padding:40px 40px 0;">
+            <p style="margin:0 0 6px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;letter-spacing:3px;text-transform:uppercase;color:#5A5C4E;">Check-in</p>
+            <h2 style="margin:0 0 16px;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-weight:300;font-size:30px;line-height:32px;color:#1A1C13;">Llegan <em style="font-style:italic;color:#8C3B1F;">hoy.</em></h2>
+<!--INICIO:LLEGADAS-->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#E7DCC6" style="background:#E7DCC6;border-radius:16px;margin-bottom:10px;">
+              <tr>
+                <td style="padding:18px 20px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;">
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td style="font-size:11px;line-height:14px;letter-spacing:2px;text-transform:uppercase;color:#5A5C4E;">Hab. 03 · NS-4K9A</td>
+                      <td align="right" style="font-size:13px;line-height:16px;font-weight:600;color:#1A1C13;">22:00</td>
+                    </tr>
+                  </table>
+                  <span style="display:block;margin-top:8px;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-size:21px;line-height:25px;color:#1A1C13;">María Fernanda López</span>
+                  <span style="display:block;margin-top:4px;font-size:13px;line-height:19px;color:#3A3C30;">Cel. 3001234567 · Pagó <strong style="color:#8C3B1F;">$120.000 COP</strong> · Nequi · Ref. 84512</span>
+                </td>
+              </tr>
+            </table>
+<!--FIN:LLEGADAS-->
+          </td>
+        </tr>
+
+        <!-- Salidas del dia -->
+        <tr>
+          <td bgcolor="#F2EADB" class="px" style="background:#F2EADB;padding:30px 40px 0;">
+            <p style="margin:0 0 6px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;letter-spacing:3px;text-transform:uppercase;color:#5A5C4E;">Check-out · antes de las 12:00</p>
+            <h2 style="margin:0 0 16px;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-weight:300;font-size:30px;line-height:32px;color:#1A1C13;">Salen <em style="font-style:italic;color:#8C3B1F;">hoy.</em></h2>
+<!--INICIO:SALIDAS-->
+            <p style="margin:0;padding:18px 20px;border-radius:16px;background:#E7DCC6;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#5A5C4E;">No hay salidas programadas para hoy.</p>
+<!--FIN:SALIDAS-->
+          </td>
+        </tr>
+
+        <!-- Acceso al panel -->
+        <tr>
+          <td bgcolor="#F2EADB" class="px" style="background:#F2EADB;padding:36px 40px 44px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" bgcolor="#1A1C13" style="background:#1A1C13;border-radius:999px;">
+                  <a href="https://hospedaje-nissi-mingueo.web.app/Administracion.html" target="_blank" style="display:inline-block;padding:16px 28px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:18px;font-weight:600;color:#F2EADB;text-decoration:none;border-radius:999px;">Abrir panel de recepción&nbsp;&#8594;</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Pie -->
+        <tr>
+          <td bgcolor="#1A1C13" class="px" style="background:#1A1C13;padding:26px 40px;border-radius:0 0 24px 24px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:12px;line-height:19px;color:#BDB49F;">
+            Informe automático del sistema de reservas de <span style="color:#F2EADB;">Hospedaje Nissi</span>.<br>
+            Las cifras salen de las pestañas Reservas, Habitaciones y Usuarios de Google Sheets.
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>
