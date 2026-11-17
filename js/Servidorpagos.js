@@ -261,6 +261,7 @@ function Extraerdatoscorreobanco(Asunto, Cuerpo, Remitente) {
 function Revisarapartados() {
   const Libro = SpreadsheetApp.getActiveSpreadsheet();
   const Hojareservas = Libro.getSheetByName('Reservas');
+  const Hojahabitaciones = Libro.getSheetByName('Habitaciones');
   const Hojaconv = Libro.getSheetByName('Conversaciones');
   const Config = Leerconfiguracionhoja();
   const Credenciales = Obtenercredenciales();
@@ -277,8 +278,17 @@ function Revisarapartados() {
       if (Estado === 'Apartada' && !isNaN(Marcatiempo) && Ahorams > Marcatiempo) {
         Hojareservas.getRange(I + 2, 15).setValue('Vencida');
         Hojareservas.getRange(I + 2, 23).setValue('Vencida por superar 30 min sin comprobante');
+        if (Hojahabitaciones) { Cambiarocupacionhabitacion(Hojahabitaciones, Filas[I][4], 'Disponible'); }
         if (Celular) {
+          Actualizarconversacion(Celular, { idinteraccionia: '', codigoreserva: '' });
           Enviarmensajewhatsapp(Celular, 'Tu apartado venció; si aún la quieres, te reviso disponibilidad.');
+        }
+      } else if (Estado === 'Apartada' && !isNaN(Marcatiempo) && (Marcatiempo - Ahorams) / 60000 <= 15) {
+        const Obsactual = String(Filas[I][22] || '');
+        if (Obsactual.indexOf('Recordatorio 15m') === -1 && Celular) {
+          const Habnum = String(Filas[I][4]).padStart(2, '0');
+          Hojareservas.getRange(I + 2, 23).setValue(`${Obsactual} · Recordatorio 15m`);
+          Enviarmensajewhatsapp(Celular, `¡Hola! 😊 Te recordamos desde la recepción de Hospedaje Nissi que tu habitación ${Habnum} (reserva ${Codigo}) sigue apartada por 15 minutos más. Quedamos atentos a tus datos o al comprobante de pago para dejártela confirmada.`);
         }
       } else if (Estado === 'Verificando' && !isNaN(Marcatiempo)) {
         const Minutosespera = (Ahorams - Marcatiempo) / 60000;
@@ -292,8 +302,10 @@ function Revisarapartados() {
   if (Hojaconv && Hojaconv.getLastRow() >= 2) {
     const Convfilas = Hojaconv.getRange(2, 1, Hojaconv.getLastRow() - 1, 10).getValues();
     for (let C = 0; C < Convfilas.length; C++) {
-      if (String(Convfilas[C][2]) !== 'Canal') { continue; }
+      const Modoc = String(Convfilas[C][2]);
+      if (Modoc !== 'Canal' && Modoc !== 'PendienteAdmin') { continue; }
       const Celcliente = String(Convfilas[C][0]).replace(/\D/g, '');
+      const Nombrec = String(Convfilas[C][1] || 'Cliente');
       const Codres = String(Convfilas[C][3] || '');
       const Aperturams = new Date(Convfilas[C][6]).getTime();
       const Ultadminms = Convfilas[C][5] ? new Date(Convfilas[C][5]).getTime() : 0;
@@ -305,12 +317,19 @@ function Revisarapartados() {
         Cerrarcanalyactualizarreserva(Celcliente, false, 'cierre_automatico_2h');
         continue;
       }
-      if (Minabierto >= Number(Config.MINUTOSAVISOCANAL || 15) && Ultadminms < Aperturams && String(Convfilas[C][7]) !== 'SI') {
-        Enviarmensajewhatsapp(Celcliente, 'Un administrador te responderá en breve.');
+      const Limiteaviso = Modoc === 'PendienteAdmin' ? 5 : Number(Config.MINUTOSAVISOCANAL || 15);
+      if (Minabierto >= Limiteaviso && Ultadminms < Aperturams && String(Convfilas[C][7]) !== 'SI') {
+        const Msgdemora = Modoc === 'PendienteAdmin'
+          ? 'Seguimos buscando a un administrador disponible para atenderte. Por favor permanece en línea en el chat.'
+          : 'Un administrador te responderá en breve. Por favor permanece en línea en el chat.';
+        Enviarmensajewhatsapp(Celcliente, Msgdemora);
         Hojaconv.getRange(C + 2, 8).setValue('SI');
       }
       if ((Ahorams - Ultrecordms) / 60000 >= Number(Config.MINUTOSRECORDATORIOCANAL || 10)) {
-        Enviarmensajewhatsapp(Credenciales.celularadmin, `⏰ Recordatorio: tienes el canal ${Codres} (+${Celcliente}) abierto hace ${Math.round(Minabierto)} min. Responde al cliente o ciérralo con "reserva confirmada finalizar" o "reserva rechazada finalizar".`);
+        const Msgrec = Modoc === 'PendienteAdmin'
+          ? `⏰ Recordatorio: el cliente "${Nombrec}" (${Codres}) sigue esperando atención hace ${Math.round(Minabierto)} min.\n¿Comenzar atención con el cliente "${Nombrec}"?\nResponde: SI`
+          : `⏰ Recordatorio: tienes el canal ${Codres} (+${Celcliente}) abierto hace ${Math.round(Minabierto)} min. Responde al cliente o ciérralo con "reserva confirmada finalizar" o "reserva rechazada finalizar".`;
+        Enviarmensajeinteligente(Credenciales.celularadmin, Msgrec, 'canal_efectivo_admin', []);
         Hojaconv.getRange(C + 2, 9).setValue(Formatearfechahora(new Date()));
       }
     }
@@ -349,21 +368,24 @@ function Liberarhabitacionesvencidas() {
   const Activas = {};
 
   for (let I = 1; I < Filas.length; I++) {
-    if (String(Filas[I][14]) === 'Confirmada') {
-      const Numhab = String(Filas[I][4]).padStart(2, '0');
+    const Estfila = String(Filas[I][14]);
+    const Numhab = String(Filas[I][4]).padStart(2, '0');
+    if (Estfila === 'Confirmada') {
       const Llegada = Utilities.formatDate(new Date(Filas[I][5]), Parametrosistema.zonahoraria, 'yyyy-MM-dd');
       const Salida = Utilities.formatDate(new Date(Filas[I][6]), Parametrosistema.zonahoraria, 'yyyy-MM-dd');
       if (Salida < Hoytexto || (Salida === Hoytexto && Horaactual >= Parametrosistema.horacheckout)) {
         Hojareservas.getRange(I + 1, 15).setValue('Finalizada');
       } else if (Llegada <= Hoytexto && Salida >= Hoytexto) {
-        Activas[Numhab] = true;
+        Activas[Numhab] = 'Ocupada';
       }
+    } else if (Reservaestabloqueando(Filas[I], Ahora.getTime())) {
+      if (!Activas[Numhab]) { Activas[Numhab] = 'Apartada'; }
     }
   }
   const Filashab = Hojahabitaciones.getDataRange().getValues();
   for (let J = 1; J < Filashab.length; J++) {
     const Numhab = String(Filashab[J][0]).padStart(2, '0');
-    const Nuevoestado = Activas[Numhab] ? 'Ocupada' : 'Disponible';
+    const Nuevoestado = Activas[Numhab] || 'Disponible';
     if (String(Filashab[J][5]) !== Nuevoestado) {
       Cambiarocupacionhabitacion(Hojahabitaciones, Numhab, Nuevoestado);
     }

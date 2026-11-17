@@ -163,10 +163,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Auto-refresco de habitaciones cada 60 segundos si esta autenticado
+  // Auto-refresco de habitaciones cada 15 segundos si esta autenticado
   setInterval(function() {
     if (Estadorecepcion.autenticado && typeof Cargarhabitaciones === 'function') {
       Cargarhabitaciones();
     }
-  }, 60000);
+  }, 15000);
 });

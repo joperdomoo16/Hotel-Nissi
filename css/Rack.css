@@ -41,6 +41,11 @@
   box-shadow: 0 0 10px rgba(47, 180, 90, 0.4);
 }
 
+.legend-dot.is-reserved {
+  background: #E6A832;
+  box-shadow: 0 0 10px rgba(230, 168, 50, 0.4);
+}
+
 .legend-dot.is-busy {
   background: #D94436;
   box-shadow: 0 0 10px rgba(217, 68, 54, 0.4);
@@ -78,6 +83,10 @@
   background: #2FB45A;
 }
 
+.room-card.is-reserved::before {
+  background: #E6A832;
+}
+
 .room-card.is-occupied::before {
   background: #D94436;
 }
@@ -112,6 +121,12 @@
   background: rgba(47, 180, 90, 0.15);
   color: #55E482;
   border: 1px solid rgba(47, 180, 90, 0.3);
+}
+
+.room-card.is-reserved .room-card-status {
+  background: rgba(230, 168, 50, 0.16);
+  color: #F5C45E;
+  border: 1px solid rgba(230, 168, 50, 0.35);
 }
 
 .room-card.is-occupied .room-card-status {

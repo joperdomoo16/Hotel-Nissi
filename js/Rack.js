@@ -11,7 +11,7 @@ function Cargarhabitaciones() {
   const Manana = new Date(Ahora.getTime() + 86400000).toISOString().split('T')[0];
 
   if (typeof Consultardisponibilidadservidor === 'function') {
-    Consultardisponibilidadservidor(Cadenahoy, Manana, 2)
+    Consultardisponibilidadservidor(Cadenahoy, Manana, 1)
       .then(function(Respuesta) {
         if (Respuesta && Array.isArray(Respuesta.todas)) {
           Estadorecepcion.habitaciones = Respuesta.todas;
@@ -58,7 +58,10 @@ function Dibujartablerohabitaciones() {
   Contenedor.innerHTML = '';
 
   Estadorecepcion.habitaciones.forEach(function(Hab) {
-    const Eslibre = Hab.disponible !== false && Hab.estadoactual !== 'Ocupada';
+    const Estadohab = String(Hab.estadoactual || 'Disponible');
+    const Esapartada = Estadohab === 'Apartada' || Estadohab === 'En proceso' || Estadohab === 'Verificando' || Estadohab === 'En canal';
+    const Esocupada = Estadohab === 'Ocupada';
+    const Eslibre = !Esapartada && !Esocupada && Hab.disponible !== false;
     if (Eslibre) {
       Contadorlibres++;
     } else {
@@ -69,12 +72,16 @@ function Dibujartablerohabitaciones() {
     const Tiposeguro = typeof Escaparhtml === 'function' ? Escaparhtml(Hab.tipo) : Hab.tipo;
     const Capacidadsegura = typeof Escaparhtml === 'function' ? Escaparhtml(Hab.capacidad) : Hab.capacidad;
 
+    const Clasetarjeta = Eslibre ? 'is-available' : (Esapartada ? 'is-reserved' : 'is-occupied');
+    const Etiquetaestado = Eslibre ? '● Disponible' : (Esapartada ? '◐ Apartada · En proceso' : '■ Ocupada');
+    const Textoocupada = Esapartada ? 'Apartada en proceso (30 min)' : 'Ocupada actualmente';
+
     const Tarjeta = document.createElement('div');
-    Tarjeta.className = `room-card ${Eslibre ? 'is-available' : 'is-occupied'}`;
+    Tarjeta.className = `room-card ${Clasetarjeta}`;
     Tarjeta.innerHTML = `
       <div class="room-card-head">
         <span class="room-card-num">${Numeroseguro}</span>
-        <span class="room-card-status">${Eslibre ? '● Disponible' : '■ Ocupada'}</span>
+        <span class="room-card-status">${Etiquetaestado}</span>
       </div>
       <h4 class="room-card-type">${Tiposeguro}</h4>
       <div class="room-card-info">
@@ -85,7 +92,7 @@ function Dibujartablerohabitaciones() {
         ${
           Eslibre
             ? `<button class="btn btn--cream btn--sm" type="button" data-checkin="${Numeroseguro}">Check-in presencial</button>`
-            : `<button class="btn btn--ghost btn--sm" type="button" disabled>Ocupada actualmente</button>`
+            : `<button class="btn btn--ghost btn--sm" type="button" disabled>${Textoocupada}</button>`
         }
       </div>
     `;

@@ -1,7 +1,7 @@
 // Servidor en Google Apps Script para Hospedaje Nissi: Base de Datos Google Sheets, Apartados e Inventario
 
 const Parametrosistema = {
-  modeloia: 'gemini-3.8-flash',
+  modeloia: 'gemini-3.5-flash-lite',
   urlgemini: 'https://generativelanguage.googleapis.com/v1beta/interactions',
   versionapi: '2026-05-20',
   horacheckout: 12,
@@ -34,25 +34,12 @@ const Configuracionbase = [
 ];
 
 function Sanitizarcelda(Valor, Maximo) {
-  const Limite = Maximo || 120;
-  let Limpio = String(Valor == null ? '' : Valor)
-    .replace(/[<>]/g, '')
-    .replace(/[\u0000-\u001F\u007F]/g, '')
-    .trim()
-    .slice(0, Limite);
-  if (/^[=+\-@]/.test(Limpio)) {
-    Limpio = "'" + Limpio;
-  }
-  return Limpio;
+  let Limpio = String(Valor == null ? '' : Valor).replace(/[<>]/g, '').replace(/[\u0000-\u001F\u007F]/g, '').trim().slice(0, Maximo || 120);
+  return /^[=+\-@]/.test(Limpio) ? "'" + Limpio : Limpio;
 }
 
 function Escaparhtmlservidor(Texto) {
-  return String(Texto == null ? '' : Texto)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  return String(Texto == null ? '' : Texto).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function Formatearfechahora(Fecha) {
@@ -62,12 +49,14 @@ function Formatearfechahora(Fecha) {
 function Obtenercredenciales() {
   const Propiedades = PropertiesService.getScriptProperties().getProperties();
   const Confighoja = Leerconfiguracionhoja();
+  let Adminlimpio = String(Confighoja.CELULARADMIN || Propiedades.CELULARADMIN || '573123639298').replace(/\D/g, '');
+  if (Adminlimpio.length === 10 && Adminlimpio.indexOf('3') === 0) { Adminlimpio = '57' + Adminlimpio; }
   return {
-    clavegemini: Propiedades.CLAVEGEMINI || '',
-    tokenwhatsapp: Propiedades.TOKENWHATSAPP || '',
-    idtelefonowhatsapp: Propiedades.IDTELEFONOWHATSAPP || '',
-    tokenverificacion: Propiedades.TOKENVERIFICACION || 'nissiverificacion2026',
-    celularadmin: String(Confighoja.CELULARADMIN || Propiedades.CELULARADMIN || '573123639298').replace(/\D/g, ''),
+    clavegemini: String(Propiedades.CLAVEGEMINI || '').trim(),
+    tokenwhatsapp: String(Propiedades.TOKENWHATSAPP || '').trim(),
+    idtelefonowhatsapp: String(Propiedades.IDTELEFONOWHATSAPP || '').trim(),
+    tokenverificacion: String(Propiedades.TOKENVERIFICACION || 'nissiverificacion2026').trim(),
+    celularadmin: Adminlimpio,
     correoadmin: Propiedades.CORREOADMIN || Session.getActiveUser().getEmail(),
     clavefirebase: Propiedades.CLAVEFIREBASE || 'AIzaSyDejKbwGSI3t4_gw6YRXeDwEDnhBIKjI0o'
   };
@@ -75,27 +64,17 @@ function Obtenercredenciales() {
 
 function Leerconfiguracionhoja() {
   const Mapa = {
-    PAGOMINIMOPORCENTAJE: 100,
-    MINUTOSAPARTADO: 30,
-    MINUTOSESPERACORREO: 20,
-    MINUTOSAVISOCANAL: 15,
-    MINUTOSRECORDATORIOCANAL: 10,
-    MINUTOSCIERREAUTO: 120,
-    CELULARADMIN: '573123639298',
-    MODOSOMBRA: 'NO',
-    CUENTANEQUI: 'Nequi: 3123639298',
-    CUENTADAVIPLATA: 'Daviplata: 3123639298',
+    PAGOMINIMOPORCENTAJE: 100, MINUTOSAPARTADO: 30, MINUTOSESPERACORREO: 20, MINUTOSAVISOCANAL: 15,
+    MINUTOSRECORDATORIOCANAL: 10, MINUTOSCIERREAUTO: 120, CELULARADMIN: '573123639298', MODOSOMBRA: 'NO',
+    CUENTANEQUI: 'Nequi: 3123639298', CUENTADAVIPLATA: 'Daviplata: 3123639298',
     CUENTABANCOLOMBIA: 'Bancolombia: Solicitar en recepción',
     REMITENTESBANCOS: 'bancolombia.com.co,notificacionesbancolombia.com,nequi.com.co,nequi.com,daviplata.com,davivienda.com'
   };
   try {
     const Libro = SpreadsheetApp.getActiveSpreadsheet();
     const Hoja = Libro && Libro.getSheetByName('Configuracion');
-    if (!Hoja || Hoja.getLastRow() < 2) {
-      return Mapa;
-    }
-    const Filas = Hoja.getRange(2, 1, Hoja.getLastRow() - 1, 2).getValues();
-    Filas.forEach(function(Fila) {
+    if (!Hoja || Hoja.getLastRow() < 2) { return Mapa; }
+    Hoja.getRange(2, 1, Hoja.getLastRow() - 1, 2).getValues().forEach(function(Fila) {
       const Clave = String(Fila[0] || '').trim().toUpperCase();
       const Valor = String(Fila[1] == null ? '' : Fila[1]).trim();
       if (Clave && Valor !== '') {
@@ -115,9 +94,7 @@ function Registrarbitacora(Modulo, Accion, Detalle) {
       Hoja.appendRow(['Fechahora', 'Modulo', 'Accion', 'Detalle']);
     }
     Hoja.appendRow([
-      Formatearfechahora(new Date()),
-      Sanitizarcelda(Modulo, 40),
-      Sanitizarcelda(Accion, 80),
+      Formatearfechahora(new Date()), Sanitizarcelda(Modulo, 40), Sanitizarcelda(Accion, 80),
       Sanitizarcelda(typeof Detalle === 'string' ? Detalle : JSON.stringify(Detalle), 500)
     ]);
   } catch (Errorbitacora) {}
@@ -219,19 +196,24 @@ function Consultardisponibilidad(Fechallegada, Fechasalida, Cantidadhuespedes) {
   const Huespedesminimos = parseInt(Cantidadhuespedes || 1, 10);
   const Ahorams = Date.now();
   const Habitacionesocupadasenrango = {};
+  const Habitacionesenproceso = {};
 
-  if (Llegadasolicitada && Salidasolicitada) {
-    Filasreservas.forEach(function(Filareserva) {
-      if (Reservaestabloqueando(Filareserva, Ahorams)) {
-        const Numerohab = String(Filareserva[4]).padStart(2, '0');
+  Filasreservas.forEach(function(Filareserva) {
+    if (Reservaestabloqueando(Filareserva, Ahorams)) {
+      const Numerohab = String(Filareserva[4]).padStart(2, '0');
+      const Estado = String(Filareserva[14] || '').trim();
+      if (Estado === 'Apartada' || Estado === 'Verificando' || Estado === 'En canal') {
+        Habitacionesenproceso[Numerohab] = Estado;
+      }
+      if (Llegadasolicitada && Salidasolicitada) {
         const Llegadaexistente = new Date(Filareserva[5]);
         const Salidaexistente = new Date(Filareserva[6]);
         if (Llegadasolicitada < Salidaexistente && Salidasolicitada > Llegadaexistente) {
-          Habitacionesocupadasenrango[Numerohab] = String(Filareserva[14]);
+          Habitacionesocupadasenrango[Numerohab] = Estado;
         }
       }
-    });
-  }
+    }
+  });
 
   const Listadodisponibles = [];
   const Listadogeneral = [];
@@ -244,32 +226,23 @@ function Consultardisponibilidad(Fechallegada, Fechasalida, Cantidadhuespedes) {
     const Tarifanoche = Number(Filahab[4]);
     const Estadopestana = String(Filahab[5]);
 
+    const Estadorango = Habitacionesocupadasenrango[Numerohab] || '';
+    const Estadoproceso = Habitacionesenproceso[Numerohab] || '';
     const Ocupadahoy = !Llegadasolicitada && Estadopestana === 'Ocupada';
-    const Ocupadafechas = Boolean(Habitacionesocupadasenrango[Numerohab]);
-    const Disponible = !Ocupadahoy && !Ocupadafechas && Maxhuespedes >= Huespedesminimos;
+    const Ocupadaconfirmada = Ocupadahoy || Estadorango === 'Confirmada';
+    const Enapartado = !Ocupadaconfirmada && Boolean(Estadoproceso || (Estadorango && Estadorango !== 'Confirmada'));
+    const Disponible = !Ocupadaconfirmada && !Enapartado && Maxhuespedes >= Huespedesminimos;
+    const Estadomostrar = Ocupadaconfirmada ? 'Ocupada' : (Enapartado ? 'Apartada' : 'Disponible');
 
     const Objetoestado = {
-      numero: Numerohab,
-      tipo: Tipohab,
-      capacidad: Capacidadtexto,
-      huespedesmaximos: Maxhuespedes,
-      tarifanoche: Tarifanoche,
-      estadoactual: Ocupadafechas ? 'Ocupada' : Estadopestana,
-      disponible: Disponible
+      numero: Numerohab, tipo: Tipohab, capacidad: Capacidadtexto, huespedesmaximos: Maxhuespedes,
+      tarifanoche: Tarifanoche, estadoactual: Estadomostrar, disponible: Disponible
     };
-
     Listadogeneral.push(Objetoestado);
-    if (Disponible) {
-      Listadodisponibles.push(Objetoestado);
-    }
+    if (Disponible) { Listadodisponibles.push(Objetoestado); }
   });
 
-  return {
-    fechallegada: Fechallegada || 'hoy',
-    fechasalida: Fechasalida || 'por definir',
-    disponibles: Listadodisponibles,
-    todas: Listadogeneral
-  };
+  return { fechallegada: Fechallegada || 'hoy', fechasalida: Fechasalida || 'por definir', disponibles: Listadodisponibles, todas: Listadogeneral };
 }
 
 // Aparta la habitacion de inmediato cuando el cliente la elige
@@ -279,25 +252,17 @@ function Apartarhabitacion(Celularcliente, Numerohabitacion, Fechallegada, Fecha
   try {
     const Libro = SpreadsheetApp.getActiveSpreadsheet();
     const Hojareservas = Libro.getSheetByName('Reservas');
+    const Hojahabitaciones = Libro.getSheetByName('Habitaciones');
     const Config = Leerconfiguracionhoja();
     const Numerohab = String(Numerohabitacion || '01').padStart(2, '0');
     const Celularlimpio = String(Celularcliente || '').replace(/\D/g, '');
 
-    // Si el cliente ya tenia otro apartado activo, se libera el anterior (solo 1 apartado por cliente)
-    if (Celularlimpio) {
-      Liberarapartadosprevioscliente(Hojareservas, Celularlimpio);
-    }
+    if (Celularlimpio) { Liberarapartadosprevioscliente(Hojareservas, Hojahabitaciones, Celularlimpio); }
 
     const Disponibilidad = Consultardisponibilidad(Fechallegada, Fechasalida, Cantidadhuespedes || 1);
-    const Hablibre = Disponibilidad.disponibles.find(function(H) {
-      return H.numero === Numerohab;
-    });
-
+    const Hablibre = Disponibilidad.disponibles.find(function(H) { return H.numero === Numerohab; });
     if (!Hablibre) {
-      return {
-        exito: false,
-        mensaje: `La habitación ${Numerohab} ya no está disponible para esas fechas.`
-      };
+      return { exito: false, mensaje: `La habitación ${Numerohab} ya no está disponible para esas fechas.` };
     }
 
     const Noches = Math.max(1, Math.round((new Date(Fechasalida) - new Date(Fechallegada)) / 86400000));
@@ -306,35 +271,28 @@ function Apartarhabitacion(Celularcliente, Numerohabitacion, Fechallegada, Fecha
     const Ahora = new Date();
     const Vence = new Date(Ahora.getTime() + Number(Config.MINUTOSAPARTADO || 30) * 60000);
 
-    const Nuevafila = [
+    Hojareservas.appendRow([
       Codigo, Formatearfechahora(Ahora).slice(0, 16), 'Por confirmar', Sanitizarcelda(Celularlimpio, 20),
       Numerohab, Sanitizarcelda(Fechallegada, 15), Sanitizarcelda(Fechasalida, 15), Noches,
       Number(Cantidadhuespedes || 2), 'Por confirmar', Montototal, 0, '', '', 'Apartada',
       Sanitizarcelda(Canalorigen || 'WhatsApp', 20), Formatearfechahora(Vence), '', '', '', '', '', 'Apartada automáticamente'
-    ];
-
-    Hojareservas.appendRow(Nuevafila);
+    ]);
+    Cambiarocupacionhabitacion(Hojahabitaciones, Numerohab, 'Apartada');
     if (typeof Actualizarconversacion === 'function' && Celularlimpio) {
       Actualizarconversacion(Celularlimpio, { codigoreserva: Codigo });
     }
     Registrarbitacora('Apartados', 'Apartarhabitacion', `Hab ${Numerohab} apartada (${Codigo}) hasta ${Formatearfechahora(Vence)}`);
 
     return {
-      exito: true,
-      codigo: Codigo,
-      habitacion: Numerohab,
-      tipo: Hablibre.tipo,
-      noches: Noches,
-      montototal: Montototal,
-      minutosapartado: Number(Config.MINUTOSAPARTADO || 30),
-      venceapartado: Formatearfechahora(Vence)
+      exito: true, codigo: Codigo, habitacion: Numerohab, tipo: Hablibre.tipo, noches: Noches,
+      montototal: Montototal, minutosapartado: Number(Config.MINUTOSAPARTADO || 30), venceapartado: Formatearfechahora(Vence)
     };
   } finally {
     Candado.releaseLock();
   }
 }
 
-function Liberarapartadosprevioscliente(Hojareservas, Celularlimpio) {
+function Liberarapartadosprevioscliente(Hojareservas, Hojahabitaciones, Celularlimpio) {
   const Filas = Hojareservas.getDataRange().getValues();
   for (let I = 1; I < Filas.length; I++) {
     const Celularfila = String(Filas[I][3] || '').replace(/\D/g, '');
@@ -342,6 +300,7 @@ function Liberarapartadosprevioscliente(Hojareservas, Celularlimpio) {
     if (Celularfila === Celularlimpio && Estado === 'Apartada') {
       Hojareservas.getRange(I + 1, 15).setValue('Vencida');
       Hojareservas.getRange(I + 1, 23).setValue('Liberada por cambio de habitación');
+      if (Hojahabitaciones) { Cambiarocupacionhabitacion(Hojahabitaciones, Filas[I][4], 'Disponible'); }
     }
   }
 }
@@ -349,6 +308,7 @@ function Liberarapartadosprevioscliente(Hojareservas, Celularlimpio) {
 function Liberarapartado(Celularcliente, Codigoreserva, Motivo) {
   const Libro = SpreadsheetApp.getActiveSpreadsheet();
   const Hojareservas = Libro.getSheetByName('Reservas');
+  const Hojahabitaciones = Libro.getSheetByName('Habitaciones');
   const Filas = Hojareservas.getDataRange().getValues();
   const Celularlimpio = String(Celularcliente || '').replace(/\D/g, '');
 
@@ -358,6 +318,7 @@ function Liberarapartado(Celularcliente, Codigoreserva, Motivo) {
     if ((Coincidecodigo || Coincidecelular) && String(Filas[I][14]) === 'Apartada') {
       Hojareservas.getRange(I + 1, 15).setValue('Vencida');
       Hojareservas.getRange(I + 1, 23).setValue(Sanitizarcelda(Motivo || 'Desistió el cliente', 120));
+      if (Hojahabitaciones) { Cambiarocupacionhabitacion(Hojahabitaciones, Filas[I][4], 'Disponible'); }
       Registrarbitacora('Apartados', 'Liberarapartado', `Reserva ${Filas[I][0]} liberada.`);
       return { exito: true, codigo: Filas[I][0], mensaje: 'Apartado liberado correctamente.' };
     }
@@ -377,8 +338,8 @@ function Cambiarocupacionhabitacion(Hojahabitaciones, Numerohabitacion, Nuevoest
   }
 }
 
-// Guarda nombre completo, cedula y hora estimada de llegada en la reserva activa
-function Guardardatoshuesped(Celularcliente, Codigoreserva, Nombre, Cedula, Horallegada) {
+// Guarda nombre completo, cedula, hora estimada de llegada, contacto y parqueadero en la reserva activa
+function Guardardatoshuesped(Celularcliente, Codigoreserva, Nombre, Cedula, Horallegada, Celularcontacto, Parqueadero) {
   const Libro = SpreadsheetApp.getActiveSpreadsheet();
   const Hojareservas = Libro.getSheetByName('Reservas');
   const Filas = Hojareservas.getDataRange().getValues();
@@ -389,17 +350,17 @@ function Guardardatoshuesped(Celularcliente, Codigoreserva, Nombre, Cedula, Hora
     const Coincidecelular = Celularlimpio && String(Filas[I][3]).replace(/\D/g, '') === Celularlimpio;
     const Estado = String(Filas[I][14]);
     if ((Coincidecodigo || Coincidecelular) && (Estado === 'Apartada' || Estado === 'Verificando' || Estado === 'En canal')) {
-      const Nombreconcedula = Cedula
-        ? `${Sanitizarcelda(Nombre || 'Viajero', 70)} (C.C. ${Sanitizarcelda(Cedula, 20)})`
-        : Sanitizarcelda(Nombre || 'Viajero', 80);
+      const Nombreconcedula = Cedula ? `${Sanitizarcelda(Nombre || 'Viajero', 70)} (C.C. ${Sanitizarcelda(Cedula, 20)})` : Sanitizarcelda(Nombre || 'Viajero', 80);
       Hojareservas.getRange(I + 1, 3).setValue(Nombreconcedula);
-      if (Horallegada) {
-        Hojareservas.getRange(I + 1, 10).setValue(Sanitizarcelda(Horallegada, 40));
-      }
+      if (Horallegada) { Hojareservas.getRange(I + 1, 10).setValue(Sanitizarcelda(Horallegada, 40)); }
+      const Detalles = [];
+      if (Celularcontacto) { Detalles.push(`Contacto: ${Celularcontacto}`); }
+      if (Parqueadero) { Detalles.push(`Parqueadero: ${Parqueadero}`); }
+      if (Detalles.length) { Hojareservas.getRange(I + 1, 23).setValue(Sanitizarcelda(Detalles.join(' · '), 120)); }
       if (typeof Actualizarconversacion === 'function' && Celularlimpio) {
         Actualizarconversacion(Celularlimpio, { nombre: Sanitizarcelda(Nombre, 60), codigoreserva: String(Filas[I][0]) });
       }
-      return { exito: true, codigo: String(Filas[I][0]), nombre: Nombreconcedula, horallegada: Horallegada || 'Por confirmar' };
+      return { exito: true, codigo: String(Filas[I][0]), nombre: Nombreconcedula, horallegada: Horallegada || 'Por confirmar', parqueadero: Parqueadero || 'No especificado' };
     }
   }
   return { exito: false, mensaje: 'Primero debes apartar una habitación antes de guardar los datos del huésped.' };

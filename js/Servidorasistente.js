@@ -110,14 +110,16 @@ function Obtenerherramientasia() {
     {
       type: 'function',
       name: 'Guardardatoshuesped',
-      description: 'Guarda el nombre completo, cédula de ciudadanía y hora estimada de llegada en la reserva apartada.',
+      description: 'Guarda el nombre completo, cédula de ciudadanía, hora estimada de llegada y teléfono de contacto en la reserva apartada.',
       parameters: {
         type: 'object',
         properties: {
           codigo: { type: 'string', description: 'Código de reserva (ej. NS-4K9A)' },
           nombre: { type: 'string', description: 'Nombre completo del huésped' },
           cedula: { type: 'string', description: 'Número de cédula de ciudadanía' },
-          horallegada: { type: 'string', description: 'Hora estimada de llegada (ej. 22:00)' }
+          horallegada: { type: 'string', description: 'Hora estimada de llegada (ej. 8:00 p. m.)' },
+          celularcontacto: { type: 'string', description: 'Número de celular de contacto si el cliente indica uno' },
+          parqueadero: { type: 'string', description: 'Si requiere parqueadero: "No" o detalle de cantidad y tipo de vehículo (ej. "Sí, 1 carro" o "Sí, 2 motos")' }
         },
         required: ['nombre', 'cedula']
       }
@@ -152,23 +154,25 @@ function Obtenerherramientasia() {
     {
       type: 'function',
       name: 'Solicitarpagoefectivo',
-      description: 'Abre el canal privado con el administrador cuando el cliente indica que desea pagar en efectivo.',
+      description: 'Solicita conexión con un administrador cuando el cliente indica que desea pagar en efectivo.',
       parameters: {
         type: 'object',
         properties: {
-          codigo: { type: 'string', description: 'Código de la reserva apartada' }
+          codigo: { type: 'string', description: 'Código de la reserva apartada' },
+          resumen: { type: 'string', description: 'Resumen breve de lo conversado con el cliente' }
         }
       }
     },
     {
       type: 'function',
       name: 'Solicitaradministrador',
-      description: 'Abre el canal privado con el administrador cuando el cliente pide hablar con una persona o tiene un caso especial.',
+      description: 'Solicita conexión con un administrador cuando el cliente pide hablar con una persona o tiene un caso especial.',
       parameters: {
         type: 'object',
         properties: {
           codigo: { type: 'string', description: 'Código de reserva si existe' },
-          motivo: { type: 'string', description: 'Motivo de la solicitud' }
+          motivo: { type: 'string', description: 'Motivo de la solicitud' },
+          resumen: { type: 'string', description: 'Resumen breve de lo conversado con el cliente' }
         }
       }
     }
@@ -186,7 +190,7 @@ function Ejecutarherramientaia(Nombre, Argumentos, Celularcliente) {
     return Liberarapartado(Celularcliente, Argumentos.codigo, Argumentos.motivo);
   }
   if (Nombre === 'Guardardatoshuesped') {
-    return Guardardatoshuesped(Celularcliente, Argumentos.codigo, Argumentos.nombre, Argumentos.cedula, Argumentos.horallegada);
+    return Guardardatoshuesped(Celularcliente, Argumentos.codigo, Argumentos.nombre, Argumentos.cedula, Argumentos.horallegada, Argumentos.celularcontacto, Argumentos.parqueadero);
   }
   if (Nombre === 'Enviardatospago') {
     return Enviardatospago(Celularcliente, Argumentos.codigo);
@@ -195,10 +199,10 @@ function Ejecutarherramientaia(Nombre, Argumentos, Celularcliente) {
     return Registrarcomprobante(Celularcliente, Argumentos.codigo, Argumentos);
   }
   if (Nombre === 'Solicitarpagoefectivo') {
-    return Solicitarpagoefectivo(Celularcliente, Argumentos.codigo);
+    return Solicitarpagoefectivo(Celularcliente, Argumentos.codigo, Argumentos.resumen);
   }
   if (Nombre === 'Solicitaradministrador') {
-    return Solicitaradministrador(Celularcliente, Argumentos.codigo, Argumentos.motivo);
+    return Solicitaradministrador(Celularcliente, Argumentos.codigo, Argumentos.motivo, Argumentos.resumen);
   }
   return { exito: false, mensaje: 'Herramienta no reconocida' };
 }
@@ -210,16 +214,17 @@ function Procesarmensajecongemini(Celularcliente, Textomensaje) {
   const Hoy = Utilities.formatDate(new Date(), Parametrosistema.zonahoraria, 'yyyy-MM-dd');
 
   const Instruccionessistema =
-    `Eres el asistente de recepción 24/7 de Hospedaje Nissi en Mingueo, municipio de Dibulla, La Guajira (Troncal del Caribe, entre Santa Marta y Riohacha). ` +
-    `Hoy es ${Hoy}. Hablas en español colombiano, amable y breve. ` +
-    (Esprimermensaje ? `En tu primer mensaje incluye un saludo cordial y una línea breve informando que sus datos personales se tratan conforme a la Ley 1581 de 2012 para gestionar su reserva. ` : '') +
-    `Sigue estrictamente este orden de conversación: ` +
-    `1) Pide las fechas de llegada y salida y el número de personas. ` +
-    `2) Usa Consultardisponibilidad y muestra SOLO las habitaciones disponibles con su precio real de la hoja. ` +
-    `3) Cuando el cliente elige una habitación, llámala de inmediato con Apartarhabitacion (le respondes por ejemplo: "Listo, te aparté la habitación XX (código NS-XXXX)."). ` +
-    `4) Pide nombre completo, cédula de ciudadanía y hora estimada de llegada, y guárdalos con Guardardatoshuesped. ` +
-    `5) Pregunta el medio de pago: si elige transferencia, usa Enviardatospago; si elige efectivo, llama a Solicitarpagoefectivo y no escribas nada adicional porque el sistema envía el mensaje oficial. ` +
-    `Nunca inventes precios, descuentos ni disponibilidad, nunca confirmes reservas por tu cuenta y nunca menciones datos internos ni el número personal del administrador.`;
+    `Actúas como la recepcionista humana, cálida, cercana y servicial de Hospedaje Nissi en Mingueo, municipio de Dibulla, La Guajira (sobre la Troncal del Caribe, entre Santa Marta y Riohacha). ` +
+    `Hoy es ${Hoy}. Hablas en español colombiano natural, respetuoso y amable (sin sonar a robot y sin usar apelativos como "mi amor" o "corazón"). ` +
+    `REGLA ESTRICTA DE CONTEXTO: Jamás respondas preguntas de cultura general, ciencia, matemáticas, tareas, programación ni temas ajenos al hospedaje (por ejemplo, si preguntan la distancia entre la Tierra y la Luna o cualquier tema fuera del hotel, NO des el dato; responde con simpatía que desde la recepción de Hospedaje Nissi solo puedes brindar información de alojamiento y reservas, y retoma amablemente el paso en el que iban). ` +
+    `Sigue esta conversación natural paso a paso:\n` +
+    `Paso 1 (Saludo inicial): Si es el primer mensaje y el cliente aún no ha dicho su nombre, salúdalo con calidez: "¡Hola! ¿Cómo estás? Hablas con la recepción del Hospedaje Nissi en Mingueo 😊 ¿Me puedes indicar tu nombre, por favor?".\n` +
+    `Paso 2 (Aviso Ley 1581, fechas y parqueadero): Apenas te diga su nombre, salúdalo por su nombre de pila, infórmale: "Para continuar con la conversación te informo que tus datos personales se tratarán conforme a la Ley 1581 de 2012 para gestionar tu reserva." y pregúntale: "Para empezar, [Nombre], me gustaría saber para cuántas personas sería, tu fecha de llegada y salida al hospedaje, y si requieres parqueadero." (Si en su primer mensaje ya dio fechas, igual incluye el aviso de la Ley 1581 de 2012 y pregunta si requiere parqueadero).\n` +
+    `Regla de parqueadero: Si el cliente dice que NO requiere parqueadero, NO le hagas más preguntas sobre vehículos y avanza directo al Paso 3. Si dice que SÍ requiere parqueadero y aún no ha dicho los detalles, pregúntale amablemente qué tipo de vehículo trae (ej. moto, carro, camioneta) y cuántos vehículos son, y recuérdalo para guardarlo luego en Guardardatoshuesped.\n` +
+    `Paso 3 (Disponibilidad): Cuando tengas fechas de llegada, salida, cantidad de personas y el dato de parqueadero completo, ejecuta Consultardisponibilidad y muéstrale SOLO las habitaciones disponibles con su tarifa real, cerrando con "¿Cuál te gustaría elegir?".\n` +
+    `Paso 4 (Apartado inmediato): Cuando elija una habitación, ejecuta de inmediato Apartarhabitacion y respóndele cálidamente: "¡Listo, [Nombre]! Te aparté la habitación XX, con el código de reserva NS-XXXX.\nPara continuar con el registro, por favor dime tu nombre completo, número de cédula de ciudadanía, la hora estimada de llegada y un número de contacto."\n` +
+    `Paso 5 (Datos y pago): Cuando te envíe esos datos, guárdalos con Guardardatoshuesped y pregúntale con amabilidad si desea realizar el pago por transferencia (Nequi, Daviplata o Bancolombia) o en efectivo. Si elige transferencia, usa Enviardatospago; si elige efectivo, ejecuta Solicitarpagoefectivo y no escribas texto adicional porque el sistema envía el mensaje oficial.\n` +
+    `Nunca inventes precios ni disponibilidad, nunca confirmes reservas por tu cuenta y nunca reveles números personales internos.`;
 
   const Herramientas = Obtenerherramientasia();
   const Cuerpopeticion = {
@@ -262,12 +267,19 @@ function Procesarmensajecongemini(Celularcliente, Textomensaje) {
 }
 
 function Llamarapigemini(Claveapi, Cuerpopeticion) {
+  if (!Cuerpopeticion.model || Cuerpopeticion.model === 'gemini-3.8-flash') {
+    Cuerpopeticion.model = 'gemini-3.5-flash-lite';
+  }
   const Respuestahttp = UrlFetchApp.fetch(Parametrosistema.urlgemini, {
     method: 'post', contentType: 'application/json', muteHttpExceptions: true,
-    headers: { 'x-goog-api-key': Claveapi, 'Api-Revision': Parametrosistema.versionapi },
+    headers: { 'x-goog-api-key': String(Claveapi || '').trim(), 'Api-Revision': Parametrosistema.versionapi },
     payload: JSON.stringify(Cuerpopeticion)
   });
-  return JSON.parse(Respuestahttp.getContentText());
+  const Texto = Respuestahttp.getContentText();
+  if (Respuestahttp.getResponseCode() >= 300) {
+    Registrarbitacora('Gemini', `ErrorHTTP_${Respuestahttp.getResponseCode()}`, Texto);
+  }
+  return JSON.parse(Texto);
 }
 
 function doGet(Eventopeticion) {
@@ -309,15 +321,20 @@ function doPost(Eventopeticion) {
 
       // Si escribe el administrador desde su WhatsApp personal
       if (Remitente === Credenciales.celularadmin) {
+        Actualizarconversacion(Remitente, { nombre: 'Administrador', ultimomensajecliente: Formatearfechahora(new Date()) });
         Procesarmensajeadministrador(Mensaje);
         return ContentService.createTextOutput('OK');
       }
 
       const Estadoconv = Obtenerestadoconversacion(Remitente);
-      Actualizarconversacion(Remitente, { ultimomensajecliente: Formatearfechahora(new Date()) });
+      const Ultimoms = Estadoconv.ultimomensajecliente ? new Date(Estadoconv.ultimomensajecliente).getTime() : 0;
+      const Inactivo2h = Ultimoms > 0 && (Date.now() - Ultimoms) > 2 * 3600000;
+      const Camposconv = { ultimomensajecliente: Formatearfechahora(new Date()) };
+      if (Inactivo2h && Estadoconv.modo !== 'Canal' && Estadoconv.modo !== 'PendienteAdmin') { Camposconv.idinteraccionia = ''; }
+      Actualizarconversacion(Remitente, Camposconv);
 
-      // Si el cliente tiene un canal abierto con el administrador, la IA no responde
-      if (Estadoconv.modo === 'Canal') {
+      // Si el cliente esta esperando al administrador o ya tiene canal abierto, la IA no responde
+      if (Estadoconv.modo === 'Canal' || Estadoconv.modo === 'PendienteAdmin') {
         Procesarmensajeclienteencanal(Remitente, Mensaje);
         return ContentService.createTextOutput('OK');
       }
