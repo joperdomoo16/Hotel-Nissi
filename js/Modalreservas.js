@@ -47,7 +47,7 @@ function Construirmodalreservas() {
             <small id="choiceLoginTag">Usuario registrado</small>
             <span id="choiceLoginText"><b>Iniciar sesión</b>Tus datos guardados y el historial de tus estadías.</span>
           </button>
-          <a class="choice choice--olive js-wa" href="https://wa.me/573001234567?text=Hola%20Hospedaje%20Nissi%2C%20quiero%20reservar%20una%20habitaci%C3%B3n." target="_blank" rel="noopener">
+          <a class="choice choice--olive js-wa" href="https://wa.me/573123757015?text=Hola%20Hospedaje%20Nissi%2C%20quiero%20reservar%20una%20habitaci%C3%B3n." target="_blank" rel="noopener">
             <small><span class="dot dot--pulse dot--sm"></span>Más rápido</small>
             <span><b>Por WhatsApp ↗</b>El asistente te atiende al instante.</span>
           </a>
@@ -103,7 +103,7 @@ function Construirmodalreservas() {
           <button class="link-btn link-btn--tenue" type="button" data-go="dates">o continuar como invitado</button>
           <p class="login-help">
             ¿Necesitas ayuda?
-            <a href="https://wa.me/573001234567" data-wa="Hola Hospedaje Nissi, necesito ayuda para ingresar a mi cuenta." target="_blank" rel="noopener">Contáctanos</a>
+            <a href="https://wa.me/573123757015" data-wa="Hola Hospedaje Nissi, necesito ayuda para ingresar a mi cuenta." target="_blank" rel="noopener">Contáctanos</a>
           </p>
         </form>
       </div>
@@ -182,7 +182,7 @@ function Construirmodalreservas() {
         <h3 class="display mh">Reserva confirmada,<br><em data-out="firstName">viajero</em>.</h3>
         <p>Tu reserva <strong data-out="code"></strong> para la habitación <span data-out="roomN"></span> (<span data-out="range"></span>) quedó registrada. Envía el resumen por WhatsApp y guarda las rutas para llegar rápido:</p>
         <div class="row">
-          <a class="btn btn--dark" id="waConfirm" href="https://wa.me/573001234567" target="_blank" rel="noopener">
+          <a class="btn btn--dark" id="waConfirm" href="https://wa.me/573123757015" target="_blank" rel="noopener">
             <span class="dot"></span>Enviar por WhatsApp ↗
           </a>
           <a class="btn btn--outline-dark js-maps" href="https://maps.app.goo.gl/TudMNAdQRpVyzHZGA" target="_blank" rel="noopener">Google Maps ↗</a>

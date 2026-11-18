@@ -153,15 +153,40 @@ function Obtenerrangofechasfiltro() {
 function Cargardashboard() {
   const Rango = Obtenerrangofechasfiltro();
   const Badgetexto = document.getElementById('dashRangoTexto');
-  if (Badgetexto) {
-    Badgetexto.textContent = Rango.texto;
+  if (Badgetexto) { Badgetexto.textContent = Rango.texto; }
+
+  const Tablabody = document.getElementById('dashTableBody');
+  if (Tablabody && !Estadodashboard.reservasreales) {
+    Tablabody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--sand);">Sincronizando reservas reales desde Google Sheets...</td></tr>';
   }
 
-  const Todaslasreservas = typeof Obtenerhistorialreservas === 'function' ? Obtenerhistorialreservas() : [];
+  if (typeof Obtenerreservasservidor === 'function') {
+    Obtenerreservasservidor()
+      .then(function(Respuesta) {
+        if (Respuesta && Array.isArray(Respuesta.reservas)) {
+          Estadodashboard.reservasreales = Respuesta.reservas;
+          Procesarydibujardashboard(Respuesta.reservas, Rango);
+        } else {
+          const Local = typeof Obtenerhistorialreservas === 'function' ? Obtenerhistorialreservas() : [];
+          Procesarydibujardashboard(Local, Rango);
+        }
+      })
+      .catch(function() {
+        const Local = typeof Obtenerhistorialreservas === 'function' ? Obtenerhistorialreservas() : [];
+        Procesarydibujardashboard(Local, Rango);
+      });
+  } else {
+    const Local = typeof Obtenerhistorialreservas === 'function' ? Obtenerhistorialreservas() : [];
+    Procesarydibujardashboard(Local, Rango);
+  }
+}
 
+function Procesarydibujardashboard(Todaslasreservas, Rango) {
   const Reservasfiltradas = Todaslasreservas.filter(function(Reserva) {
     const Fechareg = String(Reserva.fecharegistro || Reserva.llegada || '').slice(0, 10);
     const Fechallegada = String(Reserva.llegada || '').slice(0, 10);
+    const Est = String(Reserva.estado || '');
+    if (Est === 'Vencida' || Est === 'Rechazada' || Est === 'Cancelada') { return false; }
     return (Fechareg >= Rango.inicio && Fechareg <= Rango.fin) ||
            (Fechallegada >= Rango.inicio && Fechallegada <= Rango.fin);
   });
@@ -171,28 +196,26 @@ function Cargardashboard() {
   let Totalingresos = 0;
   let Totalnoches = 0;
   let Totalhuespedes = 0;
-  const Totalcheckins = Reservasfiltradas.length;
-
-  const Desglosemedios = {
-    Efectivo: 0,
-    Nequi: 0,
-    Daviplata: 0,
-    Transferencia: 0
-  };
-
+  let Totalcheckins = 0;
+  const Desglosemedios = { Efectivo: 0, Nequi: 0 };
   const Desglosehabitaciones = {
-    '01': { noches: 0, ingresos: 0, tipo: 'Sencilla' },
-    '02': { noches: 0, ingresos: 0, tipo: 'Sencilla' },
-    '03': { noches: 0, ingresos: 0, tipo: 'Doble' },
+    '01': { noches: 0, ingresos: 0, tipo: 'Triple · Queen + Sencilla' },
+    '02': { noches: 0, ingresos: 0, tipo: 'Triple · Queen + Sencilla' },
+    '03': { noches: 0, ingresos: 0, tipo: 'En rediseño' },
     '04': { noches: 0, ingresos: 0, tipo: 'Doble' },
-    '05': { noches: 0, ingresos: 0, tipo: 'Triple' },
-    '06': { noches: 0, ingresos: 0, tipo: 'Familiar' }
+    '05': { noches: 0, ingresos: 0, tipo: 'Doble' },
+    '06': { noches: 0, ingresos: 0, tipo: 'Triple · Doble + Sencilla' }
   };
 
   Reservasfiltradas.forEach(function(Res) {
+    const Est = String(Res.estado || '');
+    const Valida = Est === 'Confirmada' || Est === 'Finalizada';
+    if (!Valida) { return; }
+
+    Totalcheckins++;
     const Monto = Number(Res.montopagado || Res.montototal || 0);
     const Noches = Number(Res.noches || 1);
-    const Huespedes = Number(Res.huespedes || 2);
+    const Huespedes = Number(Res.huespedes || 1);
     const Hab = String(Res.habitacion || '01').padStart(2, '0');
     const Mediopago = String(Res.entidadpago || Res.referenciapago || 'Efectivo');
 
@@ -203,16 +226,12 @@ function Cargardashboard() {
     const Mnequi = Number(Res.montonequi || 0);
     const Mefec = Number(Res.montoefectivo || 0);
     if (Mnequi > 0 || Mefec > 0) {
-      Desglosemedios.Nequi = (Desglosemedios.Nequi || 0) + Mnequi;
-      Desglosemedios.Efectivo = (Desglosemedios.Efectivo || 0) + Mefec;
+      Desglosemedios.Nequi += Mnequi;
+      Desglosemedios.Efectivo += Mefec;
     } else if (/nequi/i.test(Mediopago)) {
-      Desglosemedios.Nequi = (Desglosemedios.Nequi || 0) + Monto;
-    } else if (/daviplata/i.test(Mediopago)) {
-      Desglosemedios.Daviplata = (Desglosemedios.Daviplata || 0) + Monto;
-    } else if (/transferencia|bancolombia/i.test(Mediopago)) {
-      Desglosemedios.Transferencia = (Desglosemedios.Transferencia || 0) + Monto;
+      Desglosemedios.Nequi += Monto;
     } else {
-      Desglosemedios.Efectivo = (Desglosemedios.Efectivo || 0) + Monto;
+      Desglosemedios.Efectivo += Monto;
     }
 
     if (Desglosehabitaciones[Hab]) {
@@ -221,10 +240,8 @@ function Cargardashboard() {
     }
   });
 
-  const Milisegundosdia = 86400000;
-  const Diasrango = Math.max(1, Math.round((new Date(Rango.fin) - new Date(Rango.inicio)) / Milisegundosdia) + 1);
-  const Capacidadtotalnoches = Diasrango * 6;
-  const Porcentajeocupacion = Math.min(100, Math.round((Totalnoches / Capacidadtotalnoches) * 1000) / 10);
+  const Diasrango = Math.max(1, Math.round((new Date(Rango.fin) - new Date(Rango.inicio)) / 86400000) + 1);
+  const Porcentajeocupacion = Math.min(100, Math.round((Totalnoches / (Diasrango * 5)) * 1000) / 10);
 
   const ElIngresos = document.getElementById('kpiIngresos');
   const ElOcupacion = document.getElementById('kpiOcupacion');
@@ -242,59 +259,27 @@ function Cargardashboard() {
 
   const Contenedormedios = document.getElementById('dashPaymentsList');
   if (Contenedormedios) {
-    const Coloresmedios = {
-      Efectivo: '#55E482',
-      Nequi: '#E040FB',
-      Daviplata: '#FF5252',
-      Transferencia: '#F3BA47'
-    };
-
-    let Htmlmedios = '';
-    ['Efectivo', 'Nequi', 'Daviplata', 'Transferencia'].forEach(function(Medio) {
+    const Coloresmedios = { Efectivo: '#55E482', Nequi: '#E040FB' };
+    Contenedormedios.innerHTML = ['Efectivo', 'Nequi'].map(function(Medio) {
       const Montomedio = Desglosemedios[Medio] || 0;
-      const Porcentajemedio = Totalingresos > 0 ? Math.round((Montomedio / Totalingresos) * 100) : 0;
-      const Color = Coloresmedios[Medio] || '#55E482';
-
-      Htmlmedios += `
-        <div class="dash-payment-item">
-          <div class="dash-payment-row">
-            <b>${Medio}</b>
-            <span>$${Montomedio.toLocaleString('es-CO')} COP · <b>${Porcentajemedio}%</b></span>
-          </div>
-          <div class="dash-bar-bg">
-            <div class="dash-bar-fill" style="width: ${Porcentajemedio}%; background: ${Color};"></div>
-          </div>
-        </div>
-      `;
-    });
-    Contenedormedios.innerHTML = Htmlmedios;
+      const Porcmedio = Totalingresos > 0 ? Math.round((Montomedio / Totalingresos) * 100) : 0;
+      return `<div class="dash-payment-item"><div class="dash-payment-row"><b>${Medio}</b><span>$${Montomedio.toLocaleString('es-CO')} COP · <b>${Porcmedio}%</b></span></div><div class="dash-bar-bg"><div class="dash-bar-fill" style="width:${Porcmedio}%;background:${Coloresmedios[Medio]};"></div></div></div>`;
+    }).join('');
   }
 
   const Contenedorhabs = document.getElementById('dashRoomsList');
   if (Contenedorhabs) {
-    let Htmlhabs = '';
-    Object.keys(Desglosehabitaciones).forEach(function(Num) {
+    Contenedorhabs.innerHTML = Object.keys(Desglosehabitaciones).map(function(Num) {
       const Item = Desglosehabitaciones[Num];
-      Htmlhabs += `
-        <div class="dash-room-item">
-          <div class="dash-room-info">
-            <span class="dash-room-num">${Num}</span>
-            <div>
-              <b style="display:block; font-size:13px; color:var(--cream);">Habitación ${Num}</b>
-              <small style="color:var(--sand); font-size:11px;">${Item.tipo}</small>
-            </div>
-          </div>
-          <div class="dash-room-stats">
-            <b>$${Item.ingresos.toLocaleString('es-CO')} COP</b>
-            <small>${Item.noches} noche${Item.noches === 1 ? '' : 's'}</small>
-          </div>
-        </div>
-      `;
-    });
-    Contenedorhabs.innerHTML = Htmlhabs;
+      return `<div class="dash-room-item"><div class="dash-room-info"><span class="dash-room-num">${Num}</span><div><b style="display:block;font-size:13px;color:var(--cream);">Habitación ${Num}</b><small style="color:var(--sand);font-size:11px;">${Item.tipo}</small></div></div><div class="dash-room-stats"><b>$${Item.ingresos.toLocaleString('es-CO')} COP</b><small>${Item.noches} noche${Item.noches === 1 ? '' : 's'}</small></div></div>`;
+    }).join('');
   }
 
   Renderizartablamovimientos();
+}
+
+function Escaparcampo(Valor) {
+  return typeof Escaparhtml === 'function' ? Escaparhtml(Valor) : Valor;
 }
 
 function Renderizartablamovimientos() {
@@ -305,134 +290,69 @@ function Renderizartablamovimientos() {
   const Termino = (Estadodashboard.terminobusqueda || '').toLowerCase().trim();
   const Reservasmostradas = Estadodashboard.reservasperiodo.filter(function(Res) {
     if (!Termino) return true;
-    const Nombre = String(Res.nombre || '').toLowerCase();
-    const Cedula = String(Res.cedula || '').toLowerCase();
-    const Codigo = String(Res.codigo || '').toLowerCase();
-    const Hab = String(Res.habitacion || '').toLowerCase();
-    return Nombre.indexOf(Termino) !== -1 ||
-           Cedula.indexOf(Termino) !== -1 ||
-           Codigo.indexOf(Termino) !== -1 ||
-           Hab.indexOf(Termino) !== -1;
+    return [Res.nombre, Res.cedula, Res.codigo, Res.habitacion].some(function(V) {
+      return String(V || '').toLowerCase().indexOf(Termino) !== -1;
+    });
   });
 
-  if (Totalindicador) {
-    Totalindicador.textContent = Reservasmostradas.length;
-  }
+  if (Totalindicador) Totalindicador.textContent = Reservasmostradas.length;
 
   if (Reservasmostradas.length === 0) {
-    Tablabody.innerHTML = `
-      <tr>
-        <td colspan="11">
-          <div class="dash-empty-state">
-            <span>📋</span>
-            <b>No se encontraron reservas en este período</b>
-            <p style="margin:4px 0 0; font-size:12px;">Prueba seleccionando otro rango de fechas o limpiando el filtro de búsqueda.</p>
-          </div>
-        </td>
-      </tr>
-    `;
+    Tablabody.innerHTML = `<tr><td colspan="11"><div class="dash-empty-state"><b>No se encontraron reservas reales en este período</b><p style="margin:4px 0 0;font-size:12px;">Prueba seleccionando otro rango de fechas o limpiando el filtro de búsqueda.</p></div></td></tr>`;
     return;
   }
 
-  let Filashtml = '';
-  Reservasmostradas.forEach(function(Res) {
+  Tablabody.innerHTML = Reservasmostradas.map(function(Res) {
     const Monto = Number(Res.montopagado || Res.montototal || 0);
     const Estado = Res.estado || 'Confirmada';
-    const Esconfirmada = Estado === 'Confirmada';
-    const Cedulatexto = Res.cedula ? (typeof Escaparhtml === 'function' ? Escaparhtml(Res.cedula) : Res.cedula) : '—';
-    const Codigo = typeof Escaparhtml === 'function' ? Escaparhtml(Res.codigo || '—') : (Res.codigo || '—');
-    const Fechareg = typeof Escaparhtml === 'function' ? Escaparhtml(Res.fecharegistro || Res.llegada || '—') : (Res.fecharegistro || Res.llegada || '—');
-    const Nombre = typeof Escaparhtml === 'function' ? Escaparhtml(Res.nombre || 'Viajero') : (Res.nombre || 'Viajero');
-    const Hab = typeof Escaparhtml === 'function' ? Escaparhtml(String(Res.habitacion).padStart(2, '0')) : String(Res.habitacion).padStart(2, '0');
-    const Llegada = typeof Escaparhtml === 'function' ? Escaparhtml(Res.llegada || '') : (Res.llegada || '');
-    const Salida = typeof Escaparhtml === 'function' ? Escaparhtml(Res.salida || '') : (Res.salida || '');
-    const Mediopago = typeof Escaparhtml === 'function' ? Escaparhtml(Res.entidadpago || Res.referenciapago || 'Efectivo') : (Res.entidadpago || Res.referenciapago || 'Efectivo');
-
-    Filashtml += `
-      <tr>
-        <td><b>${Codigo}</b></td>
-        <td><small style="color:var(--sand);">${Fechareg}</small></td>
-        <td><b>${Nombre}</b></td>
-        <td><code>${Cedulatexto}</code></td>
-        <td><span style="color:var(--sand);">Hab. ${Hab}</span></td>
-        <td><small>${Llegada} → ${Salida}</small></td>
-        <td>${Res.noches || 1}</td>
-        <td>${Res.huespedes || 2}</td>
-        <td><small>${Mediopago}</small></td>
-        <td><b style="color:var(--cream);">$${Monto.toLocaleString('es-CO')}</b></td>
-        <td>
-          <span class="dash-badge ${Esconfirmada ? 'dash-badge--confirmada' : 'dash-badge--pendiente'}">
-            ${typeof Escaparhtml === 'function' ? Escaparhtml(Estado) : Estado}
-          </span>
-        </td>
-      </tr>
-    `;
-  });
-
-  Tablabody.innerHTML = Filashtml;
+    const Clasebadge = Estado === 'Confirmada' ? 'dash-badge--confirmada' : 'dash-badge--pendiente';
+    const Hab = Escaparcampo(String(Res.habitacion).padStart(2, '0'));
+    const Mediopago = Escaparcampo(Res.entidadpago || Res.referenciapago || 'Efectivo');
+    return `<tr>
+      <td><b>${Escaparcampo(Res.codigo || '—')}</b></td>
+      <td><small style="color:var(--sand);">${Escaparcampo(Res.fecharegistro || Res.llegada || '—')}</small></td>
+      <td><b>${Escaparcampo(Res.nombre || 'Viajero')}</b></td>
+      <td><code>${Res.cedula ? Escaparcampo(Res.cedula) : '—'}</code></td>
+      <td><span style="color:var(--sand);">Hab. ${Hab}</span></td>
+      <td><small>${Escaparcampo(Res.llegada || '')} → ${Escaparcampo(Res.salida || '')}</small></td>
+      <td>${Res.noches || 1}</td>
+      <td>${Res.huespedes || 2}</td>
+      <td><small>${Mediopago}</small></td>
+      <td><b style="color:var(--cream);">$${Monto.toLocaleString('es-CO')}</b></td>
+      <td><span class="dash-badge ${Clasebadge}">${Escaparcampo(Estado)}</span></td>
+    </tr>`;
+  }).join('');
 }
 
 // Inicializacion de eventos para el panel de metricas gerenciales
 document.addEventListener('DOMContentLoaded', function() {
   Poblarselectormeses();
   const Hoycadena = new Date().toISOString().split('T')[0];
-  const Inpinicio = document.getElementById('dashFechaInicio');
-  const Inpfin = document.getElementById('dashFechaFin');
-  if (Inpinicio) Inpinicio.value = Hoycadena;
-  if (Inpfin) Inpfin.value = Hoycadena;
+  ['dashFechaInicio', 'dashFechaFin'].forEach(function(Id) {
+    const El = document.getElementById(Id);
+    if (El) El.value = Hoycadena;
+  });
 
-  const Tabrack = document.getElementById('btnTabRack');
-  const Tabdash = document.getElementById('btnTabDashboard');
-  if (Tabrack) {
-    Tabrack.addEventListener('click', function() {
-      Cambiarvistapanel('rack');
-    });
-  }
-  if (Tabdash) {
-    Tabdash.addEventListener('click', function() {
-      Cambiarvistapanel('dashboard');
-    });
-  }
+  const Asignarclic = function(Id, Fn) {
+    const El = document.getElementById(Id);
+    if (El) El.addEventListener('click', Fn);
+  };
+  Asignarclic('btnTabRack', function() { Cambiarvistapanel('rack'); });
+  Asignarclic('btnTabDashboard', function() { Cambiarvistapanel('dashboard'); });
+  Asignarclic('btnFiltroDiario', function() { Cambiarfiltrodashboard('diario'); });
+  Asignarclic('btnFiltroSemanal', function() { Cambiarfiltrodashboard('semanal'); });
+  Asignarclic('btnFiltroMensual', function() { Cambiarfiltrodashboard('mensual'); });
+  Asignarclic('btnFiltroPersonalizado', function() { Cambiarfiltrodashboard('personalizado'); });
+  Asignarclic('btnAplicarRango', function() { Cargardashboard(); });
 
-  const BtnDiario = document.getElementById('btnFiltroDiario');
-  const BtnSemanal = document.getElementById('btnFiltroSemanal');
-  const BtnMensual = document.getElementById('btnFiltroMensual');
-  const BtnPersonalizado = document.getElementById('btnFiltroPersonalizado');
   const Selectormes = document.getElementById('dashSelectMes');
-  const BtnAplicarrango = document.getElementById('btnAplicarRango');
-  const Inputbusqueda = document.getElementById('dashSearchInput');
-
-  if (BtnDiario) {
-    BtnDiario.addEventListener('click', function() {
-      Cambiarfiltrodashboard('diario');
-    });
-  }
-  if (BtnSemanal) {
-    BtnSemanal.addEventListener('click', function() {
-      Cambiarfiltrodashboard('semanal');
-    });
-  }
-  if (BtnMensual) {
-    BtnMensual.addEventListener('click', function() {
-      Cambiarfiltrodashboard('mensual');
-    });
-  }
   if (Selectormes) {
     Selectormes.addEventListener('change', function() {
       Estadodashboard.messeleccionado = Selectormes.value;
       Cargardashboard();
     });
   }
-  if (BtnPersonalizado) {
-    BtnPersonalizado.addEventListener('click', function() {
-      Cambiarfiltrodashboard('personalizado');
-    });
-  }
-  if (BtnAplicarrango) {
-    BtnAplicarrango.addEventListener('click', function() {
-      Cargardashboard();
-    });
-  }
+  const Inputbusqueda = document.getElementById('dashSearchInput');
   if (Inputbusqueda) {
     Inputbusqueda.addEventListener('input', function(E) {
       Estadodashboard.terminobusqueda = E.target.value;

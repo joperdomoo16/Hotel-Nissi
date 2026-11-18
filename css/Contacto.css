@@ -313,6 +313,24 @@
   gap: 16px;
 }
 
+.footer__legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.footer__legal a {
+  display: inline-block;
+  color: var(--sand);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.footer__legal a:hover {
+  color: var(--cream);
+  gap: 0;
+}
+
 /* Boton flotante de WhatsApp */
 .wa-float {
   position: fixed;

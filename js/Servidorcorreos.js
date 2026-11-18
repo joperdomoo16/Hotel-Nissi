@@ -7,7 +7,7 @@ const Datoscorreo = {
   // Enlace completo (no acortado): los filtros de spam penalizan los enlaces acortados
   urlmaps: 'https://www.google.com/maps/dir/?api=1&destination=11.216310,-73.392264',
   urlwaze: 'https://waze.com/ul?ll=11.216310,-73.392264&navigate=yes',
-  whatsapp: '573001234567',
+  whatsapp: '573123757015',
   proyectofirebase: 'hotel-nissi-mingueo',
   zonahoraria: 'America/Bogota',
   diasvalidezbienvenida: 2,

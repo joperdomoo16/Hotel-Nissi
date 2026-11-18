@@ -294,6 +294,9 @@ function doGet(Eventopeticion) {
     }
     return ContentService.createTextOutput('Token invalido');
   }
+  if (Parametros.tipo === 'reservas') {
+    return ContentService.createTextOutput(JSON.stringify(Obtenerreservasreales())).setMimeType(ContentService.MimeType.JSON);
+  }
   const Resultado = Consultardisponibilidad(Parametros.llegada, Parametros.salida, Parametros.huespedes);
   return ContentService.createTextOutput(JSON.stringify(Resultado)).setMimeType(ContentService.MimeType.JSON);
 }

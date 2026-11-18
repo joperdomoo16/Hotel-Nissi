@@ -71,10 +71,10 @@
     <!-- Pestañas de Navegacion del Panel -->
     <div class="admin-nav-tabs" role="tablist">
       <button class="nav-tab is-active" id="btnTabRack" type="button" role="tab" aria-selected="true" data-seccion="rack">
-        <span>🏨 Rack en vivo</span>
+        <span>Rack en vivo</span>
       </button>
       <button class="nav-tab" id="btnTabDashboard" type="button" role="tab" aria-selected="false" data-seccion="dashboard">
-        <span>📊 Dashboard y Métricas</span>
+        <span>Dashboard y Métricas</span>
       </button>
     </div>
 
@@ -136,21 +136,21 @@
     <div class="dash-toolbar">
       <div class="dash-filter-group" role="group" aria-label="Filtro de período">
         <button class="dash-filter-btn is-active" type="button" data-filtro="diario" id="btnFiltroDiario">
-          📅 Diario (Hoy)
+          Diario (Hoy)
         </button>
         <button class="dash-filter-btn" type="button" data-filtro="semanal" id="btnFiltroSemanal">
-          🗓️ Semanal
+          Semanal
         </button>
         <div class="dash-month-wrapper">
           <button class="dash-filter-btn" type="button" data-filtro="mensual" id="btnFiltroMensual">
-            📆 Mensual
+            Mensual
           </button>
           <select class="dash-select-month" id="dashSelectMes" aria-label="Seleccionar mes específico" hidden>
             <!-- Llenado dinamicamente con Administracion.js -->
           </select>
         </div>
         <button class="dash-filter-btn" type="button" data-filtro="personalizado" id="btnFiltroPersonalizado">
-          🗓️ Rango personalizado
+          Rango personalizado
         </button>
       </div>
 
@@ -173,7 +173,6 @@
       <div class="dash-kpi-card dash-kpi-card--income">
         <div class="dash-kpi-header">
           <span class="dash-kpi-title">Ingresos Totales</span>
-          <span class="dash-kpi-icon">💰</span>
         </div>
         <b class="dash-kpi-val" id="kpiIngresos">$0 COP</b>
         <span class="dash-kpi-sub" id="kpiIngresosSub">Recaudado en el período</span>
@@ -182,16 +181,14 @@
       <div class="dash-kpi-card dash-kpi-card--occ">
         <div class="dash-kpi-header">
           <span class="dash-kpi-title">Tasa de Ocupación</span>
-          <span class="dash-kpi-icon">📈</span>
         </div>
         <b class="dash-kpi-val" id="kpiOcupacion">0%</b>
-        <span class="dash-kpi-sub" id="kpiOcupacionSub">Sobre 6 habitaciones</span>
+        <span class="dash-kpi-sub" id="kpiOcupacionSub">Sobre 5 habitaciones activas</span>
       </div>
 
       <div class="dash-kpi-card dash-kpi-card--nights">
         <div class="dash-kpi-header">
           <span class="dash-kpi-title">Noches Vendidas</span>
-          <span class="dash-kpi-icon">🌙</span>
         </div>
         <b class="dash-kpi-val" id="kpiNoches">0</b>
         <span class="dash-kpi-sub" id="kpiNochesSub">Noches reservadas</span>
@@ -200,7 +197,6 @@
       <div class="dash-kpi-card dash-kpi-card--guests">
         <div class="dash-kpi-header">
           <span class="dash-kpi-title">Huéspedes Recibidos</span>
-          <span class="dash-kpi-icon">👥</span>
         </div>
         <b class="dash-kpi-val" id="kpiHuespedes">0</b>
         <span class="dash-kpi-sub" id="kpiHuespedesSub">Personas alojadas</span>
@@ -209,7 +205,6 @@
       <div class="dash-kpi-card">
         <div class="dash-kpi-header">
           <span class="dash-kpi-title">Reservas / Check-ins</span>
-          <span class="dash-kpi-icon">📋</span>
         </div>
         <b class="dash-kpi-val" id="kpiCheckins">0</b>
         <span class="dash-kpi-sub" id="kpiCheckinsSub">Ingresos registrados</span>

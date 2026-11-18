@@ -17,7 +17,8 @@ function Inyectardatosestructurados() {
         "description": "Hospedaje de paso sobre la Troncal del Caribe en Mingueo, municipio de Dibulla, La Guajira, con habitaciones confortables para descansar entre Santa Marta y Riohacha.",
         "url": "https://hospedaje-nissi-mingueo.web.app/",
         "image": "https://hospedaje-nissi-mingueo.web.app/assets/logo-nissi.png",
-        "telephone": "+573001234567",
+        "telephone": "+573123757015",
+        "email": "hospedajenissiguajira@gmail.com",
         "priceRange": "$$ (COP 90.000 - 180.000)",
         "address": {
           "@type": "PostalAddress",
@@ -46,7 +47,8 @@ function Inyectardatosestructurados() {
         "logo": "https://hospedaje-nissi-mingueo.web.app/assets/logo-nissi.png",
         "contactPoint": {
           "@type": "ContactPoint",
-          "telephone": "+573001234567",
+          "telephone": "+573123757015",
+          "email": "hospedajenissiguajira@gmail.com",
           "contactType": "customer service",
           "availableLanguage": ["es"]
         }

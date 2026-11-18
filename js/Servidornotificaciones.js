@@ -271,3 +271,45 @@ function Construirtarjetasmovimiento(Filas, Tipo, Zonalibro) {
 }
 
 function Probarinformediario() { Enviarinformecorreodiario(); }
+
+// Devuelve el listado real de reservas desde la hoja Reservas para el Dashboard de recepcion
+function Obtenerreservasreales() {
+  const Hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Reservas');
+  if (!Hoja || Hoja.getLastRow() < 2) { return { exito: true, reservas: [] }; }
+  const Filas = Hoja.getDataRange().getValues().slice(1);
+  const Lista = [];
+  for (let I = Filas.length - 1; I >= 0; I--) {
+    const F = Filas[I];
+    const Codigo = String(F[0] || '').trim();
+    if (!Codigo) { continue; }
+    const Nombrecrudo = String(F[2] || '').trim();
+    const Matchcc = Nombrecrudo.match(/^(.+?)\s*\(C\.C\.\s*([^)]+)\)$/i);
+    const Nombre = Matchcc ? Matchcc[1].trim() : Nombrecrudo;
+    const Cedula = Matchcc ? Matchcc[2].trim() : '';
+    const Mediopago = String(F[17] || F[13] || 'Efectivo').trim();
+    const Obs = String(F[22] || '').trim();
+    const Montototal = Number(F[10] || 0);
+    const Montopagado = Number(F[11] || 0);
+    const Mixmatch = Obs.match(/\[Mixto Nequi:(\d+)\s+Efectivo:(\d+)/i);
+    let Montonequi = 0, Montoefectivo = 0;
+    if (Mixmatch) {
+      Montonequi = Number(Mixmatch[1] || 0);
+      Montoefectivo = Number(Mixmatch[2] || 0);
+    } else if (/nequi/i.test(Mediopago) || /nequi/i.test(String(F[13] || ''))) {
+      Montonequi = Montopagado || Montototal;
+    } else if (/efectivo/i.test(Mediopago) || /efectivo/i.test(String(F[13] || ''))) {
+      Montoefectivo = Montopagado || Montototal;
+    }
+    const Fechareg = F[1] instanceof Date ? Formatearfechahora(F[1]).slice(0, 16) : String(F[1] || '').trim();
+    Lista.push({
+      codigo: Codigo, fecharegistro: Fechareg, nombre: Nombre, cedula: Cedula,
+      celular: String(F[3] || ''), habitacion: String(F[4] || '').padStart(2, '0'),
+      llegada: Normalizarfecha(F[5]), salida: Normalizarfecha(F[6]),
+      noches: Number(F[7] || 1), huespedes: Number(F[8] || 1), horallegada: String(F[9] || ''),
+      montototal: Montototal, montopagado: Montopagado, montonequi: Montonequi, montoefectivo: Montoefectivo,
+      referenciapago: String(F[12] || ''), entidadpago: Mediopago, estado: String(F[14] || ''),
+      canal: String(F[15] || ''), observaciones: Obs
+    });
+  }
+  return { exito: true, reservas: Lista };
+}

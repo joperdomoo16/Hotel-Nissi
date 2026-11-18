@@ -1,6 +1,6 @@
 // Catalogo de habitaciones, tarifas en pesos colombianos y datos iniciales del hospedaje
 const Configuracionhotel = {
-  celular: '573001234567',
+  celular: '573123757015',
   urlservidor: 'https://script.google.com/macros/s/AKfycbwtFwQcPEmpUm2thTlLmChpiyg5h81LVBp2dK3ZXI3J-HukMWhzRbzD2nBseM2zJN2H-w/exec',
   mostrarcortina: true,
   cursorpersonalizado: true,

@@ -15,7 +15,7 @@ function Renderizarpiedepagina() {
         <span class="eyebrow">Tu próxima parada</span>
         <p class="display footer__h">Duerme bien. <em>Sigue tu ruta mañana.</em></p>
         <div class="row">
-          <a class="btn btn--cream js-wa" href="https://wa.me/573001234567?text=Hola%20Hospedaje%20Nissi%2C%20quiero%20reservar%20una%20habitaci%C3%B3n." target="_blank" rel="noopener" data-magnetic data-cursor="Chat">
+          <a class="btn btn--cream js-wa" href="https://wa.me/573123757015?text=Hola%20Hospedaje%20Nissi%2C%20quiero%20reservar%20una%20habitaci%C3%B3n." target="_blank" rel="noopener" data-magnetic data-cursor="Chat">
             <span class="dot dot--wa"></span>Escribir por WhatsApp
           </a>
           <button class="btn btn--ghost js-book" type="button" data-cursor="Reservar">Reservar en la web</button>
@@ -46,7 +46,8 @@ function Renderizarpiedepagina() {
                 Waze
               </a>
             </li>
-            <li><a class="js-wa js-wa-num" href="https://wa.me/573001234567" target="_blank" rel="noopener">+573001234567</a></li>
+            <li><a class="js-wa js-wa-num" href="https://wa.me/573123757015" target="_blank" rel="noopener">+57 312 375 7015</a></li>
+            <li><a href="mailto:hospedajenissiguajira@gmail.com">hospedajenissiguajira@gmail.com</a></li>
             <li><small><a href="Administracion.html" class="link-discreto-admin">Recepción</a> 24 horas</small></li>
           </ul>
         </nav>
@@ -68,6 +69,10 @@ function Renderizarpiedepagina() {
     </div>
     <div class="footer__bar">
       <span>© 2026 Hospedaje Nissi</span>
+      <nav class="footer__legal" aria-label="Información legal">
+        <a href="Privacidad.html">Política de privacidad</a>
+        <a href="Privacidad.html#condiciones">Condiciones del servicio</a>
+      </nav>
       <span>Santa Marta · Palomino · Riohacha</span>
       <a href="#inicio">Volver arriba <span>↑</span></a>
     </div>
