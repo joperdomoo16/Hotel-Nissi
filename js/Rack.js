@@ -126,19 +126,21 @@ function Abrircheckin(Numerohabitacion) {
   if (Titulohab) {
     Titulohab.textContent = `Habitación ${Hab.numero} (${Hab.tipo})`;
   }
-  if (Campollegada) {
-    Campollegada.value = Hoy;
-  }
-  if (Camposalida) {
-    Camposalida.min = Manana;
-    Camposalida.value = Manana;
-  }
+  if (Campollegada) { Campollegada.value = Hoy; }
+  if (Camposalida) { Camposalida.min = Manana; Camposalida.value = Manana; }
+  const Medio = document.getElementById('checkinMedio');
+  const Mixtobox = document.getElementById('checkinMixtoCampos');
+  const Inpnequi = document.getElementById('checkinMontoNequi');
+  const Inpefec = document.getElementById('checkinMontoEfectivo');
+  const Pago = document.getElementById('checkinPago');
+  if (Medio) { Medio.value = 'Efectivo'; }
+  if (Mixtobox) { Mixtobox.hidden = true; }
+  if (Inpnequi) { Inpnequi.value = ''; }
+  if (Inpefec) { Inpefec.value = ''; }
+  if (Pago) { delete Pago.dataset.manual; }
 
   Actualizartotalcheckin();
-
-  if (Modal) {
-    Modal.hidden = false;
-  }
+  if (Modal) { Modal.hidden = false; }
 }
 
 function Cerrarcheckin() {
@@ -152,21 +154,46 @@ function Cerrarcheckin() {
   }
 }
 
+function Actualizarmediocheckin() {
+  const Medio = document.getElementById('checkinMedio');
+  const Mixtobox = document.getElementById('checkinMixtoCampos');
+  const Pago = document.getElementById('checkinPago');
+  const EsMixto = Medio && Medio.value === 'Mixto';
+  if (Mixtobox) { Mixtobox.hidden = !EsMixto; }
+  if (Pago) { Pago.readOnly = EsMixto; }
+  if (EsMixto) { Sumarmixtocheckin(); }
+  else if (Pago && !Pago.dataset.manual) { Actualizartotalcheckin(); }
+}
+
+function Sumarmixtocheckin() {
+  const Pago = document.getElementById('checkinPago');
+  const Nequi = Math.max(0, parseInt((document.getElementById('checkinMontoNequi') || {}).value, 10) || 0);
+  const Efec = Math.max(0, parseInt((document.getElementById('checkinMontoEfectivo') || {}).value, 10) || 0);
+  if (Pago && (Nequi > 0 || Efec > 0)) { Pago.value = Nequi + Efec; }
+}
+
 function Actualizartotalcheckin() {
   const Hab = Estadorecepcion.habitacionseleccionada;
   if (!Hab) { return; }
   const Llegada = document.getElementById('checkinLlegada') ? document.getElementById('checkinLlegada').value : '';
   const Salida = document.getElementById('checkinSalida') ? document.getElementById('checkinSalida').value : '';
   const Personas = parseInt((document.getElementById('checkinHuespedes') || {}).value || 2, 10);
-  const Camasseparadas = ((document.getElementById('checkinCamas') || {}).value === 'separadas') && (Hab.admitecamasseparadas !== false && ['01', '02', '06'].indexOf(Hab.numero) !== -1);
+  const Admitecamas = Personas === 2 && ['01', '02', '06'].indexOf(Hab.numero) !== -1;
+  const Selectcamas = document.getElementById('checkinCamas');
+  const Wrapcamas = document.getElementById('checkinCamasWrap');
+  if (Selectcamas) { Selectcamas.disabled = !Admitecamas; if (!Admitecamas) { Selectcamas.value = 'compartida'; } }
+  if (Wrapcamas) { Wrapcamas.style.opacity = Admitecamas ? '1' : '0.45'; }
+
+  const Camasseparadas = Admitecamas && Selectcamas && Selectcamas.value === 'separadas';
   const Tarifa = Personas <= 1 ? 55000 : (Personas === 2 ? (Camasseparadas ? 90000 : 70000) : 110000);
   const Noches = typeof Calcularnochesestadia === 'function' ? Calcularnochesestadia(Llegada, Salida) : 1;
   const Valortotal = Math.max(1, Noches) * Tarifa;
   const Totaltexto = document.getElementById('checkinTotal');
   const Montopagado = document.getElementById('checkinPago');
+  const Medio = document.getElementById('checkinMedio');
 
   if (Totaltexto) { Totaltexto.textContent = `$${Valortotal.toLocaleString('es-CO')} COP (${Math.max(1, Noches)} noche${Noches > 1 ? 's' : ''})`; }
-  if (Montopagado && !Montopagado.dataset.manual) { Montopagado.value = Valortotal; }
+  if (Montopagado && !Montopagado.dataset.manual && (!Medio || Medio.value !== 'Mixto')) { Montopagado.value = Valortotal; }
 }
 
 function Guardarcheckinpresencial(Evento) {
@@ -186,7 +213,10 @@ function Guardarcheckinpresencial(Evento) {
   const Huespedes = Math.max(1, Math.min(3, parseInt(document.getElementById('checkinHuespedes').value, 10) || 2));
   const Camasseparadas = ((document.getElementById('checkinCamas') || {}).value === 'separadas');
   const Mediopago = typeof Sanitizartexto === 'function' ? Sanitizartexto(document.getElementById('checkinMedio').value, 30) : document.getElementById('checkinMedio').value;
-  const Montopago = Math.max(0, parseInt(document.getElementById('checkinPago').value, 10) || 0);
+  const Montonequi = Math.max(0, parseInt((document.getElementById('checkinMontoNequi') || {}).value, 10) || 0);
+  const Montoefectivo = Math.max(0, parseInt((document.getElementById('checkinMontoEfectivo') || {}).value, 10) || 0);
+  const EsMixto = Mediopago === 'Mixto';
+  const Montopago = EsMixto ? (Montonequi + Montoefectivo) : Math.max(0, parseInt(document.getElementById('checkinPago').value, 10) || 0);
 
   if (!Nombre) {
     if (Errorbox) {
@@ -207,11 +237,14 @@ function Guardarcheckinpresencial(Evento) {
     return;
   }
   if (typeof Validarrangofechas === 'function' && !Validarrangofechas(Llegada, Salida)) {
-    if (Errorbox) {
-      Errorbox.textContent = 'La fecha de salida debe ser posterior a la fecha de llegada.';
-    }
+    if (Errorbox) { Errorbox.textContent = 'La fecha de salida debe ser posterior a la fecha de llegada.'; }
     return;
   }
+  if (EsMixto && (Montonequi <= 0 || Montoefectivo <= 0)) {
+    if (Errorbox) { Errorbox.textContent = 'En pago mixto debes escribir cuánto pagó por Nequi y cuánto en efectivo (ambos mayores a 0).'; }
+    return;
+  }
+  if (Errorbox) { Errorbox.textContent = ''; }
 
   const Codigo = `NS-W${Math.floor(100 + Math.random() * 900)}`;
   const Botonguardar = document.getElementById('btnGuardarCheckin');
@@ -235,7 +268,11 @@ function Guardarcheckinpresencial(Evento) {
     camasseparadas: Camasseparadas,
     horallegada: 'Check-in presencial',
     montopagado: Montopago,
-    referenciapago: `Presencial - ${Mediopago}`,
+    montonequi: EsMixto ? Montonequi : (Mediopago === 'Nequi' ? Montopago : 0),
+    montoefectivo: EsMixto ? Montoefectivo : (Mediopago === 'Efectivo' ? Montopago : 0),
+    referenciapago: EsMixto
+      ? `Presencial · Nequi $${Montonequi.toLocaleString('es-CO')} + Efectivo $${Montoefectivo.toLocaleString('es-CO')}`
+      : `Presencial - ${Mediopago}`,
     entidadpago: Mediopago,
     estado: 'Confirmada'
   };
@@ -276,7 +313,11 @@ function Finalizarcheckinpresencial(Codigo, Nombre, Hab, Celular) {
 
   const Enviarwa = confirm(`¡Ingreso registrado con éxito! Código: ${Codigo}.\n\n¿Deseas enviar el recibo y la bienvenida por WhatsApp al huésped?`);
   if (Enviarwa) {
-    const Mensajebienvenida = `¡Bienvenido al Hospedaje Nissi, ${Nombre}! Tu ingreso a la habitación ${Hab.numero} (${Hab.tipo}) ha sido confirmado. Código: ${Codigo}. Red Wi-Fi: HospedajeNissi_Huespedes. ¡Que tengas un excelente descanso en Mingueo!`;
+    const Mensajebienvenida =
+      `¡Bienvenido al Hospedaje Nissi, ${Nombre}! Tu reserva ${Codigo} en la habitación ${Hab.numero} (${Hab.tipo}) ha sido confirmada. ` +
+      `Red Wi-Fi: HospedajeNissi_Huespedes.\n` +
+      `📍 Cómo llegar rápido:\nGoogle Maps: ${Configuracionhotel.mapas}\nWaze: ${Configuracionhotel.waze}\n` +
+      `¡Que tengas un excelente descanso en Mingueo!`;
     window.open(`https://wa.me/57${Celular.replace(/\D/g, '').slice(-10)}?text=${encodeURIComponent(Mensajebienvenida)}`, '_blank', 'noopener,noreferrer');
   }
 }
@@ -325,10 +366,12 @@ document.addEventListener('DOMContentLoaded', function() {
   if (Campocamas) { Campocamas.addEventListener('change', Actualizartotalcheckin); }
 
   const Campopago = document.getElementById('checkinPago');
-  if (Campopago) {
-    Campopago.addEventListener('input', function() {
-      Campopago.dataset.manual = 'true';
-    });
-  }
+  if (Campopago) { Campopago.addEventListener('input', function() { Campopago.dataset.manual = 'true'; }); }
+  const Campomedio = document.getElementById('checkinMedio');
+  if (Campomedio) { Campomedio.addEventListener('change', Actualizarmediocheckin); }
+  const Camponequi = document.getElementById('checkinMontoNequi');
+  if (Camponequi) { Camponequi.addEventListener('input', Sumarmixtocheckin); }
+  const Campoefec = document.getElementById('checkinMontoEfectivo');
+  if (Campoefec) { Campoefec.addEventListener('input', Sumarmixtocheckin); }
 });
 

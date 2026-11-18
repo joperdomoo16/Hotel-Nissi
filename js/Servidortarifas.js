@@ -316,7 +316,11 @@ function Confirmarreservaefectivo(Celularcliente, Codigoreserva, Montobillete) {
     observaciones: Obsnueva, enviarcliente: false
   });
   Registrarbitacora('Pagos', 'ConfirmarEfectivo', `${Codigo} confirmada en efectivo (billete $${Billete}, cambio $${Cambio})`);
-  return { exito: true, codigo: Codigo, habitacion: Hab, montototal: Total, billete: Billete, cambio: Cambio };
+  return {
+    exito: true, codigo: Codigo, habitacion: Hab, montototal: Total, billete: Billete, cambio: Cambio,
+    rutamaps: 'https://maps.app.goo.gl/TudMNAdQRpVyzHZGA',
+    rutawaze: 'https://waze.com/ul?ll=11.216310,-73.392264&navigate=yes'
+  };
 }
 
 function Enviardatospago(Celularcliente, Codigoreserva, Mediopago, Montonequi, Montoefectivo, Montobillete) {

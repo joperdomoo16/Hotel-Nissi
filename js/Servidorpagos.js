@@ -214,22 +214,15 @@ function Leercorreospago() {
         }
         const Extraido = Extraerdatoscorreobanco(Msg.getSubject(), Msg.getPlainBody(), Remitente);
         if (Extraido && Extraido.monto > 0) {
-          Hojapagos.appendRow([
-            Idmsg, Formatearfechahora(Msg.getDate()), Extraido.entidad, Extraido.monto,
-            Sanitizarcelda(Extraido.referencia, 60), Sanitizarcelda(Extraido.pagador || '', 80),
-            Sanitizarcelda(Remitente, 100), 'SI', 'Libre'
-          ]);
+          Hojapagos.appendRow([Idmsg, Formatearfechahora(Msg.getDate()), Extraido.entidad, Extraido.monto, Sanitizarcelda(Extraido.referencia, 60), Sanitizarcelda(Extraido.pagador || '', 80), Sanitizarcelda(Remitente, 100), 'SI', 'Libre']);
         }
       });
       Hilo.addLabel(Etiquetaprocesado);
     });
 
     if (Hojareservas && Hojareservas.getLastRow() >= 2) {
-      const Filasres = Hojareservas.getRange(2, 1, Hojareservas.getLastRow() - 1, 15).getValues();
-      Filasres.forEach(function(F) {
-        if (String(F[14]) === 'Verificando') {
-          Intentarcruzarcomprobante(String(F[0]));
-        }
+      Hojareservas.getRange(2, 1, Hojareservas.getLastRow() - 1, 15).getValues().forEach(function(F) {
+        if (String(F[14]) === 'Verificando') { Intentarcruzarcomprobante(String(F[0])); }
       });
     }
   } catch (Errorlectura) {
@@ -239,19 +232,12 @@ function Leercorreospago() {
 
 function Extraerdatoscorreobanco(Asunto, Cuerpo, Remitente) {
   const Texto = `${Asunto || ''}\n${Cuerpo || ''}`;
-  let Entidad = 'Bancolombia';
-  if (/nequi/i.test(Remitente) || /nequi/i.test(Texto)) { Entidad = 'Nequi'; }
-  else if (/daviplata|davivienda/i.test(Remitente) || /daviplata/i.test(Texto)) { Entidad = 'Daviplata'; }
-
+  const Entidad = (/nequi/i.test(Remitente) || /nequi/i.test(Texto)) ? 'Nequi' : 'Transferencia';
   const Coincidenciamonto = Texto.match(/\$\s*([\d.]+(?:,\d{2})?)/);
   const Monto = Coincidenciamonto ? Number(Coincidenciamonto[1].replace(/\./g, '').split(',')[0]) : 0;
   const Coincidenciaref = Texto.match(/(?:referencia|comprobante|aprobaci[oó]n|cus|transacci[oó]n|n[uú]mero)[:\s#]*([A-Za-z0-9\-]{4,25})/i);
   const Referencia = Coincidenciaref ? Coincidenciaref[1] : '';
-
-  if (Monto > 0 && Referencia) {
-    return { entidad: Entidad, monto: Monto, referencia: Referencia, pagador: '' };
-  }
-  return null;
+  return (Monto > 0 && Referencia) ? { entidad: Entidad, monto: Monto, referencia: Referencia, pagador: '' } : null;
 }
 
 // Revisa cada 5 minutos los vencimientos de apartados, espera de correo y canales abiertos
@@ -344,6 +330,14 @@ function Registrarosincronizarreserva(Datos) {
     const Hojares = Libro.getSheetByName('Reservas');
     const Hojahab = Libro.getSheetByName('Habitaciones');
     const Ult = Hojares.getLastRow();
+    const EsMixto = String(Datos.entidadpago || '').toLowerCase().indexOf('mixt') !== -1 || (Number(Datos.montonequi) > 0 && Number(Datos.montoefectivo) > 0);
+    if (EsMixto) {
+      Hojares.getRange(Ult, 18).setValue('Mixto');
+      const Obs = String(Hojares.getRange(Ult, 23).getValue() || '').trim();
+      Hojares.getRange(Ult, 23).setValue(Sanitizarcelda(`${Obs} · [Mixto Nequi:${Datos.montonequi || 0} Efectivo:${Datos.montoefectivo || 0}]`, 140));
+    } else {
+      Hojares.getRange(Ult, 18).setValue(Sanitizarcelda(Datos.entidadpago || 'Efectivo', 30));
+    }
     Confirmarreservaynotificar(Hojares, Hojahab, Ult, Hojares.getRange(Ult, 1, 1, 26).getValues()[0], Datos.montopagado || Res.montototal, Datos.referenciapago || 'Presencial', Datos.entidadpago || 'Efectivo', 'PRESENCIAL');
     return Res;
   }

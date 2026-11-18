@@ -200,12 +200,20 @@ function Cargardashboard() {
     Totalnoches += Noches;
     Totalhuespedes += Huespedes;
 
-    let Medionormalizado = 'Efectivo';
-    if (/nequi/i.test(Mediopago)) Medionormalizado = 'Nequi';
-    else if (/daviplata/i.test(Mediopago)) Medionormalizado = 'Daviplata';
-    else if (/transferencia|bancolombia/i.test(Mediopago)) Medionormalizado = 'Transferencia';
-
-    Desglosemedios[Medionormalizado] = (Desglosemedios[Medionormalizado] || 0) + Monto;
+    const Mnequi = Number(Res.montonequi || 0);
+    const Mefec = Number(Res.montoefectivo || 0);
+    if (Mnequi > 0 || Mefec > 0) {
+      Desglosemedios.Nequi = (Desglosemedios.Nequi || 0) + Mnequi;
+      Desglosemedios.Efectivo = (Desglosemedios.Efectivo || 0) + Mefec;
+    } else if (/nequi/i.test(Mediopago)) {
+      Desglosemedios.Nequi = (Desglosemedios.Nequi || 0) + Monto;
+    } else if (/daviplata/i.test(Mediopago)) {
+      Desglosemedios.Daviplata = (Desglosemedios.Daviplata || 0) + Monto;
+    } else if (/transferencia|bancolombia/i.test(Mediopago)) {
+      Desglosemedios.Transferencia = (Desglosemedios.Transferencia || 0) + Monto;
+    } else {
+      Desglosemedios.Efectivo = (Desglosemedios.Efectivo || 0) + Monto;
+    }
 
     if (Desglosehabitaciones[Hab]) {
       Desglosehabitaciones[Hab].noches += Noches;

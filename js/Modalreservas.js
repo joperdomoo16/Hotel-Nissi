@@ -179,12 +179,14 @@ function Construirmodalreservas() {
       <!-- Paso 5: Confirmacion de solicitud lista -->
       <div class="step done" data-step="done" hidden>
         <div class="done__check" aria-hidden="true">✓</div>
-        <h3 class="display mh">Te esperamos,<br><em data-out="firstName">viajero</em>.</h3>
-        <p>Solicitud <strong data-out="code"></strong> recibida para la habitación <span data-out="roomN"></span>, <span data-out="range"></span>. Envíala por WhatsApp para recibir la confirmación y la tarifa final.</p>
+        <h3 class="display mh">Reserva confirmada,<br><em data-out="firstName">viajero</em>.</h3>
+        <p>Tu reserva <strong data-out="code"></strong> para la habitación <span data-out="roomN"></span> (<span data-out="range"></span>) quedó registrada. Envía el resumen por WhatsApp y guarda las rutas para llegar rápido:</p>
         <div class="row">
           <a class="btn btn--dark" id="waConfirm" href="https://wa.me/573001234567" target="_blank" rel="noopener">
-            <span class="dot"></span>Confirmar por WhatsApp ↗
+            <span class="dot"></span>Enviar por WhatsApp ↗
           </a>
+          <a class="btn btn--outline-dark js-maps" href="https://maps.app.goo.gl/TudMNAdQRpVyzHZGA" target="_blank" rel="noopener">Google Maps ↗</a>
+          <a class="btn btn--outline-dark js-waze" href="https://waze.com/ul?ll=11.216310,-73.392264&navigate=yes" target="_blank" rel="noopener">Waze ↗</a>
           <button class="btn btn--outline-dark js-close" type="button">Volver al inicio</button>
         </div>
       </div>

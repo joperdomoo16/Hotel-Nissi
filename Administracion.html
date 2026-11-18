@@ -333,7 +333,7 @@
       </div>
 
       <div class="admin-grid-2">
-        <label class="admin-field">
+        <label class="admin-field" id="checkinCamasWrap">
           <span>Uso de camas (para 2 personas)</span>
           <select id="checkinCamas">
             <option value="compartida" selected>Cama doble / queen compartida ($70.000/noche)</option>
@@ -345,13 +345,24 @@
           <select id="checkinMedio">
             <option value="Efectivo" selected>Efectivo en caja</option>
             <option value="Nequi">Nequi</option>
-            <option value="Mixto (Nequi + Efectivo)">Mixto (Nequi + Efectivo)</option>
+            <option value="Mixto">Mixto (Nequi + Efectivo)</option>
           </select>
         </label>
       </div>
 
+      <div class="admin-grid-2" id="checkinMixtoCampos" hidden>
+        <label class="admin-field">
+          <span>Monto pagado por Nequi (COP)</span>
+          <input type="number" id="checkinMontoNequi" min="0" placeholder="Ej. 30000" inputmode="numeric">
+        </label>
+        <label class="admin-field">
+          <span>Monto pagado en Efectivo (COP)</span>
+          <input type="number" id="checkinMontoEfectivo" min="0" placeholder="Ej. 25000" inputmode="numeric">
+        </label>
+      </div>
+
       <label class="admin-field">
-        <span>Monto cobrado en COP</span>
+        <span>Total cobrado en COP</span>
         <input type="number" id="checkinPago" required>
       </label>
 
