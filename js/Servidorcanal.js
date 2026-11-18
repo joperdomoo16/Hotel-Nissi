@@ -173,7 +173,7 @@ function Abrircanaladministrador(Celularcliente, Codigoreserva, Motivo, Detallee
   } else if (Motivo === 'tiempo_correo') {
     Enviarmensajewhatsapp(Celularlimpio, 'Un administrador revisará tu comprobante en breve y se conectará por este medio. Por favor permanece en línea en el chat.');
   } else {
-    Enviarmensajewhatsapp(Celularlimpio, 'Te voy a comunicar con un administrador para atenderte personalmente. Por favor permanece en línea en el chat mientras se conecta contigo.');
+    Enviarmensajewhatsapp(Celularlimpio, 'Perfecto, ya te comunico con el administrador, por favor espera en el chat.');
   }
 
   Actualizarconversacion(Celularlimpio, {
@@ -380,18 +380,21 @@ function Cerrarcanalyactualizarreserva(Celularcliente, Confirmar, Origen) {
     Hojareservas.getRange(Indice, 15).setValue('Confirmada');
     Hojareservas.getRange(Indice, 23).setValue('Confirmada por el administrador en canal');
     Cambiarocupacionhabitacion(Hojahabitaciones, Hab, 'Ocupada');
-    const Msgcliente = `✅ El administrador ha confirmado tu reserva ${Codigo}. Esperamos que tu visita sea de tu agrado y tengas un grato descanso en Hospedaje Nissi.\nHabitación ${Hab} · ${Llegada} al ${Salida} · Llegada ${Hora} · Total $${Total.toLocaleString('es-CO')} COP en efectivo.`;
-    Enviarmensajeinteligente(Conv.celular, Msgcliente, 'reserva_confirmada_cliente', [Nombre, Codigo]);
+    const Horacheckout = Formatearhora12(Number(Leerconfiguracionhoja().HORACHECKOUT || 11));
+    Notificarreservaconfirmada({
+      codigo: Codigo, habitacion: Hab, canal: String(Fila[15] || 'WhatsApp'), nombre: Nombre, celular: Conv.celular,
+      llegada: Llegada, salida: Salida, noches: Number(Fila[7] || 1), personas: Number(Fila[8] || 1),
+      horallegada: Hora, horasalida: String(Fila[23] || Horacheckout), total: Total, pagado: Number(Fila[11] || 0),
+      entidad: Fila[13] || 'Efectivo', referencia: 'Confirmada en canal privado', observaciones: String(Fila[22] || ''),
+      mensajecliente: `✅ El administrador ha confirmado tu reserva ${Codigo} en Hospedaje Nissi.\nHabitación ${Hab} · ${Llegada} al ${Salida} · Llegada ${Hora} · Check-out ${Horacheckout} · Total $${Total.toLocaleString('es-CO')} COP.`
+    });
   } else if (Indice > 0) {
     Hojareservas.getRange(Indice, 15).setValue('Rechazada');
     Hojareservas.getRange(Indice, 23).setValue(`Cerrada sin confirmar (${Origen || 'admin'})`);
     Cambiarocupacionhabitacion(Hojahabitaciones, Hab, 'Disponible');
-    const Msgrechazo = 'Tu reserva no ha sido confirmada en esta ocasión, pero puedes seguir contando con Hospedaje Nissi. Cuando quieras, vuelve a escribirnos por este mismo chat y con gusto te ayudamos.';
-    Enviarmensajeinteligente(Conv.celular, Msgrechazo, 'reserva_no_confirmada_cliente', [Nombre, Codigo]);
+    Enviarmensajeinteligente(Conv.celular, 'Tu reserva no ha sido confirmada en esta ocasión, pero puedes seguir contando con Hospedaje Nissi. Cuando quieras, vuelve a escribirnos por este mismo chat.', 'reserva_no_confirmada_cliente', [Nombre, Codigo]);
   }
-
   Actualizarconversacion(Conv.celular, { modo: 'IA', aperturacanal: '', avisodemoracanal: '' });
-  const Restantes = Obtenercanalesabiertos().length;
-  Enviarmensajewhatsapp(Credenciales.celularadmin, `Canal ${Codigo} cerrado: reserva ${Confirmar ? 'confirmada' : 'rechazada'}. Canales abiertos restantes: ${Restantes}.`);
+  Enviarmensajewhatsapp(Credenciales.celularadmin, `Canal ${Codigo} cerrado: reserva ${Confirmar ? 'confirmada' : 'rechazada'}. Canales restantes: ${Obtenercanalesabiertos().length}.`);
   Registrarbitacora('Canal', 'Cerrarcanal', `${Codigo} -> ${Confirmar ? 'Confirmada' : 'Rechazada'}`);
 }

@@ -28,15 +28,8 @@ function Analizarcomprobanteimagen(Idimagenwhatsapp) {
   const Solicitudgemini = {
     model: Parametrosistema.modeloia,
     input: [
-      {
-        type: 'text',
-        text: 'Analiza esta captura de pantalla de un comprobante de pago en Colombia (Nequi, Bancolombia, Daviplata o transferencia bancaria). Extrae exactamente en formato JSON sin bloques markdown: {"escomprobante": true/false, "monto": numero en pesos sin puntos, "referencia": "numero de comprobante o referencia", "entidad": "Nequi/Bancolombia/Daviplata/Otro", "fecha": "YYYY-MM-DD HH:mm"}.'
-      },
-      {
-        type: 'image',
-        data: Bytesbase,
-        mime_type: Tipomime
-      }
+      { type: 'text', text: 'Analiza esta captura de pantalla de un comprobante de pago en Colombia (Nequi o transferencia bancaria). Extrae exactamente en formato JSON sin bloques markdown: {"escomprobante": true/false, "monto": numero en pesos sin puntos, "referencia": "numero de comprobante o referencia", "entidad": "Nequi/Otro", "fecha": "YYYY-MM-DD HH:mm"}.' },
+      { type: 'image', data: Bytesbase, mime_type: Tipomime }
     ]
   };
 
@@ -69,13 +62,14 @@ function Obtenerherramientasia() {
     {
       type: 'function',
       name: 'Consultardisponibilidad',
-      description: 'Lee qué habitaciones están libres en Google Sheets para esas fechas y número de personas.',
+      description: 'Lee qué habitaciones están libres en Google Sheets y calcula la tarifa por cantidad de personas.',
       parameters: {
         type: 'object',
         properties: {
           fechallegada: { type: 'string', description: 'Fecha de llegada YYYY-MM-DD' },
           fechasalida: { type: 'string', description: 'Fecha de salida YYYY-MM-DD' },
-          cantidadhuespedes: { type: 'integer', description: 'Número de personas (1 a 4)' }
+          cantidadhuespedes: { type: 'integer', description: 'Número de personas (1 a 3)' },
+          camasseparadas: { type: 'boolean', description: 'True si son 2 personas y desean dormir en camas separadas' }
         },
         required: ['fechallegada', 'fechasalida']
       }
@@ -83,14 +77,15 @@ function Obtenerherramientasia() {
     {
       type: 'function',
       name: 'Apartarhabitacion',
-      description: 'Aparta automáticamente la habitación elegida por el cliente para que nadie más la tome.',
+      description: 'Aparta automáticamente la habitación elegida con su tarifa calculada por persona y uso de camas.',
       parameters: {
         type: 'object',
         properties: {
-          habitacion: { type: 'string', description: 'Número de habitación de 01 a 06' },
+          habitacion: { type: 'string', description: 'Número de habitación disponible (01, 02, 04, 05 o 06)' },
           fechallegada: { type: 'string', description: 'Fecha de llegada YYYY-MM-DD' },
           fechasalida: { type: 'string', description: 'Fecha de salida YYYY-MM-DD' },
-          cantidadhuespedes: { type: 'integer', description: 'Cantidad de huéspedes' }
+          cantidadhuespedes: { type: 'integer', description: 'Cantidad de huéspedes (1 a 3)' },
+          camasseparadas: { type: 'boolean', description: 'True si son 2 personas en camas individuales' }
         },
         required: ['habitacion', 'fechallegada', 'fechasalida']
       }
@@ -127,25 +122,29 @@ function Obtenerherramientasia() {
     {
       type: 'function',
       name: 'Enviardatospago',
-      description: 'Obtiene las cuentas de transferencia (Nequi, Daviplata, Bancolombia) y el monto exacto a pagar de la hoja Configuracion.',
+      description: 'Devuelve la cuenta de Nequi y el valor exacto a transferir para pago completo por Nequi o pago Mixto (parte Nequi + parte efectivo).',
       parameters: {
         type: 'object',
         properties: {
-          codigo: { type: 'string', description: 'Código de la reserva apartada' }
+          codigo: { type: 'string', description: 'Código de la reserva apartada' },
+          mediopago: { type: 'string', description: '"Nequi" o "Mixto"' },
+          montonequi: { type: 'number', description: 'Si es Mixto, valor en pesos a transferir por Nequi' },
+          montoefectivo: { type: 'number', description: 'Si es Mixto, valor en pesos a pagar en efectivo al llegar' },
+          montobillete: { type: 'number', description: 'Si es Mixto, monto o billete con el que pagará la parte en efectivo (opcional)' }
         }
       }
     },
     {
       type: 'function',
       name: 'Registrarcomprobante',
-      description: 'Guarda los datos leídos de la captura de pago para que el sistema los verifique contra el correo del banco.',
+      description: 'Guarda los datos leídos de la captura de Nequi para verificarlos contra el correo del banco.',
       parameters: {
         type: 'object',
         properties: {
           codigo: { type: 'string', description: 'Código de reserva' },
           monto: { type: 'number', description: 'Monto en pesos colombianos leído de la captura' },
           referencia: { type: 'string', description: 'Referencia o número de comprobante' },
-          entidad: { type: 'string', description: 'Nequi, Daviplata o Bancolombia' },
+          entidad: { type: 'string', description: 'Nequi' },
           fecha: { type: 'string', description: 'Fecha y hora del comprobante' }
         },
         required: ['monto', 'referencia']
@@ -153,20 +152,21 @@ function Obtenerherramientasia() {
     },
     {
       type: 'function',
-      name: 'Solicitarpagoefectivo',
-      description: 'Solicita conexión con un administrador cuando el cliente indica que desea pagar en efectivo.',
+      name: 'Confirmarreservaefectivo',
+      description: 'Confirma directamente una reserva con pago 100% en efectivo al llegar, después de validar el monto con el que pagará y que el cliente confirmó el resumen.',
       parameters: {
         type: 'object',
         properties: {
           codigo: { type: 'string', description: 'Código de la reserva apartada' },
-          resumen: { type: 'string', description: 'Resumen breve de lo conversado con el cliente' }
-        }
+          montobillete: { type: 'number', description: 'Monto o billete en pesos con el que pagará en efectivo (ej. 100000)' }
+        },
+        required: ['montobillete']
       }
     },
     {
       type: 'function',
       name: 'Solicitaradministrador',
-      description: 'Solicita conexión con un administrador cuando el cliente pide hablar con una persona o tiene un caso especial.',
+      description: 'Solicita conexión con un administrador cuando el cliente pide hablar con una persona, son más de 3 personas o tiene un caso especial.',
       parameters: {
         type: 'object',
         properties: {
@@ -175,35 +175,34 @@ function Obtenerherramientasia() {
           resumen: { type: 'string', description: 'Resumen breve de lo conversado con el cliente' }
         }
       }
+    },
+    {
+      type: 'function',
+      name: 'Solicitarampliacioncheckout',
+      description: 'Cotiza o registra la ampliación de la hora de salida después de las 11:00 a. m. ($10.000 COP por hora adicional).',
+      parameters: {
+        type: 'object',
+        properties: {
+          codigo: { type: 'string', description: 'Código de la reserva confirmada' },
+          horasalida: { type: 'string', description: 'Hora de salida solicitada (ej. 2:00 p. m. o 14:00)' },
+          mediopago: { type: 'string', description: 'Vacío para cotizar primero; "transferencia" o "efectivo" cuando el huésped elija cómo pagar' }
+        },
+        required: ['horasalida']
+      }
     }
   ];
 }
 
 function Ejecutarherramientaia(Nombre, Argumentos, Celularcliente) {
-  if (Nombre === 'Consultardisponibilidad') {
-    return Consultardisponibilidad(Argumentos.fechallegada, Argumentos.fechasalida, Argumentos.cantidadhuespedes);
-  }
-  if (Nombre === 'Apartarhabitacion') {
-    return Apartarhabitacion(Celularcliente, Argumentos.habitacion, Argumentos.fechallegada, Argumentos.fechasalida, Argumentos.cantidadhuespedes, 'WhatsApp');
-  }
-  if (Nombre === 'Liberarapartado') {
-    return Liberarapartado(Celularcliente, Argumentos.codigo, Argumentos.motivo);
-  }
-  if (Nombre === 'Guardardatoshuesped') {
-    return Guardardatoshuesped(Celularcliente, Argumentos.codigo, Argumentos.nombre, Argumentos.cedula, Argumentos.horallegada, Argumentos.celularcontacto, Argumentos.parqueadero);
-  }
-  if (Nombre === 'Enviardatospago') {
-    return Enviardatospago(Celularcliente, Argumentos.codigo);
-  }
-  if (Nombre === 'Registrarcomprobante') {
-    return Registrarcomprobante(Celularcliente, Argumentos.codigo, Argumentos);
-  }
-  if (Nombre === 'Solicitarpagoefectivo') {
-    return Solicitarpagoefectivo(Celularcliente, Argumentos.codigo, Argumentos.resumen);
-  }
-  if (Nombre === 'Solicitaradministrador') {
-    return Solicitaradministrador(Celularcliente, Argumentos.codigo, Argumentos.motivo, Argumentos.resumen);
-  }
+  if (Nombre === 'Consultardisponibilidad') { return Consultardisponibilidad(Argumentos.fechallegada, Argumentos.fechasalida, Argumentos.cantidadhuespedes, Argumentos.camasseparadas); }
+  if (Nombre === 'Apartarhabitacion') { return Apartarhabitacion(Celularcliente, Argumentos.habitacion, Argumentos.fechallegada, Argumentos.fechasalida, Argumentos.cantidadhuespedes, 'WhatsApp', Argumentos.camasseparadas); }
+  if (Nombre === 'Liberarapartado') { return Liberarapartado(Celularcliente, Argumentos.codigo, Argumentos.motivo); }
+  if (Nombre === 'Guardardatoshuesped') { return Guardardatoshuesped(Celularcliente, Argumentos.codigo, Argumentos.nombre, Argumentos.cedula, Argumentos.horallegada, Argumentos.celularcontacto, Argumentos.parqueadero); }
+  if (Nombre === 'Enviardatospago') { return Enviardatospago(Celularcliente, Argumentos.codigo, Argumentos.mediopago, Argumentos.montonequi, Argumentos.montoefectivo, Argumentos.montobillete); }
+  if (Nombre === 'Registrarcomprobante') { return Registrarcomprobante(Celularcliente, Argumentos.codigo, Argumentos); }
+  if (Nombre === 'Confirmarreservaefectivo') { return Confirmarreservaefectivo(Celularcliente, Argumentos.codigo, Argumentos.montobillete); }
+  if (Nombre === 'Solicitaradministrador') { return Solicitaradministrador(Celularcliente, Argumentos.codigo, Argumentos.motivo, Argumentos.resumen); }
+  if (Nombre === 'Solicitarampliacioncheckout') { return Solicitarampliacioncheckout(Celularcliente, Argumentos.codigo, Argumentos.horasalida, Argumentos.mediopago); }
   return { exito: false, mensaje: 'Herramienta no reconocida' };
 }
 
@@ -214,17 +213,22 @@ function Procesarmensajecongemini(Celularcliente, Textomensaje) {
   const Hoy = Utilities.formatDate(new Date(), Parametrosistema.zonahoraria, 'yyyy-MM-dd');
 
   const Instruccionessistema =
-    `Actúas como la recepcionista humana, cálida, cercana y servicial de Hospedaje Nissi en Mingueo, municipio de Dibulla, La Guajira (sobre la Troncal del Caribe, entre Santa Marta y Riohacha). ` +
-    `Hoy es ${Hoy}. Hablas en español colombiano natural, respetuoso y amable (sin sonar a robot y sin usar apelativos como "mi amor" o "corazón"). ` +
-    `REGLA ESTRICTA DE CONTEXTO: Jamás respondas preguntas de cultura general, ciencia, matemáticas, tareas, programación ni temas ajenos al hospedaje (por ejemplo, si preguntan la distancia entre la Tierra y la Luna o cualquier tema fuera del hotel, NO des el dato; responde con simpatía que desde la recepción de Hospedaje Nissi solo puedes brindar información de alojamiento y reservas, y retoma amablemente el paso en el que iban). ` +
-    `Sigue esta conversación natural paso a paso:\n` +
-    `Paso 1 (Saludo inicial): Si es el primer mensaje y el cliente aún no ha dicho su nombre, salúdalo con calidez: "¡Hola! ¿Cómo estás? Hablas con la recepción del Hospedaje Nissi en Mingueo 😊 ¿Me puedes indicar tu nombre, por favor?".\n` +
-    `Paso 2 (Aviso Ley 1581, fechas y parqueadero): Apenas te diga su nombre, salúdalo por su nombre de pila, infórmale: "Para continuar con la conversación te informo que tus datos personales se tratarán conforme a la Ley 1581 de 2012 para gestionar tu reserva." y pregúntale: "Para empezar, [Nombre], me gustaría saber para cuántas personas sería, tu fecha de llegada y salida al hospedaje, y si requieres parqueadero." (Si en su primer mensaje ya dio fechas, igual incluye el aviso de la Ley 1581 de 2012 y pregunta si requiere parqueadero).\n` +
-    `Regla de parqueadero: Si el cliente dice que NO requiere parqueadero, NO le hagas más preguntas sobre vehículos y avanza directo al Paso 3. Si dice que SÍ requiere parqueadero y aún no ha dicho los detalles, pregúntale amablemente qué tipo de vehículo trae (ej. moto, carro, camioneta) y cuántos vehículos son, y recuérdalo para guardarlo luego en Guardardatoshuesped.\n` +
-    `Paso 3 (Disponibilidad): Cuando tengas fechas de llegada, salida, cantidad de personas y el dato de parqueadero completo, ejecuta Consultardisponibilidad y muéstrale SOLO las habitaciones disponibles con su tarifa real, cerrando con "¿Cuál te gustaría elegir?".\n` +
-    `Paso 4 (Apartado inmediato): Cuando elija una habitación, ejecuta de inmediato Apartarhabitacion y respóndele cálidamente: "¡Listo, [Nombre]! Te aparté la habitación XX, con el código de reserva NS-XXXX.\nPara continuar con el registro, por favor dime tu nombre completo, número de cédula de ciudadanía, la hora estimada de llegada y un número de contacto."\n` +
-    `Paso 5 (Datos y pago): Cuando te envíe esos datos, guárdalos con Guardardatoshuesped y pregúntale con amabilidad si desea realizar el pago por transferencia (Nequi, Daviplata o Bancolombia) o en efectivo. Si elige transferencia, usa Enviardatospago; si elige efectivo, ejecuta Solicitarpagoefectivo y no escribas texto adicional porque el sistema envía el mensaje oficial.\n` +
-    `Nunca inventes precios ni disponibilidad, nunca confirmes reservas por tu cuenta y nunca reveles números personales internos.`;
+    `Actúas como la recepcionista humana, cálida, cercana y servicial de Hospedaje Nissi en Mingueo, Dibulla, La Guajira. Hoy es ${Hoy}. Hablas en español colombiano natural y respetuoso.\n` +
+    `CONTEXTO: Jamás respondas preguntas ajenas al hospedaje (ciencia, historia, matemáticas, etc.). Di amablemente que en recepción solo atiendes reservas e información del hospedaje y retoma el paso actual.\n` +
+    `TARIFAS Y HABITACIONES: Todas tienen aire acondicionado, Wi-Fi, TV y acceso al parqueadero general del hospedaje. La habitación 03 está en rediseño (nunca la ofrezcas). El cobro es por PERSONAS: ` +
+    `1 persona = $55.000/noche (aplica incluso en habitaciones de 2 o 3 personas); 2 personas = $70.000/noche si comparten la cama doble/queen, o $90.000/noche si usan cada uno su cama individual (solo en habs. 01, 02 y 06; las habs. 04 y 05 tienen 1 cama doble a $70.000); 3 personas = $110.000/noche.\n` +
+    `MÁS DE 3 PERSONAS: Si el cliente pide para más de 3 personas, NO consultes habitaciones ni apartes nada; respóndele exactamente en este tono: "Entiendo, [Nombre]. Para este caso debo comunicarte con un administrador, si quieres puedo comunicarte ahora mismo." Si confirma que sí, ejecuta Solicitaradministrador y no escribas texto adicional.\n` +
+    `PASOS DE RESERVA:\n` +
+    `1) Primer mensaje: "¡Hola! ¿Cómo estás? Hablas con la recepción del Hospedaje Nissi en Mingueo 😊 ¿Me puedes indicar tu nombre, por favor?".\n` +
+    `2) Salúdalo por su nombre, dile: "Para continuar con la conversación te informo que tus datos personales se tratarán conforme a la Ley 1581 de 2012 para gestionar tu reserva." y pregúntale cuántas personas son, fechas de llegada y salida, y si requiere parqueadero. Si dice NO al parqueadero, no preguntes más de vehículos; si dice SÍ, pregunta tipo y cantidad de vehículos.\n` +
+    `3) Con fechas, personas (1 a 3) y parqueadero listo, llama a Consultardisponibilidad. Si son 2 personas y están libres 01, 02 o 06, explícales ambas opciones ($70.000 compartiendo cama / $90.000 camas separadas) y pregunta qué prefieren antes de apartar.\n` +
+    `4) Al elegir habitación (y tipo de camas si aplica), llama a Apartarhabitacion y responde: "¡Listo, [Nombre]! Te aparté la habitación XX, con el código NS-XXXX. Para continuar dime tu nombre completo, cédula de ciudadanía, hora estimada de llegada y número de contacto."\n` +
+    `5) Guarda con Guardardatoshuesped (incluyendo parqueadero) y pregunta el medio de pago. El hospedaje SOLO acepta: Nequi, Efectivo o Mixto (una parte por Nequi y otra en Efectivo).\n` +
+    `PAGO EN EFECTIVO (sin pasar a administrador): Si elige Efectivo, respóndele cálidamente: "Perfecto, como tu pago es en efectivo, por favor indícame con qué monto vas a pagar para tener listo el cambio cuando llegues al hospedaje." Apenas responda el billete/monto, envíale el resumen completo para confirmar: Nombre, C.C., habitación y personas/camas, pago en efectivo (y que se tendrá el cambio listo), parqueadero (y tipo/cantidad de vehículo si aplica), fechas de llegada y salida, y pregunta "¿Es correcto?". Apenas responda que sí, llama a Confirmarreservaefectivo y dile: "Tu reserva ha quedado confirmada con el código [NS-XXXX]. Ya se ha notificado a la recepción del hospedaje; cualquier inconveniente o cancelación lo puedes llevar a cabo por este mismo chat. ¡Esperamos tu llegada!"\n` +
+    `PAGO POR NEQUI O MIXTO: Si elige Nequi 100%, llama a Enviardatospago(mediopago:"Nequi") y pídele enviar la captura del comprobante aquí. Si elige Mixto, pregúntale cuánto pagará ahora por Nequi, cuánto pagará en efectivo al llegar (validando que sume el total) y con qué monto pagará la parte en efectivo para tener cambio; luego llama a Enviardatospago(mediopago:"Mixto", montonequi, montoefectivo, montobillete) y pídele enviar la captura de la parte por Nequi.\n` +
+    `CANCELACIÓN: Si un huésped pide cancelar o desistir de su reserva, usa Liberarapartado.\n` +
+    `CHECK-OUT (11:00 a. m.): Cada hora adicional vale $10.000 COP. Si quiere ampliar su salida, usa Solicitarampliacioncheckout primero sin mediopago para cotizar y preguntar si paga por Nequi ya o en efectivo al salir; luego llama de nuevo con mediopago.\n` +
+    `Nunca inventes precios ni disponibilidad y nunca confirmes reservas sin usar las herramientas.`;
 
   const Herramientas = Obtenerherramientasia();
   const Cuerpopeticion = {
@@ -243,9 +247,7 @@ function Procesarmensajecongemini(Celularcliente, Textomensaje) {
   for (let Iter = 0; Iter < 3; Iter++) {
     const Pasollamada = Respuesta && Array.isArray(Respuesta.steps) && Respuesta.steps.find(function(P) { return P.type === 'function_call'; });
     if (!Pasollamada) { break; }
-    if (Pasollamada.name === 'Solicitarpagoefectivo' || Pasollamada.name === 'Solicitaradministrador') {
-      Abriocanal = true;
-    }
+    if (Pasollamada.name === 'Solicitaradministrador') { Abriocanal = true; }
     const Resultadolocal = Ejecutarherramientaia(Pasollamada.name, Pasollamada.arguments || {}, Celularcliente);
     Respuesta = Llamarapigemini(Credenciales.clavegemini, {
       model: Parametrosistema.modeloia,
@@ -362,17 +364,14 @@ function doPost(Eventopeticion) {
       return ContentService.createTextOutput('OK');
     }
 
-    if (Cuerpo.accion === 'bienvenida') {
-      return Respuestajsonservidor(Procesarcorreobienvenida(Cuerpo.token));
-    }
-    if (Cuerpo.accion === 'recuperarclave') {
-      return Respuestajsonservidor(Procesarrecuperacionclave(Cuerpo.correo));
-    }
+    if (Cuerpo.accion === 'bienvenida') { return Respuestajsonservidor(Procesarcorreobienvenida(Cuerpo.token)); }
+    if (Cuerpo.accion === 'recuperarclave') { return Respuestajsonservidor(Procesarrecuperacionclave(Cuerpo.correo)); }
     if (Cuerpo.accion === 'registrarreserva') {
-      const Respuestaregistro = Registrarosincronizarreserva(Cuerpo.datos || {});
-      return ContentService.createTextOutput(JSON.stringify(Respuestaregistro)).setMimeType(ContentService.MimeType.JSON);
+      return ContentService.createTextOutput(JSON.stringify(Registrarosincronizarreserva(Cuerpo.datos || {}))).setMimeType(ContentService.MimeType.JSON);
     }
-
+    if (Cuerpo.accion === 'habilitarhabitacion' || Cuerpo.accion === 'marcarlimpieza') {
+      return Respuestajsonservidor(Gestionarlimpiezahabitacion(Cuerpo.habitacion, Cuerpo.accion === 'habilitarhabitacion'));
+    }
     return ContentService.createTextOutput(JSON.stringify({ exito: false, mensaje: 'Acción no reconocida' })).setMimeType(ContentService.MimeType.JSON);
   } catch (Errorpost) {
     Registrarbitacora('Webhook', 'ErrorDoPost', String(Errorpost));

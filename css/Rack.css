@@ -46,6 +46,16 @@
   box-shadow: 0 0 10px rgba(230, 168, 50, 0.4);
 }
 
+.legend-dot.is-maintenance {
+  background: #8E8C84;
+  box-shadow: 0 0 10px rgba(142, 140, 132, 0.4);
+}
+
+.legend-dot.is-cleaning {
+  background: #38BDF8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
 .legend-dot.is-busy {
   background: #D94436;
   box-shadow: 0 0 10px rgba(217, 68, 54, 0.4);
@@ -85,6 +95,14 @@
 
 .room-card.is-reserved::before {
   background: #E6A832;
+}
+
+.room-card.is-maintenance::before {
+  background: #8E8C84;
+}
+
+.room-card.is-cleaning::before {
+  background: #38BDF8;
 }
 
 .room-card.is-occupied::before {
@@ -127,6 +145,18 @@
   background: rgba(230, 168, 50, 0.16);
   color: #F5C45E;
   border: 1px solid rgba(230, 168, 50, 0.35);
+}
+
+.room-card.is-maintenance .room-card-status {
+  background: rgba(142, 140, 132, 0.18);
+  color: #C4C1B6;
+  border: 1px solid rgba(142, 140, 132, 0.35);
+}
+
+.room-card.is-cleaning .room-card-status {
+  background: rgba(56, 189, 248, 0.16);
+  color: #7DD3FC;
+  border: 1px solid rgba(56, 189, 248, 0.35);
 }
 
 .room-card.is-occupied .room-card-status {

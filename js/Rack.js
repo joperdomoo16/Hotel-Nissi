@@ -59,22 +59,25 @@ function Dibujartablerohabitaciones() {
 
   Estadorecepcion.habitaciones.forEach(function(Hab) {
     const Estadohab = String(Hab.estadoactual || 'Disponible');
-    const Esapartada = Estadohab === 'Apartada' || Estadohab === 'En proceso' || Estadohab === 'Verificando' || Estadohab === 'En canal';
-    const Esocupada = Estadohab === 'Ocupada';
-    const Eslibre = !Esapartada && !Esocupada && Hab.disponible !== false;
-    if (Eslibre) {
-      Contadorlibres++;
-    } else {
-      Contadorocupadas++;
-    }
+    const Esmantenimiento = Estadohab === 'Mantenimiento' || String(Hab.numero) === '03';
+    const Eslimpieza = !Esmantenimiento && (Estadohab === 'Limpieza' || Estadohab === 'Pendiente de limpieza');
+    const Esapartada = !Esmantenimiento && !Eslimpieza && (Estadohab === 'Apartada' || Estadohab === 'En proceso' || Estadohab === 'Verificando' || Estadohab === 'En canal');
+    const Esocupada = !Esmantenimiento && !Eslimpieza && Estadohab === 'Ocupada';
+    const Eslibre = !Esmantenimiento && !Eslimpieza && !Esapartada && !Esocupada && Hab.disponible !== false;
+    if (Eslibre) { Contadorlibres++; }
+    else if (!Esmantenimiento) { Contadorocupadas++; }
 
     const Numeroseguro = typeof Escaparhtml === 'function' ? Escaparhtml(Hab.numero) : Hab.numero;
     const Tiposeguro = typeof Escaparhtml === 'function' ? Escaparhtml(Hab.tipo) : Hab.tipo;
     const Capacidadsegura = typeof Escaparhtml === 'function' ? Escaparhtml(Hab.capacidad) : Hab.capacidad;
 
-    const Clasetarjeta = Eslibre ? 'is-available' : (Esapartada ? 'is-reserved' : 'is-occupied');
-    const Etiquetaestado = Eslibre ? '● Disponible' : (Esapartada ? '◐ Apartada · En proceso' : '■ Ocupada');
-    const Textoocupada = Esapartada ? 'Apartada en proceso (30 min)' : 'Ocupada actualmente';
+    const Clasetarjeta = Esmantenimiento ? 'is-maintenance' : (Eslimpieza ? 'is-cleaning' : (Eslibre ? 'is-available' : (Esapartada ? 'is-reserved' : 'is-occupied')));
+    const Etiquetaestado = Esmantenimiento ? '● En rediseño' : (Eslimpieza ? '◐ Pendiente de limpieza' : (Eslibre ? '● Disponible' : (Esapartada ? '◐ Apartada · En proceso' : '■ Ocupada')));
+    const Preciomostrar = Esmantenimiento ? 'En rediseño' : `Desde $${Number(Hab.tarifanoche || 55000).toLocaleString('es-CO')} COP`;
+    let Accionhtml = `<button class="btn btn--ghost btn--sm" type="button" disabled>${Esmantenimiento ? 'En rediseño (no disponible)' : 'Apartada en proceso (30 min)'}</button>`;
+    if (Eslibre) { Accionhtml = `<button class="btn btn--cream btn--sm" type="button" data-checkin="${Numeroseguro}">Check-in presencial</button>`; }
+    else if (Eslimpieza) { Accionhtml = `<button class="btn btn--cream btn--sm" type="button" data-habilitar="${Numeroseguro}">Habilitar habitación</button>`; }
+    else if (Esocupada) { Accionhtml = `<button class="btn btn--ghost btn--sm" type="button" data-limpieza="${Numeroseguro}">Registrar salida (Limpieza)</button>`; }
 
     const Tarjeta = document.createElement('div');
     Tarjeta.className = `room-card ${Clasetarjeta}`;
@@ -86,15 +89,9 @@ function Dibujartablerohabitaciones() {
       <h4 class="room-card-type">${Tiposeguro}</h4>
       <div class="room-card-info">
         <span>${Capacidadsegura}</span>
-        <span class="room-card-price">$${Number(Hab.tarifanoche || 0).toLocaleString('es-CO')} COP</span>
+        <span class="room-card-price">${Preciomostrar}</span>
       </div>
-      <div class="room-card-action">
-        ${
-          Eslibre
-            ? `<button class="btn btn--cream btn--sm" type="button" data-checkin="${Numeroseguro}">Check-in presencial</button>`
-            : `<button class="btn btn--ghost btn--sm" type="button" disabled>${Textoocupada}</button>`
-        }
-      </div>
+      <div class="room-card-action">${Accionhtml}</div>
     `;
     Contenedor.appendChild(Tarjeta);
   });
@@ -157,26 +154,19 @@ function Cerrarcheckin() {
 
 function Actualizartotalcheckin() {
   const Hab = Estadorecepcion.habitacionseleccionada;
-  if (!Hab) {
-    return;
-  }
-  const Campollegada = document.getElementById('checkinLlegada');
-  const Camposalida = document.getElementById('checkinSalida');
+  if (!Hab) { return; }
+  const Llegada = document.getElementById('checkinLlegada') ? document.getElementById('checkinLlegada').value : '';
+  const Salida = document.getElementById('checkinSalida') ? document.getElementById('checkinSalida').value : '';
+  const Personas = parseInt((document.getElementById('checkinHuespedes') || {}).value || 2, 10);
+  const Camasseparadas = ((document.getElementById('checkinCamas') || {}).value === 'separadas') && (Hab.admitecamasseparadas !== false && ['01', '02', '06'].indexOf(Hab.numero) !== -1);
+  const Tarifa = Personas <= 1 ? 55000 : (Personas === 2 ? (Camasseparadas ? 90000 : 70000) : 110000);
+  const Noches = typeof Calcularnochesestadia === 'function' ? Calcularnochesestadia(Llegada, Salida) : 1;
+  const Valortotal = Math.max(1, Noches) * Tarifa;
   const Totaltexto = document.getElementById('checkinTotal');
   const Montopagado = document.getElementById('checkinPago');
 
-  const Llegada = Campollegada ? Campollegada.value : '';
-  const Salida = Camposalida ? Camposalida.value : '';
-
-  const Noches = typeof Calcularnochesestadia === 'function' ? Calcularnochesestadia(Llegada, Salida) : 1;
-  const Valortotal = Math.max(1, Noches) * Number(Hab.tarifanoche || 0);
-
-  if (Totaltexto) {
-    Totaltexto.textContent = `$${Valortotal.toLocaleString('es-CO')} COP (${Math.max(1, Noches)} noche${Noches > 1 ? 's' : ''})`;
-  }
-  if (Montopagado && !Montopagado.dataset.manual) {
-    Montopagado.value = Valortotal;
-  }
+  if (Totaltexto) { Totaltexto.textContent = `$${Valortotal.toLocaleString('es-CO')} COP (${Math.max(1, Noches)} noche${Noches > 1 ? 's' : ''})`; }
+  if (Montopagado && !Montopagado.dataset.manual) { Montopagado.value = Valortotal; }
 }
 
 function Guardarcheckinpresencial(Evento) {
@@ -193,7 +183,8 @@ function Guardarcheckinpresencial(Evento) {
   const Celular = typeof Sanitizartexto === 'function' ? Sanitizartexto(document.getElementById('checkinCelular').value, 20) : document.getElementById('checkinCelular').value;
   const Llegada = document.getElementById('checkinLlegada').value;
   const Salida = document.getElementById('checkinSalida').value;
-  const Huespedes = Math.max(1, Math.min(4, parseInt(document.getElementById('checkinHuespedes').value, 10) || 2));
+  const Huespedes = Math.max(1, Math.min(3, parseInt(document.getElementById('checkinHuespedes').value, 10) || 2));
+  const Camasseparadas = ((document.getElementById('checkinCamas') || {}).value === 'separadas');
   const Mediopago = typeof Sanitizartexto === 'function' ? Sanitizartexto(document.getElementById('checkinMedio').value, 30) : document.getElementById('checkinMedio').value;
   const Montopago = Math.max(0, parseInt(document.getElementById('checkinPago').value, 10) || 0);
 
@@ -241,6 +232,7 @@ function Guardarcheckinpresencial(Evento) {
     salida: Salida,
     noches: typeof Calcularnochesestadia === 'function' ? Calcularnochesestadia(Llegada, Salida) || 1 : 1,
     huespedes: Huespedes,
+    camasseparadas: Camasseparadas,
     horallegada: 'Check-in presencial',
     montopagado: Montopago,
     referenciapago: `Presencial - ${Mediopago}`,
@@ -299,8 +291,23 @@ document.addEventListener('DOMContentLoaded', function() {
   if (Contenedorrack) {
     Contenedorrack.addEventListener('click', function(Evento) {
       const Botoncheckin = Evento.target.closest('[data-checkin]');
-      if (Botoncheckin) {
-        Abrircheckin(Botoncheckin.dataset.checkin);
+      if (Botoncheckin) { return Abrircheckin(Botoncheckin.dataset.checkin); }
+      const Botonhabilitar = Evento.target.closest('[data-habilitar]');
+      if (Botonhabilitar) {
+        const Habnum = Botonhabilitar.dataset.habilitar;
+        if (!confirm(`¿Confirmas que la habitación ${Habnum} ya está limpia y lista para recibir huéspedes?`)) { return; }
+        Botonhabilitar.disabled = true;
+        Botonhabilitar.textContent = 'Habilitando...';
+        Cambiarlimpiezahabitacionservidor(Habnum, true).finally(Cargarhabitaciones);
+        return;
+      }
+      const Botonlimpieza = Evento.target.closest('[data-limpieza]');
+      if (Botonlimpieza) {
+        const Habnum = Botonlimpieza.dataset.limpieza;
+        if (!confirm(`¿Registrar la salida de la habitación ${Habnum} y pasarla a pendiente de limpieza?`)) { return; }
+        Botonlimpieza.disabled = true;
+        Botonlimpieza.textContent = 'Actualizando...';
+        Cambiarlimpiezahabitacionservidor(Habnum, false).finally(Cargarhabitaciones);
       }
     });
   }
@@ -311,9 +318,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   const Camposalida = document.getElementById('checkinSalida');
-  if (Camposalida) {
-    Camposalida.addEventListener('change', Actualizartotalcheckin);
-  }
+  if (Camposalida) { Camposalida.addEventListener('change', Actualizartotalcheckin); }
+  const Campopersonas = document.getElementById('checkinHuespedes');
+  if (Campopersonas) { Campopersonas.addEventListener('change', Actualizartotalcheckin); }
+  const Campocamas = document.getElementById('checkinCamas');
+  if (Campocamas) { Campocamas.addEventListener('change', Actualizartotalcheckin); }
 
   const Campopago = document.getElementById('checkinPago');
   if (Campopago) {

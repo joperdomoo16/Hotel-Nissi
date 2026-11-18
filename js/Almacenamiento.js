@@ -307,3 +307,23 @@ function Consultardisponibilidadservidor(Fechallegada, Fechasalida, Cantidadhues
       return null;
     });
 }
+
+function Cambiarlimpiezahabitacionservidor(Numerohabitacion, Habilitar) {
+  if (!Configuracionhotel.urlservidor) {
+    return Promise.resolve(null);
+  }
+  return fetch(Configuracionhotel.urlservidor, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      accion: Habilitar ? 'habilitarhabitacion' : 'marcarlimpieza',
+      habitacion: Numerohabitacion
+    })
+  })
+    .then(function(Respuesta) {
+      return Respuesta.json();
+    })
+    .catch(function() {
+      return null;
+    });
+}

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>Reserva confirmada · Hospedaje Nissi</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 0; width: 100% !important; background: #E7DCC6; -webkit-text-size-adjust: 100%; }
+  table { border-collapse: collapse; }
+  img { border: 0; display: block; outline: none; }
+  a { text-decoration: none; }
+  @media only screen and (max-width: 620px) {
+    .contenedor { width: 100% !important; }
+    .px { padding-left: 20px !important; padding-right: 20px !important; }
+    .titular { font-size: 36px !important; line-height: 38px !important; }
+    .cifra-grande { font-size: 38px !important; line-height: 42px !important; }
+    .apilar { display: block !important; width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; padding-bottom: 10px !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#E7DCC6;">
+
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">Reserva {{CODIGO}} confirmada · Habitación {{HABITACION}} · {{HUESPED}} · ${{TOTAL}} COP.</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#E7DCC6" style="background:#E7DCC6;">
+  <tr>
+    <td align="center" style="padding:32px 12px;">
+      <table role="presentation" class="contenedor" width="640" cellpadding="0" cellspacing="0" border="0" style="width:640px;max-width:640px;">
+
+        <!-- Encabezado -->
+        <tr>
+          <td bgcolor="#1A1C13" class="px" style="background:#1A1C13;padding:28px 40px 8px;border-radius:24px 24px 0 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td valign="middle" width="40" style="width:40px;">
+                  <img src="https://hospedaje-nissi-mingueo.web.app/assets/nissi-mark.png" width="40" height="35" alt="Nissi" style="width:40px;height:35px;">
+                </td>
+                <td valign="middle" style="padding-left:12px;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-size:20px;line-height:24px;color:#F2EADB;">Hospedaje Nissi</td>
+                <td valign="middle" align="right" style="font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:10px;line-height:14px;letter-spacing:3px;text-transform:uppercase;color:#BDB49F;">Recepción</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Titular -->
+        <tr>
+          <td bgcolor="#1A1C13" class="px" style="background:#1A1C13;padding:34px 40px 38px;">
+            <p style="margin:0 0 14px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;letter-spacing:3px;text-transform:uppercase;color:#BDB49F;">
+              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4DD678;vertical-align:middle;"></span>&nbsp;&nbsp;Nueva reserva confirmada · {{CODIGO}}
+            </p>
+            <h1 class="titular" style="margin:0;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-weight:300;font-size:46px;line-height:48px;letter-spacing:-1px;color:#F2EADB;">
+              Habitación <em style="font-style:italic;color:#E7DCC6;">{{HABITACION}}</em>
+            </h1>
+            <p style="margin:14px 0 0;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#BDB49F;">Confirmada el {{FECHACONFIRMACION}} · Canal {{CANAL}}</p>
+          </td>
+        </tr>
+
+        <!-- Resumen de pago -->
+        <tr>
+          <td bgcolor="#F2EADB" class="px" style="background:#F2EADB;padding:32px 40px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#8C3B1F" style="background:#8C3B1F;border-radius:20px;">
+              <tr>
+                <td style="padding:26px 30px;">
+                  <p style="margin:0;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;letter-spacing:3px;text-transform:uppercase;color:#E7DCC6;">Total de la estadía</p>
+                  <p class="cifra-grande" style="margin:10px 0 0;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-weight:300;font-size:46px;line-height:50px;letter-spacing:-1px;color:#F2EADB;">${{TOTAL}} <span style="font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;letter-spacing:2px;color:#E7DCC6;">COP</span></p>
+                  <p style="margin:10px 0 0;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#F2EADB;">Pagado: <strong>${{PAGADO}} COP</strong> ({{MEDIOPAGO}} · Ref. {{REFERENCIA}}) &nbsp;|&nbsp; Saldo por cobrar: <strong>${{SALDO}} COP</strong></p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Datos del huesped y estadia -->
+        <tr>
+          <td bgcolor="#F2EADB" class="px" style="background:#F2EADB;padding:28px 40px 0;">
+            <p style="margin:0 0 6px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;letter-spacing:3px;text-transform:uppercase;color:#5A5C4E;">Ficha de recepción</p>
+            <h2 style="margin:0 0 16px;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-weight:300;font-size:28px;line-height:32px;color:#1A1C13;">Datos del <em style="font-style:italic;color:#8C3B1F;">huésped.</em></h2>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#1A1C13;">
+              <tr>
+                <td width="42%" style="padding:12px 0;border-top:1px solid #D9CDB5;color:#5A5C4E;">Huésped y documento</td>
+                <td align="right" style="padding:12px 0;border-top:1px solid #D9CDB5;font-weight:600;">{{HUESPED}}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 0;border-top:1px solid #D9CDB5;color:#5A5C4E;">WhatsApp / Celular</td>
+                <td align="right" style="padding:12px 0;border-top:1px solid #D9CDB5;font-weight:600;">{{CELULAR}}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 0;border-top:1px solid #D9CDB5;color:#5A5C4E;">Fechas de estadía</td>
+                <td align="right" style="padding:12px 0;border-top:1px solid #D9CDB5;font-weight:600;">{{LLEGADA}} al {{SALIDA}} ({{NOCHES}} noche/s)</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 0;border-top:1px solid #D9CDB5;color:#5A5C4E;">Huéspedes y camas</td>
+                <td align="right" style="padding:12px 0;border-top:1px solid #D9CDB5;font-weight:600;">{{PERSONAS}} persona(s) · {{CAMAS}}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 0;border-top:1px solid #D9CDB5;color:#5A5C4E;">Hora estimada de llegada</td>
+                <td align="right" style="padding:12px 0;border-top:1px solid #D9CDB5;font-weight:600;">{{HORALLEGADA}}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 0;border-top:1px solid #D9CDB5;color:#5A5C4E;">Check-out establecido</td>
+                <td align="right" style="padding:12px 0;border-top:1px solid #D9CDB5;font-weight:600;">{{HORASALIDA}}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 0;border-top:1px solid #D9CDB5;border-bottom:1px solid #D9CDB5;color:#5A5C4E;">Observaciones / Parqueadero</td>
+                <td align="right" style="padding:12px 0;border-top:1px solid #D9CDB5;border-bottom:1px solid #D9CDB5;font-weight:600;">{{OBSERVACIONES}}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Boton al panel -->
+        <tr>
+          <td bgcolor="#F2EADB" class="px" style="background:#F2EADB;padding:34px 40px 42px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" bgcolor="#1A1C13" style="background:#1A1C13;border-radius:999px;">
+                  <a href="https://hospedaje-nissi-mingueo.web.app/Administracion.html" target="_blank" style="display:inline-block;padding:15px 28px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:18px;font-weight:600;color:#F2EADB;text-decoration:none;border-radius:999px;">Ver en el Rack de recepción&nbsp;&#8594;</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Pie -->
+        <tr>
+          <td bgcolor="#1A1C13" class="px" style="background:#1A1C13;padding:24px 40px;border-radius:0 0 24px 24px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:12px;line-height:19px;color:#BDB49F;">
+            Notificación automática de reserva confirmada · <span style="color:#F2EADB;">Hospedaje Nissi</span>, Mingueo, La Guajira.<br>
+            Esta reserva ya quedó registrada y bloqueada en Google Sheets.
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

@@ -44,8 +44,11 @@ function Renderizarcatalogohabitaciones() {
             <p>${Hab.descripcion}</p>
             <div class="tags">${Etiquetas}</div>
             <div class="row">
-              <button class="btn btn--cream btn--sm" type="button" data-book="${Indice}">Reservar la ${Hab.numero} →</button>
-              <a class="btn btn--ghost btn--sm" href="https://wa.me/${Configuracionhotel.celular}?text=${encodeURIComponent('Hola Hospedaje Nissi, quiero información de la habitación ' + Hab.numero + ' (' + Hab.tipo + ').')}" target="_blank" rel="noopener" data-wa="Hola Hospedaje Nissi, quiero información de la habitación ${Hab.numero} (${Hab.tipo}).">Preguntar por WhatsApp</a>
+              ${Hab.mantenimiento
+                ? '<span class="btn btn--ghost btn--sm">En rediseño (no disponible)</span>'
+                : `<button class="btn btn--cream btn--sm" type="button" data-book="${Indice}">Reservar la ${Hab.numero} →</button>
+                   <a class="btn btn--ghost btn--sm" href="https://wa.me/${Configuracionhotel.celular}?text=${encodeURIComponent('Hola Hospedaje Nissi, quiero información de la habitación ' + Hab.numero + ' (' + Hab.tipo + ').')}" target="_blank" rel="noopener" data-wa="Hola Hospedaje Nissi, quiero información de la habitación ${Hab.numero} (${Hab.tipo}).">Preguntar por WhatsApp</a>`
+              }
             </div>
           </div>
         </div>

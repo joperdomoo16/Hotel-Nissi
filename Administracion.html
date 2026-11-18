@@ -111,6 +111,8 @@
       <div class="rack-legend">
         <div class="legend-item"><span class="legend-dot is-free"></span> Libre para check-in</div>
         <div class="legend-item"><span class="legend-dot is-reserved"></span> Apartada / En proceso</div>
+        <div class="legend-item"><span class="legend-dot is-cleaning"></span> Pendiente de limpieza</div>
+        <div class="legend-item"><span class="legend-dot is-maintenance"></span> En rediseño</div>
         <div class="legend-item"><span class="legend-dot is-busy"></span> Ocupada</div>
       </div>
     </div>
@@ -323,20 +325,27 @@
         <label class="admin-field">
           <span>Número de personas</span>
           <select id="checkinHuespedes">
-            <option value="1">1 persona</option>
+            <option value="1">1 persona ($55.000/noche)</option>
             <option value="2" selected>2 personas</option>
-            <option value="3">3 personas</option>
-            <option value="4">4 personas</option>
+            <option value="3">3 personas ($110.000/noche)</option>
           </select>
         </label>
       </div>
+
+      <div class="admin-grid-2">
+        <label class="admin-field">
+          <span>Uso de camas (para 2 personas)</span>
+          <select id="checkinCamas">
+            <option value="compartida" selected>Cama doble / queen compartida ($70.000/noche)</option>
+            <option value="separadas">Camas individuales por persona ($90.000/noche)</option>
+          </select>
+        </label>
         <label class="admin-field">
           <span>Medio de pago recibido</span>
           <select id="checkinMedio">
             <option value="Efectivo" selected>Efectivo en caja</option>
             <option value="Nequi">Nequi</option>
-            <option value="Daviplata">Daviplata</option>
-            <option value="Transferencia">Transferencia Bancolombia</option>
+            <option value="Mixto (Nequi + Efectivo)">Mixto (Nequi + Efectivo)</option>
           </select>
         </label>
       </div>
