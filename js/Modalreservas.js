@@ -8,9 +8,9 @@ function Construirmodalreservas() {
 
   const Botoneshabitacion = Habitacioneshotel.map(function(Hab, Indice) {
     return `
-      <button type="button" class="pick ${Indice === 0 ? 'is-on' : ''}" data-pick="${Indice}">
+      <button type="button" class="pick ${Indice === 0 ? 'is-on' : ''} ${Hab.mantenimiento ? 'is-disabled' : ''}" data-pick="${Indice}">
         <i>${Hab.numero}</i>
-        <span><b>${Hab.tipo}</b><small>${Hab.capacidad}</small></span>
+        <span><b>${Hab.mantenimiento ? 'No disponible' : Hab.tipo}</b><small>${Hab.mantenimiento ? 'Temporalmente' : Hab.capacidad}</small></span>
       </button>
     `;
   }).join('');

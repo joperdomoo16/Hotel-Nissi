@@ -42,12 +42,12 @@ const Habitacioneshotel = [
   },
   {
     numero: '03',
-    tipo: 'En rediseño',
-    capacidad: 'No disponible',
+    tipo: 'Habitación 03',
+    capacidad: 'No disponible temporalmente',
     huespedesmaximos: 0,
     mantenimiento: true,
-    descripcion: 'Actualmente en remodelación para brindarte una mejor experiencia en tu próxima visita.',
-    detalles: ['En rediseño', 'Temporalmente fuera de servicio'],
+    descripcion: 'No disponible temporalmente, te invitamos a ver las demás habitaciones.',
+    detalles: [],
     precio: 0,
     foto: 'https://images.pexels.com/photos/279746/pexels-photo-279746.jpeg?auto=compress&cs=tinysrgb&w=1600'
   },

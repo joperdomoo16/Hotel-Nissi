@@ -41,15 +41,16 @@ function Renderizarcatalogohabitaciones() {
         </button>
         <div class="room__body">
           <div class="room__inner">
-            <p>${Hab.descripcion}</p>
-            <div class="tags">${Etiquetas}</div>
-            <div class="row">
-              ${Hab.mantenimiento
-                ? '<span class="btn btn--ghost btn--sm">En rediseño (no disponible)</span>'
-                : `<button class="btn btn--cream btn--sm" type="button" data-book="${Indice}">Reservar la ${Hab.numero} →</button>
-                   <a class="btn btn--ghost btn--sm" href="https://wa.me/${Configuracionhotel.celular}?text=${encodeURIComponent('Hola Hospedaje Nissi, quiero información de la habitación ' + Hab.numero + ' (' + Hab.tipo + ').')}" target="_blank" rel="noopener" data-wa="Hola Hospedaje Nissi, quiero información de la habitación ${Hab.numero} (${Hab.tipo}).">Preguntar por WhatsApp</a>`
-              }
-            </div>
+            ${
+              Hab.mantenimiento
+                ? '<p>No disponible temporalmente, te invitamos a ver las demás habitaciones.</p>'
+                : `<p>${Hab.descripcion}</p>
+                   <div class="tags">${Etiquetas}</div>
+                   <div class="row">
+                     <button class="btn btn--cream btn--sm" type="button" data-book="${Indice}">Reservar la ${Hab.numero} →</button>
+                     <a class="btn btn--ghost btn--sm" href="https://wa.me/${Configuracionhotel.celular}?text=${encodeURIComponent('Hola Hospedaje Nissi, quiero información de la habitación ' + Hab.numero + ' (' + Hab.tipo + ').')}" target="_blank" rel="noopener" data-wa="Hola Hospedaje Nissi, quiero información de la habitación ${Hab.numero} (${Hab.tipo}).">Preguntar por WhatsApp</a>
+                   </div>`
+            }
           </div>
         </div>
       </div>
@@ -149,12 +150,13 @@ function Refrescarpantalla() {
 
   document.querySelectorAll('.pick').forEach(function(Botonhabitacion, Indicehabitacion) {
     const Habitacionitem = Habitacioneshotel[Indicehabitacion];
-    const Estaocupada = Estadoaplicacion.mapaocupacion[Habitacionitem.numero] === false;
-    Botonhabitacion.classList.toggle('is-on', Indicehabitacion === Estadoaplicacion.habitacionseleccionada);
+    const Enmantenimiento = Boolean(Habitacionitem.mantenimiento);
+    const Estaocupada = Enmantenimiento || Estadoaplicacion.mapaocupacion[Habitacionitem.numero] === false;
+    Botonhabitacion.classList.toggle('is-on', !Enmantenimiento && Indicehabitacion === Estadoaplicacion.habitacionseleccionada);
     Botonhabitacion.classList.toggle('is-disabled', Estaocupada);
     const Pequenotexto = Botonhabitacion.querySelector('small');
     if (Pequenotexto) {
-      Pequenotexto.textContent = Estaocupada ? 'Ocupada' : Habitacionitem.capacidad;
+      Pequenotexto.textContent = Enmantenimiento ? 'No disponible' : (Estaocupada ? 'Ocupada' : Habitacionitem.capacidad);
     }
   });
 

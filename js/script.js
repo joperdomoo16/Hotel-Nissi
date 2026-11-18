@@ -125,6 +125,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (Botonseleccionhabitacion) {
       const Indiceelegido = parseInt(Botonseleccionhabitacion.dataset.pick, 10);
       const Habitacionelegida = Habitacioneshotel[Indiceelegido];
+      if (Habitacionelegida.mantenimiento) {
+        return Mostrarmensajeerror('No disponible temporalmente, te invitamos a ver las demás habitaciones.');
+      }
       if (Estadoaplicacion.mapaocupacion[Habitacionelegida.numero] === false) {
         return Mostrarmensajeerror(`La habitación ${Habitacionelegida.numero} ya está ocupada en esas fechas.`);
       }
