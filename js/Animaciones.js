@@ -1,4 +1,4 @@
-// Modulo de animaciones, microinteracciones y efectos visuales de desplazamiento
+// Animaciones de entrada, desplazamiento y microinteracciones del sitio
 
 function Inicializaranimaciones() {
   const Esmousefino = window.matchMedia('(pointer:fine)').matches;
@@ -127,7 +127,9 @@ function Inicializaranimaciones() {
         } else {
           const Escribiendodom = document.createElement('div');
           Escribiendodom.className = 'typing';
-          Escribiendodom.innerHTML = '<span></span><span></span><span></span>';
+          for (let Punto = 0; Punto < 3; Punto++) {
+            Escribiendodom.appendChild(document.createElement('span'));
+          }
           Contenedorchat.appendChild(Escribiendodom);
           setTimeout(function() {
             Escribiendodom.remove();
@@ -182,7 +184,10 @@ function Inicializaranimaciones() {
     Eventoclic.preventDefault();
     const Capabarrido = document.createElement('div');
     Capabarrido.className = 'sweep';
-    Capabarrido.innerHTML = '<img src="assets/nissi-mark.png" alt="">';
+    const Imagenbarrido = document.createElement('img');
+    Imagenbarrido.src = 'assets/nissi-mark.png';
+    Imagenbarrido.alt = '';
+    Capabarrido.appendChild(Imagenbarrido);
     document.body.appendChild(Capabarrido);
     const Curvasuave = 'cubic-bezier(.77,0,.18,1)';
     Capabarrido.animate(
@@ -212,9 +217,9 @@ function Inicializaranimaciones() {
   if (Configuracionhotel.cursorpersonalizado && Esmousefino) {
     const Cursorflotante = document.createElement('div');
     Cursorflotante.className = 'cursor';
-    Cursorflotante.innerHTML = '<span></span>';
+    const Etiquetacursor = document.createElement('span');
+    Cursorflotante.appendChild(Etiquetacursor);
     document.body.appendChild(Cursorflotante);
-    const Etiquetacursor = Cursorflotante.firstChild;
     let Cursorx = 0;
     let Cursory = 0;
     let Destinox = 0;

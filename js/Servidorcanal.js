@@ -80,13 +80,6 @@ function Buscaridclientepornumero(Entrada) {
   return (/^\d{10}$/.test(Limpio) && Limpio.charAt(0) === '3') ? `57${Limpio}` : Limpio;
 }
 
-function Dentroventana24horas(Celular) {
-  const Estado = Obtenerestadoconversacion(Celular);
-  if (!Estado.ultimomensajecliente) { return false; }
-  const Hace = Date.now() - new Date(Estado.ultimomensajecliente).getTime();
-  return !isNaN(Hace) && Hace < 24 * 3600000;
-}
-
 function Peticionwhatsapp(Cuerpopayload, Moduloerror) {
   const Credenciales = Obtenercredenciales();
   if (!Credenciales.tokenwhatsapp || !Credenciales.idtelefonowhatsapp) {
@@ -203,7 +196,7 @@ function Abrircanaladministrador(Celularcliente, Codigoreserva, Motivo, Detallee
   Actualizarconversacion(Celularlimpio, { nombre: Nombre, modo: 'PendienteAdmin', codigoreserva: Codigo, aperturacanal: Ahoratexto, avisodemoracanal: '', ultimorecordatorioadmin: Ahoratexto, ultimorecordatoriocliente: Ahoratexto, motivorequerimiento: Motivofinal, resumencontexto: Resumenfinal });
 
   const Numerocmd = Formatearnumerocomando(Celularlimpio);
-  const Titulomotivo = Motivo === 'efectivo' ? '💵 Pago en efectivo' : `🔔 Atención requerida (${Motivofinal})`;
+  const Titulomotivo = Motivo === 'efectivo' ? 'Pago en efectivo' : `Atención requerida (${Motivofinal})`;
   const Tarjetaadmin = `${Titulomotivo} · ${Codigo}\nCliente: ${Nombre} (${Numerocmd})\nHabitación: ${Hab} · Personas: ${Personas} · Llegada: ${Llegada} ${Hora}` +
     `${Obsantes ? `\nDetalles: ${Obsantes}` : ''}${Resumenchat ? `\nResumen del chat: ${Resumenchat}` : ''}\nMonto: $${Total.toLocaleString('es-CO')} COP\n\n¿Comenzar atención con "${Nombre}"?\nResponde: SI (o escribe: abrir canal con ${Numerocmd})`;
   const Idmsg = Enviarmensajeinteligente(Credenciales.celularadmin, Tarjetaadmin, 'canal_efectivo_admin', [Codigo, Nombre, Hab, Personas, `${Llegada} ${Hora}`, Total.toLocaleString('es-CO')]);
@@ -212,7 +205,6 @@ function Abrircanaladministrador(Celularcliente, Codigoreserva, Motivo, Detallee
   return { exito: true, codigo: Codigo, modo: 'PendienteAdmin', mensaje: 'Solicitud enviada al administrador.' };
 }
 
-function Solicitarpagoefectivo(Celularcliente, Codigoreserva, Resumenchat) { return Abrircanaladministrador(Celularcliente, Codigoreserva, 'efectivo', 'Pago en efectivo', Resumenchat); }
 function Solicitaradministrador(Celularcliente, Codigoreserva, Motivo, Resumenchat) { return Abrircanaladministrador(Celularcliente, Codigoreserva, 'persona', Motivo || 'Solicitud de hablar con una persona', Resumenchat); }
 
 function Procesarmensajeclienteencanal(Celularcliente, Mensaje) {
@@ -224,14 +216,14 @@ function Procesarmensajeclienteencanal(Celularcliente, Mensaje) {
     if (Mensaje.type === 'text' && Mensaje.text && Mensaje.text.body) {
       const Textoextra = Mensaje.text.body.trim();
       Campos.resumencontexto = Estadoconv.resumencontexto ? `${Estadoconv.resumencontexto} | Cliente: ${Textoextra}`.slice(-400) : `Cliente: ${Textoextra}`;
-      Guardarmapeomensajecanal(Enviarmensajewhatsapp(Credenciales.celularadmin, `⏳ ${Estadoconv.nombre || 'Cliente'} (${Estadoconv.codigoreserva || Formatearnumerocomando(Celularlimpio)}) escribió: "${Textoextra}"\nResponde SI para iniciar la atención.`), Celularlimpio, Estadoconv.codigoreserva, 'cliente->admin');
+      Guardarmapeomensajecanal(Enviarmensajewhatsapp(Credenciales.celularadmin, `[En espera] ${Estadoconv.nombre || 'Cliente'} (${Estadoconv.codigoreserva || Formatearnumerocomando(Celularlimpio)}) escribió: "${Textoextra}"\nResponde SI para iniciar la atención.`), Celularlimpio, Estadoconv.codigoreserva, 'cliente->admin');
     }
     Actualizarconversacion(Celularlimpio, Campos);
     Enviarmensajewhatsapp(Celularlimpio, 'Estamos buscando a un administrador disponible para atenderte, por favor permanece en línea en el chat.');
     return;
   }
   Actualizarconversacion(Celularlimpio, Campos);
-  const Etiqueta = `👤 ${Estadoconv.nombre || 'Cliente'} (${Estadoconv.codigoreserva || 'Canal'}):`;
+  const Etiqueta = `${Estadoconv.nombre || 'Cliente'} (${Estadoconv.codigoreserva || 'Canal'}):`;
   PropertiesService.getScriptProperties().setProperty('CANAL_ACTIVO_ADMIN', Celularlimpio);
   let Idreenviado = '';
   if (Mensaje.type === 'text' && Mensaje.text) { Idreenviado = Enviarmensajewhatsapp(Credenciales.celularadmin, `${Etiqueta} ${Mensaje.text.body}`); }
@@ -276,7 +268,7 @@ function Procesarmensajeadministrador(Mensaje) {
   if (Comando === 'canales') {
     const Todos = Obtenercanalesabiertos();
     if (!Todos.length) { return Enviarmensajewhatsapp(Credenciales.celularadmin, 'No hay canales abiertos ni pendientes en este momento.'); }
-    const Lista = Todos.map(function(C) { return `• ${C.codigo}: ${C.nombre} (${Formatearnumerocomando(C.celular)}) — ${C.modo === 'PendienteAdmin' ? '⏳ Pendiente (SI)' : '🟢 En chat'}`; }).join('\n');
+    const Lista = Todos.map(function(C) { return `- ${C.codigo}: ${C.nombre} (${Formatearnumerocomando(C.celular)}) · ${C.modo === 'PendienteAdmin' ? 'Pendiente (responder SI)' : 'En chat'}`; }).join('\n');
     return Enviarmensajewhatsapp(Credenciales.celularadmin, `Canales (${Todos.length}):\n${Lista}`);
   }
   const Matchabrir = Textocrudo.replace(/^-\s*/, '').match(/^abrir\s+canal\s+con\s+(.+)$/i);
@@ -297,7 +289,7 @@ function Procesarmensajeadministrador(Mensaje) {
     const Convp = Obtenerestadoconversacion(Celpendiente), Ahoracanal = Formatearfechahora(new Date());
     Actualizarconversacion(Celpendiente, { modo: 'Canal', aperturacanal: Ahoracanal, ultimomensajeadmin: Ahoracanal, avisodemoracanal: '' });
     PropertiesService.getScriptProperties().setProperty('CANAL_ACTIVO_ADMIN', Celpendiente);
-    Enviarmensajewhatsapp(Credenciales.celularadmin, `✅ Hablando con "${Convp.nombre || 'Cliente'}" (${Convp.codigoreserva || 'Canal'}). Todo lo que escribas le llegará directo.\nComandos de cierre:\n• reserva confirmada finalizar\n• reserva rechazada finalizar`);
+    Enviarmensajewhatsapp(Credenciales.celularadmin, `Hablando con "${Convp.nombre || 'Cliente'}" (${Convp.codigoreserva || 'Canal'}). Todo lo que escribas le llegará directo.\nComandos de cierre:\n- reserva confirmada finalizar\n- reserva rechazada finalizar`);
     Enviarmensajewhatsapp(Celpendiente, '¡Listo! Un administrador de Hospedaje Nissi ya se conectó y a partir de este momento te atiende directamente por este mismo chat.');
     return Registrarbitacora('Canal', 'AdminAceptoCanal', `Admin inició atención con ${Convp.codigoreserva}`);
   }
@@ -340,12 +332,12 @@ function Cerrarcanalyactualizarreserva(Celularcliente, Confirmar, Origen) {
   if (Confirmar && Indice > 0) {
     Hojareservas.getRange(Indice, 14).setValue(Fila[13] || 'Efectivo'); Hojareservas.getRange(Indice, 15).setValue('Confirmada');
     Hojareservas.getRange(Indice, 23).setValue('Confirmada por el administrador en canal'); Cambiarocupacionhabitacion(Hojahab, Hab, 'Ocupada');
-    const Horacheckout = Formatearhora12(Number(Leerconfiguracionhoja().HORACHECKOUT || 11));
+    const Horacheckout = Formatearhoradoce(Number(Leerconfiguracionhoja().HORACHECKOUT || 11));
     Notificarreservaconfirmada({
       codigo: Codigo, habitacion: Hab, canal: String(Fila[15] || 'WhatsApp'), nombre: Nombre, celular: Conv.celular, llegada: Llegada, salida: Salida,
       noches: Number(Fila[7] || 1), personas: Number(Fila[8] || 1), horallegada: Hora, horasalida: String(Fila[23] || Horacheckout), total: Total, pagado: Number(Fila[11] || 0),
       entidad: Fila[13] || 'Efectivo', referencia: 'Confirmada en canal privado', observaciones: String(Fila[22] || ''),
-      mensajecliente: `✅ El administrador ha confirmado tu reserva ${Codigo} en Hospedaje Nissi.\nHabitación ${Hab} · ${Llegada} al ${Salida} · Llegada ${Hora} · Check-out ${Horacheckout} · Total $${Total.toLocaleString('es-CO')} COP.`
+      mensajecliente: `El administrador ha confirmado tu reserva ${Codigo} en Hospedaje Nissi.\nHabitación ${Hab} · ${Llegada} al ${Salida} · Llegada ${Hora} · Check-out ${Horacheckout} · Total $${Total.toLocaleString('es-CO')} COP.`
     });
   } else if (Indice > 0) {
     Hojareservas.getRange(Indice, 15).setValue('Rechazada'); Hojareservas.getRange(Indice, 23).setValue(`Cerrada sin confirmar (${Origen || 'admin'})`);

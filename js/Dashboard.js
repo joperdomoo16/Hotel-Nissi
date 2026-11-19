@@ -1,12 +1,11 @@
-// Modulo de Dashboard, Filtros de Periodo y Metricas Gerenciales en Recepcion
+// Panel gerencial de recepción: filtros por período, indicadores y tabla de movimientos
 
 const Estadodashboard = {
   filtroactivo: 'diario',
   messeleccionado: '',
-  fechainicio: '',
-  fechafin: '',
   terminobusqueda: '',
-  reservasperiodo: []
+  reservasperiodo: [],
+  reservasreales: null
 };
 
 const Nombresmesescompletos = [
@@ -14,39 +13,27 @@ const Nombresmesescompletos = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
+function Crearnodo(Etiqueta, Clase, Texto) {
+  const Nodo = document.createElement(Etiqueta);
+  if (Clase) Nodo.className = Clase;
+  if (Texto !== undefined && Texto !== null) Nodo.textContent = String(Texto);
+  return Nodo;
+}
+
 function Cambiarvistapanel(Nuevavista) {
   const Seccionrack = document.getElementById('seccionRack');
   const Secciondash = document.getElementById('seccionDashboard');
   const Tabrack = document.getElementById('btnTabRack');
   const Tabdash = document.getElementById('btnTabDashboard');
+  const Esdash = Nuevavista === 'dashboard';
 
-  if (Nuevavista === 'dashboard') {
-    if (Seccionrack) Seccionrack.hidden = true;
-    if (Secciondash) Secciondash.hidden = false;
-    if (Tabrack) {
-      Tabrack.classList.remove('is-active');
-      Tabrack.setAttribute('aria-selected', 'false');
-    }
-    if (Tabdash) {
-      Tabdash.classList.add('is-active');
-      Tabdash.setAttribute('aria-selected', 'true');
-    }
-    Cargardashboard();
-  } else {
-    if (Secciondash) Secciondash.hidden = true;
-    if (Seccionrack) Seccionrack.hidden = false;
-    if (Tabdash) {
-      Tabdash.classList.remove('is-active');
-      Tabdash.setAttribute('aria-selected', 'false');
-    }
-    if (Tabrack) {
-      Tabrack.classList.add('is-active');
-      Tabrack.setAttribute('aria-selected', 'true');
-    }
-    if (typeof Cargarhabitaciones === 'function') {
-      Cargarhabitaciones();
-    }
-  }
+  if (Seccionrack) Seccionrack.hidden = Esdash;
+  if (Secciondash) Secciondash.hidden = !Esdash;
+  if (Tabrack) { Tabrack.classList.toggle('is-active', !Esdash); Tabrack.setAttribute('aria-selected', Esdash ? 'false' : 'true'); }
+  if (Tabdash) { Tabdash.classList.toggle('is-active', Esdash); Tabdash.setAttribute('aria-selected', Esdash ? 'true' : 'false'); }
+
+  if (Esdash) Cargardashboard();
+  else if (typeof Cargarhabitaciones === 'function') Cargarhabitaciones();
 }
 
 function Poblarselectormeses() {
@@ -54,92 +41,64 @@ function Poblarselectormeses() {
   if (!Selector) return;
 
   const Ahora = new Date();
-  const Anohoy = Ahora.getFullYear();
-  const Meshoy = Ahora.getMonth();
+  Selector.textContent = '';
 
-  let Opcioneshtml = '';
-  for (let I = 0; I < 12; I++) {
-    const Fechaevaluada = new Date(Anohoy, Meshoy - I, 1);
-    const Ano = Fechaevaluada.getFullYear();
-    const Mes = String(Fechaevaluada.getMonth() + 1).padStart(2, '0');
-    const Clave = `${Ano}-${Mes}`;
-    const Nombremes = Nombresmesescompletos[Fechaevaluada.getMonth()];
-    const Esactual = I === 0;
-
-    Opcioneshtml += `<option value="${Clave}">${Nombremes} ${Ano}${Esactual ? ' (Mes actual)' : ''}</option>`;
+  for (let Indice = 0; Indice < 12; Indice++) {
+    const Fecha = new Date(Ahora.getFullYear(), Ahora.getMonth() - Indice, 1);
+    const Anio = Fecha.getFullYear();
+    const Mes = String(Fecha.getMonth() + 1).padStart(2, '0');
+    const Opcion = Crearnodo('option', '', `${Nombresmesescompletos[Fecha.getMonth()]} ${Anio}${Indice === 0 ? ' (Mes actual)' : ''}`);
+    Opcion.value = `${Anio}-${Mes}`;
+    Selector.appendChild(Opcion);
   }
-
-  Selector.innerHTML = Opcioneshtml;
   Estadodashboard.messeleccionado = Selector.value;
 }
 
 function Cambiarfiltrodashboard(Nuevofiltro) {
   Estadodashboard.filtroactivo = Nuevofiltro;
-
   const Botones = {
     diario: document.getElementById('btnFiltroDiario'),
     semanal: document.getElementById('btnFiltroSemanal'),
     mensual: document.getElementById('btnFiltroMensual'),
     personalizado: document.getElementById('btnFiltroPersonalizado')
   };
-
   Object.keys(Botones).forEach(function(Clave) {
-    if (Botones[Clave]) {
-      Botones[Clave].classList.toggle('is-active', Clave === Nuevofiltro);
-    }
+    if (Botones[Clave]) Botones[Clave].classList.toggle('is-active', Clave === Nuevofiltro);
   });
 
   const Selectormes = document.getElementById('dashSelectMes');
-  if (Selectormes) {
-    Selectormes.hidden = Nuevofiltro !== 'mensual';
-  }
-
+  if (Selectormes) Selectormes.hidden = Nuevofiltro !== 'mensual';
   const Cajapersonalizada = document.getElementById('dashCustomRange');
-  if (Cajapersonalizada) {
-    Cajapersonalizada.hidden = Nuevofiltro !== 'personalizado';
-  }
-
+  if (Cajapersonalizada) Cajapersonalizada.hidden = Nuevofiltro !== 'personalizado';
   Cargardashboard();
 }
 
 function Obtenerrangofechasfiltro() {
   const Ahora = new Date();
-  const Formateariso = function(D) {
-    return D.toISOString().split('T')[0];
-  };
-
   let Fechainicio = '';
   let Fechafin = '';
   let Descripciontexto = '';
 
   if (Estadodashboard.filtroactivo === 'diario') {
-    Fechainicio = Formateariso(Ahora);
-    Fechafin = Formateariso(Ahora);
-    const Diames = Ahora.getDate();
-    const Mesnombre = Nombresmesescompletos[Ahora.getMonth()];
-    Descripciontexto = `Período: Hoy (${Diames} de ${Mesnombre} de ${Ahora.getFullYear()})`;
+    Fechainicio = Formatearfechalocal(Ahora);
+    Fechafin = Fechainicio;
+    Descripciontexto = `Período: Hoy (${Ahora.getDate()} de ${Nombresmesescompletos[Ahora.getMonth()]} de ${Ahora.getFullYear()})`;
   } else if (Estadodashboard.filtroactivo === 'semanal') {
-    const Hacesietedias = new Date(Ahora.getTime() - 6 * 86400000);
-    Fechainicio = Formateariso(Hacesietedias);
-    Fechafin = Formateariso(Ahora);
+    Fechainicio = Formatearfechalocal(new Date(Ahora.getTime() - 6 * 86400000));
+    Fechafin = Formatearfechalocal(Ahora);
     Descripciontexto = `Período: Esta semana (${Fechainicio} al ${Fechafin})`;
   } else if (Estadodashboard.filtroactivo === 'mensual') {
-    const Clavemes = Estadodashboard.messeleccionado || Formateariso(Ahora).slice(0, 7);
-    const Partes = Clavemes.split('-');
+    const Partes = (Estadodashboard.messeleccionado || Formatearfechalocal(Ahora).slice(0, 7)).split('-');
     const Anoelegido = parseInt(Partes[0], 10);
     const Meselegido = parseInt(Partes[1], 10) - 1;
-
-    const Primerdia = new Date(Anoelegido, Meselegido, 1);
-    const Ultimodia = new Date(Anoelegido, Meselegido + 1, 0);
-
-    Fechainicio = Formateariso(Primerdia);
-    Fechafin = Formateariso(Ultimodia);
+    Fechainicio = Formatearfechalocal(new Date(Anoelegido, Meselegido, 1));
+    Fechafin = Formatearfechalocal(new Date(Anoelegido, Meselegido + 1, 0));
     Descripciontexto = `Período: ${Nombresmesescompletos[Meselegido]} de ${Anoelegido}`;
-  } else if (Estadodashboard.filtroactivo === 'personalizado') {
+  } else {
     const Inputinicio = document.getElementById('dashFechaInicio');
     const Inputfin = document.getElementById('dashFechaFin');
-    Fechainicio = Inputinicio && Inputinicio.value ? Inputinicio.value : Formateariso(Ahora);
-    Fechafin = Inputfin && Inputfin.value ? Inputfin.value : Formateariso(Ahora);
+    Fechainicio = Inputinicio && Inputinicio.value ? Inputinicio.value : Formatearfechalocal(Ahora);
+    Fechafin = Inputfin && Inputfin.value ? Inputfin.value : Formatearfechalocal(Ahora);
     if (Fechafin < Fechainicio) {
       Fechafin = Fechainicio;
       if (Inputfin) Inputfin.value = Fechafin;
@@ -150,45 +109,116 @@ function Obtenerrangofechasfiltro() {
   return { inicio: Fechainicio, fin: Fechafin, texto: Descripciontexto };
 }
 
+function Mostrarfilamensajetabla(Titulo, Detalle) {
+  const Tablabody = document.getElementById('dashTableBody');
+  if (!Tablabody) return;
+  Tablabody.textContent = '';
+
+  const Fila = Crearnodo('tr');
+  const Celda = Crearnodo('td');
+  Celda.colSpan = 11;
+  const Caja = Crearnodo('div', 'dash-empty-state');
+  Caja.appendChild(Crearnodo('b', '', Titulo));
+  if (Detalle) {
+    const Parrafo = Crearnodo('p', '', Detalle);
+    Parrafo.style.margin = '4px 0 0';
+    Parrafo.style.fontSize = '12px';
+    Caja.appendChild(Parrafo);
+  }
+  Celda.appendChild(Caja);
+  Fila.appendChild(Celda);
+  Tablabody.appendChild(Fila);
+}
+
 function Cargardashboard() {
+  if (!Estadorecepcion.tokensession) return;
   const Rango = Obtenerrangofechasfiltro();
   const Badgetexto = document.getElementById('dashRangoTexto');
-  if (Badgetexto) { Badgetexto.textContent = Rango.texto; }
+  if (Badgetexto) Badgetexto.textContent = Rango.texto;
 
-  const Tablabody = document.getElementById('dashTableBody');
-  if (Tablabody && !Estadodashboard.reservasreales) {
-    Tablabody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--sand);">Sincronizando reservas reales desde Google Sheets...</td></tr>';
+  if (!Estadodashboard.reservasreales) {
+    Mostrarfilamensajetabla('Sincronizando reservas desde Google Sheets...', '');
   }
 
-  if (typeof Obtenerreservasservidor === 'function') {
-    Obtenerreservasservidor()
-      .then(function(Respuesta) {
-        if (Respuesta && Array.isArray(Respuesta.reservas)) {
-          Estadodashboard.reservasreales = Respuesta.reservas;
-          Procesarydibujardashboard(Respuesta.reservas, Rango);
-        } else {
-          const Local = typeof Obtenerhistorialreservas === 'function' ? Obtenerhistorialreservas() : [];
-          Procesarydibujardashboard(Local, Rango);
-        }
-      })
-      .catch(function() {
-        const Local = typeof Obtenerhistorialreservas === 'function' ? Obtenerhistorialreservas() : [];
-        Procesarydibujardashboard(Local, Rango);
-      });
-  } else {
-    const Local = typeof Obtenerhistorialreservas === 'function' ? Obtenerhistorialreservas() : [];
-    Procesarydibujardashboard(Local, Rango);
-  }
+  Obtenerreservasservidor(Estadorecepcion.tokensession)
+    .then(function(Respuesta) {
+      if (Respuesta && Respuesta.noautorizado) {
+        if (typeof Manejarsesionexpirada === 'function') Manejarsesionexpirada();
+        return;
+      }
+      if (Respuesta && Array.isArray(Respuesta.reservas)) {
+        Estadodashboard.reservasreales = Respuesta.reservas;
+        Procesarydibujardashboard(Respuesta.reservas, Rango);
+      } else {
+        Procesarydibujardashboard(Estadodashboard.reservasreales || [], Rango);
+      }
+    })
+    .catch(function() {
+      Procesarydibujardashboard(Estadodashboard.reservasreales || [], Rango);
+    });
+}
+
+function Dibujarbarrasmedios(Contenedormedios, Desglosemedios, Totalingresos) {
+  Contenedormedios.textContent = '';
+  const Coloresmedios = { Efectivo: '#55E482', Nequi: '#D6B889' };
+
+  ['Efectivo', 'Nequi'].forEach(function(Medio) {
+    const Montomedio = Desglosemedios[Medio] || 0;
+    const Porcmedio = Totalingresos > 0 ? Math.round((Montomedio / Totalingresos) * 100) : 0;
+
+    const Item = Crearnodo('div', 'dash-payment-item');
+    const Fila = Crearnodo('div', 'dash-payment-row');
+    const Resumen = Crearnodo('span', '', `$${Montomedio.toLocaleString('es-CO')} COP · `);
+    Resumen.appendChild(Crearnodo('b', '', `${Porcmedio}%`));
+    Fila.appendChild(Crearnodo('b', '', Medio));
+    Fila.appendChild(Resumen);
+
+    const Fondo = Crearnodo('div', 'dash-bar-bg');
+    const Relleno = Crearnodo('div', 'dash-bar-fill');
+    Relleno.style.width = `${Porcmedio}%`;
+    Relleno.style.background = Coloresmedios[Medio];
+    Fondo.appendChild(Relleno);
+
+    Item.appendChild(Fila);
+    Item.appendChild(Fondo);
+    Contenedormedios.appendChild(Item);
+  });
+}
+
+function Dibujarrendimientohabitaciones(Contenedorhabs, Desglosehabitaciones) {
+  Contenedorhabs.textContent = '';
+
+  Object.keys(Desglosehabitaciones).forEach(function(Num) {
+    const Datos = Desglosehabitaciones[Num];
+    const Fila = Crearnodo('div', 'dash-room-item');
+    const Info = Crearnodo('div', 'dash-room-info');
+    const Detalle = Crearnodo('div');
+    const Titulo = Crearnodo('b', '', `Habitación ${Num}`);
+    Titulo.style.cssText = 'display:block;font-size:13px;color:var(--cream);';
+    const Tipo = Crearnodo('small', '', Datos.tipo);
+    Tipo.style.cssText = 'color:var(--sand);font-size:11px;';
+    Detalle.appendChild(Titulo);
+    Detalle.appendChild(Tipo);
+    Info.appendChild(Crearnodo('span', 'dash-room-num', Num));
+    Info.appendChild(Detalle);
+
+    const Stats = Crearnodo('div', 'dash-room-stats');
+    Stats.appendChild(Crearnodo('b', '', `$${Datos.ingresos.toLocaleString('es-CO')} COP`));
+    Stats.appendChild(Crearnodo('small', '', `${Datos.noches} noche${Datos.noches === 1 ? '' : 's'}`));
+
+    Fila.appendChild(Info);
+    Fila.appendChild(Stats);
+    Contenedorhabs.appendChild(Fila);
+  });
 }
 
 function Procesarydibujardashboard(Todaslasreservas, Rango) {
   const Reservasfiltradas = Todaslasreservas.filter(function(Reserva) {
     const Fechareg = String(Reserva.fecharegistro || Reserva.llegada || '').slice(0, 10);
     const Fechallegada = String(Reserva.llegada || '').slice(0, 10);
-    const Est = String(Reserva.estado || '');
-    if (Est === 'Vencida' || Est === 'Rechazada' || Est === 'Cancelada') { return false; }
-    return (Fechareg >= Rango.inicio && Fechareg <= Rango.fin) ||
-           (Fechallegada >= Rango.inicio && Fechallegada <= Rango.fin);
+    const Estado = String(Reserva.estado || '');
+    if (Estado === 'Vencida' || Estado === 'Rechazada' || Estado === 'Cancelada') return false;
+    return (Fechareg >= Rango.inicio && Fechareg <= Rango.fin) || (Fechallegada >= Rango.inicio && Fechallegada <= Rango.fin);
   });
 
   Estadodashboard.reservasperiodo = Reservasfiltradas;
@@ -208,9 +238,8 @@ function Procesarydibujardashboard(Todaslasreservas, Rango) {
   };
 
   Reservasfiltradas.forEach(function(Res) {
-    const Est = String(Res.estado || '');
-    const Valida = Est === 'Confirmada' || Est === 'Finalizada';
-    if (!Valida) { return; }
+    const Estado = String(Res.estado || '');
+    if (Estado !== 'Confirmada' && Estado !== 'Finalizada') return;
 
     Totalcheckins++;
     const Monto = Number(Res.montopagado || Res.montototal || 0);
@@ -243,43 +272,36 @@ function Procesarydibujardashboard(Todaslasreservas, Rango) {
   const Diasrango = Math.max(1, Math.round((new Date(Rango.fin) - new Date(Rango.inicio)) / 86400000) + 1);
   const Porcentajeocupacion = Math.min(100, Math.round((Totalnoches / (Diasrango * 5)) * 1000) / 10);
 
-  const ElIngresos = document.getElementById('kpiIngresos');
-  const ElOcupacion = document.getElementById('kpiOcupacion');
-  const ElNoches = document.getElementById('kpiNoches');
-  const ElHuespedes = document.getElementById('kpiHuespedes');
-  const ElCheckins = document.getElementById('kpiCheckins');
-  const ElTotalmedios = document.getElementById('dashTotalMedios');
-
-  if (ElIngresos) ElIngresos.textContent = `$${Totalingresos.toLocaleString('es-CO')} COP`;
-  if (ElOcupacion) ElOcupacion.textContent = `${Porcentajeocupacion}%`;
-  if (ElNoches) ElNoches.textContent = `${Totalnoches} noche${Totalnoches === 1 ? '' : 's'}`;
-  if (ElHuespedes) ElHuespedes.textContent = `${Totalhuespedes} persona${Totalhuespedes === 1 ? '' : 's'}`;
-  if (ElCheckins) ElCheckins.textContent = `${Totalcheckins}`;
-  if (ElTotalmedios) ElTotalmedios.textContent = `$${Totalingresos.toLocaleString('es-CO')} COP`;
+  const Valoreskpi = {
+    kpiIngresos: `$${Totalingresos.toLocaleString('es-CO')} COP`,
+    kpiOcupacion: `${Porcentajeocupacion}%`,
+    kpiNoches: `${Totalnoches} noche${Totalnoches === 1 ? '' : 's'}`,
+    kpiHuespedes: `${Totalhuespedes} persona${Totalhuespedes === 1 ? '' : 's'}`,
+    kpiCheckins: String(Totalcheckins),
+    dashTotalMedios: `$${Totalingresos.toLocaleString('es-CO')} COP`
+  };
+  Object.keys(Valoreskpi).forEach(function(Id) {
+    const Elemento = document.getElementById(Id);
+    if (Elemento) Elemento.textContent = Valoreskpi[Id];
+  });
 
   const Contenedormedios = document.getElementById('dashPaymentsList');
-  if (Contenedormedios) {
-    const Coloresmedios = { Efectivo: '#55E482', Nequi: '#E040FB' };
-    Contenedormedios.innerHTML = ['Efectivo', 'Nequi'].map(function(Medio) {
-      const Montomedio = Desglosemedios[Medio] || 0;
-      const Porcmedio = Totalingresos > 0 ? Math.round((Montomedio / Totalingresos) * 100) : 0;
-      return `<div class="dash-payment-item"><div class="dash-payment-row"><b>${Medio}</b><span>$${Montomedio.toLocaleString('es-CO')} COP · <b>${Porcmedio}%</b></span></div><div class="dash-bar-bg"><div class="dash-bar-fill" style="width:${Porcmedio}%;background:${Coloresmedios[Medio]};"></div></div></div>`;
-    }).join('');
-  }
-
+  if (Contenedormedios) Dibujarbarrasmedios(Contenedormedios, Desglosemedios, Totalingresos);
   const Contenedorhabs = document.getElementById('dashRoomsList');
-  if (Contenedorhabs) {
-    Contenedorhabs.innerHTML = Object.keys(Desglosehabitaciones).map(function(Num) {
-      const Item = Desglosehabitaciones[Num];
-      return `<div class="dash-room-item"><div class="dash-room-info"><span class="dash-room-num">${Num}</span><div><b style="display:block;font-size:13px;color:var(--cream);">Habitación ${Num}</b><small style="color:var(--sand);font-size:11px;">${Item.tipo}</small></div></div><div class="dash-room-stats"><b>$${Item.ingresos.toLocaleString('es-CO')} COP</b><small>${Item.noches} noche${Item.noches === 1 ? '' : 's'}</small></div></div>`;
-    }).join('');
-  }
-
+  if (Contenedorhabs) Dibujarrendimientohabitaciones(Contenedorhabs, Desglosehabitaciones);
   Renderizartablamovimientos();
 }
 
-function Escaparcampo(Valor) {
-  return typeof Escaparhtml === 'function' ? Escaparhtml(Valor) : Valor;
+function Crearceldatablacontenido(Etiqueta, Texto, Estilocolor, Clase) {
+  const Celda = Crearnodo('td');
+  if (!Etiqueta) {
+    Celda.textContent = String(Texto);
+    return Celda;
+  }
+  const Nodo = Crearnodo(Etiqueta, Clase, Texto);
+  if (Estilocolor) Nodo.style.color = Estilocolor;
+  Celda.appendChild(Nodo);
+  return Celda;
 }
 
 function Renderizartablamovimientos() {
@@ -290,52 +312,56 @@ function Renderizartablamovimientos() {
   const Termino = (Estadodashboard.terminobusqueda || '').toLowerCase().trim();
   const Reservasmostradas = Estadodashboard.reservasperiodo.filter(function(Res) {
     if (!Termino) return true;
-    return [Res.nombre, Res.cedula, Res.codigo, Res.habitacion].some(function(V) {
-      return String(V || '').toLowerCase().indexOf(Termino) !== -1;
+    return [Res.nombre, Res.cedula, Res.codigo, Res.habitacion].some(function(Valor) {
+      return String(Valor || '').toLowerCase().indexOf(Termino) !== -1;
     });
   });
 
   if (Totalindicador) Totalindicador.textContent = Reservasmostradas.length;
 
   if (Reservasmostradas.length === 0) {
-    Tablabody.innerHTML = `<tr><td colspan="11"><div class="dash-empty-state"><b>No se encontraron reservas reales en este período</b><p style="margin:4px 0 0;font-size:12px;">Prueba seleccionando otro rango de fechas o limpiando el filtro de búsqueda.</p></div></td></tr>`;
+    Mostrarfilamensajetabla(
+      'No se encontraron reservas en este período',
+      'Prueba seleccionando otro rango de fechas o limpiando el filtro de búsqueda.'
+    );
     return;
   }
 
-  Tablabody.innerHTML = Reservasmostradas.map(function(Res) {
+  Tablabody.textContent = '';
+  Reservasmostradas.forEach(function(Res) {
     const Monto = Number(Res.montopagado || Res.montototal || 0);
-    const Estado = Res.estado || 'Confirmada';
-    const Clasebadge = Estado === 'Confirmada' ? 'dash-badge--confirmada' : 'dash-badge--pendiente';
-    const Hab = Escaparcampo(String(Res.habitacion).padStart(2, '0'));
-    const Mediopago = Escaparcampo(Res.entidadpago || Res.referenciapago || 'Efectivo');
-    return `<tr>
-      <td><b>${Escaparcampo(Res.codigo || '—')}</b></td>
-      <td><small style="color:var(--sand);">${Escaparcampo(Res.fecharegistro || Res.llegada || '—')}</small></td>
-      <td><b>${Escaparcampo(Res.nombre || 'Viajero')}</b></td>
-      <td><code>${Res.cedula ? Escaparcampo(Res.cedula) : '—'}</code></td>
-      <td><span style="color:var(--sand);">Hab. ${Hab}</span></td>
-      <td><small>${Escaparcampo(Res.llegada || '')} → ${Escaparcampo(Res.salida || '')}</small></td>
-      <td>${Res.noches || 1}</td>
-      <td>${Res.huespedes || 2}</td>
-      <td><small>${Mediopago}</small></td>
-      <td><b style="color:var(--cream);">$${Monto.toLocaleString('es-CO')}</b></td>
-      <td><span class="dash-badge ${Clasebadge}">${Escaparcampo(Estado)}</span></td>
-    </tr>`;
-  }).join('');
+    const Estado = String(Res.estado || 'Confirmada');
+    const Clasebadge = Estado === 'Confirmada' ? 'dash-badge dash-badge--confirmada' : 'dash-badge dash-badge--pendiente';
+    const Hab = String(Res.habitacion || '').padStart(2, '0');
+    const Mediopago = String(Res.entidadpago || Res.referenciapago || 'Efectivo');
+
+    const Fila = Crearnodo('tr');
+    Fila.appendChild(Crearceldatablacontenido('b', Res.codigo || '—', '', ''));
+    Fila.appendChild(Crearceldatablacontenido('small', Res.fecharegistro || Res.llegada || '—', 'var(--sand)', ''));
+    Fila.appendChild(Crearceldatablacontenido('b', Res.nombre || 'Viajero', '', ''));
+    Fila.appendChild(Crearceldatablacontenido('code', Res.cedula || '—', '', ''));
+    Fila.appendChild(Crearceldatablacontenido('span', `Hab. ${Hab}`, 'var(--sand)', ''));
+    Fila.appendChild(Crearceldatablacontenido('small', `${Res.llegada || ''} → ${Res.salida || ''}`, '', ''));
+    Fila.appendChild(Crearceldatablacontenido('', Res.noches || 1, '', ''));
+    Fila.appendChild(Crearceldatablacontenido('', Res.huespedes || 2, '', ''));
+    Fila.appendChild(Crearceldatablacontenido('small', Mediopago, '', ''));
+    Fila.appendChild(Crearceldatablacontenido('b', `$${Monto.toLocaleString('es-CO')}`, 'var(--cream)', ''));
+    Fila.appendChild(Crearceldatablacontenido('span', Estado, '', Clasebadge));
+    Tablabody.appendChild(Fila);
+  });
 }
 
-// Inicializacion de eventos para el panel de metricas gerenciales
 document.addEventListener('DOMContentLoaded', function() {
   Poblarselectormeses();
-  const Hoycadena = new Date().toISOString().split('T')[0];
+  const Hoycadena = Formatearfechalocal(new Date());
   ['dashFechaInicio', 'dashFechaFin'].forEach(function(Id) {
-    const El = document.getElementById(Id);
-    if (El) El.value = Hoycadena;
+    const Campo = document.getElementById(Id);
+    if (Campo) Campo.value = Hoycadena;
   });
 
-  const Asignarclic = function(Id, Fn) {
-    const El = document.getElementById(Id);
-    if (El) El.addEventListener('click', Fn);
+  const Asignarclic = function(Id, Accion) {
+    const Elemento = document.getElementById(Id);
+    if (Elemento) Elemento.addEventListener('click', Accion);
   };
   Asignarclic('btnTabRack', function() { Cambiarvistapanel('rack'); });
   Asignarclic('btnTabDashboard', function() { Cambiarvistapanel('dashboard'); });
@@ -354,10 +380,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   const Inputbusqueda = document.getElementById('dashSearchInput');
   if (Inputbusqueda) {
-    Inputbusqueda.addEventListener('input', function(E) {
-      Estadodashboard.terminobusqueda = E.target.value;
+    Inputbusqueda.addEventListener('input', function(Evento) {
+      Estadodashboard.terminobusqueda = Evento.target.value;
       Renderizartablamovimientos();
     });
   }
 });
-

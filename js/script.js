@@ -1,7 +1,6 @@
-// Coordinador general de la aplicacion, eventos de reservas y conexion de modulos
+// Coordinación general de la portada, disponibilidad en vivo y flujo de reserva
 
 document.addEventListener('DOMContentLoaded', function() {
-  // Llegada desde la pagina de nueva contraseña: se abre directo el inicio de sesion
   const Abririniciosesion = new URLSearchParams(window.location.search).get('ingresar') === '1';
   if (Abririniciosesion) {
     Configuracionhotel.mostrarcortina = false;
@@ -10,67 +9,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Construccion modular de componentes de interfaz
-  if (typeof Construirmodalreservas === 'function') {
-    Construirmodalreservas();
-  }
-  if (typeof Renderizarcatalogohabitaciones === 'function') {
-    Renderizarcatalogohabitaciones();
-  }
-  if (typeof Renderizardescanso === 'function') {
-    Renderizardescanso();
-  }
-  if (typeof Renderizarpiedepagina === 'function') {
-    Renderizarpiedepagina();
-  }
+  if (typeof Construirmodalreservas === 'function') Construirmodalreservas();
+  if (typeof Renderizarcatalogohabitaciones === 'function') Renderizarcatalogohabitaciones();
+  if (typeof Renderizardescanso === 'function') Renderizardescanso();
+  if (typeof Renderizarpiedepagina === 'function') Renderizarpiedepagina();
+  if (typeof Inicializarsesionusuario === 'function') Inicializarsesionusuario();
 
-  // Carga de sesion previa si existe en almacenamiento local
-  const Sesionguardada = Obtenerdatossesion();
-  if (Sesionguardada) {
-    Estadoaplicacion.usuariologueado = Sesionguardada;
-    Estadoaplicacion.nombreviajero = Sesionguardada;
-  }
-
-  // Observador del estado de autenticacion de Firebase
-  if (typeof Observadorestadoautenticacion === 'function') {
-    Observadorestadoautenticacion(function(Usuario) {
-      if (Usuario) {
-        const Nombreidentificado = Usuario.displayName || (Usuario.email ? Usuario.email.split('@')[0] : 'viajero');
-        Estadoaplicacion.usuariologueado = Nombreidentificado;
-        if (!Estadoaplicacion.nombreviajero) {
-          Estadoaplicacion.nombreviajero = Usuario.displayName || Nombreidentificado;
-        }
-        if (Usuario.email) {
-          Estadoaplicacion.correoviajero = Usuario.email;
-        }
-        Guardardatossesion(Nombreidentificado);
-      } else {
-        Estadoaplicacion.usuariologueado = '';
-        Estadoaplicacion.nombreviajero = '';
-        Estadoaplicacion.correoviajero = '';
-        if (typeof Limpiardatossesion === 'function') {
-          Limpiardatossesion();
-        }
-      }
-      Refrescarpantalla();
-    });
-    if (typeof Verificarresultadoredireccion === 'function') {
-      Verificarresultadoredireccion(Mostrarmensajeerror);
-    }
-  }
-
-  // Establecer fecha minima de llegada para el dia de hoy
-  const Hoyfecha = new Date();
-  const Anoformato = Hoyfecha.getFullYear();
-  const Mesformato = String(Hoyfecha.getMonth() + 1).padStart(2, '0');
-  const Diaformato = String(Hoyfecha.getDate()).padStart(2, '0');
-  const Cadenahoy = `${Anoformato}-${Mesformato}-${Diaformato}`;
-
+  const Cadenahoy = Formatearfechalocal(new Date());
   document.querySelectorAll('input[type="date"]').forEach(function(Campofecha) {
     Campofecha.min = Cadenahoy;
   });
 
-  // Consulta de disponibilidad en tiempo real con Google Sheets
   function Sincronizardisponibilidadfechas() {
     if (!Estadoaplicacion.fechallegada || !Estadoaplicacion.fechasalida) {
       return;
@@ -92,7 +41,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Manejo de eventos de entrada y vinculacion segura de campos permitidos
   const Campospermitidos = ['fechallegada', 'fechasalida', 'nombreviajero', 'cedulaviajero', 'celularviajero', 'horallegada', 'correoviajero', 'claveviajero'];
   document.addEventListener('input', function(Eventoentrada) {
     const Campovinculado = Eventoentrada.target.dataset && Eventoentrada.target.dataset.bind;
@@ -111,12 +59,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Delegacion de clics para controles de huespedes, seleccion de habitacion y pasos
   document.addEventListener('click', function(Eventoclic) {
     const Botonhuespedes = Eventoclic.target.closest('[data-guests]');
     if (Botonhuespedes) {
       const Ajustecantidad = parseInt(Botonhuespedes.dataset.guests, 10);
-      Estadoaplicacion.cantidadhuespedes = Math.max(1, Math.min(4, Estadoaplicacion.cantidadhuespedes + Ajustecantidad));
+      Estadoaplicacion.cantidadhuespedes = Math.max(1, Math.min(3, Estadoaplicacion.cantidadhuespedes + Ajustecantidad));
       Refrescarpantalla();
       Sincronizardisponibilidadfechas();
     }
@@ -142,7 +89,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Apertura y cierre de ventana modal de reservas
   document.querySelectorAll('.js-book').forEach(function(Botonreservar) {
     Botonreservar.addEventListener('click', function(Evento) {
       Abrirventanamodal(Evento);
@@ -181,188 +127,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Control de apertura y cierre del menu desplegable de usuario
-  const Botonmenuusuario = document.getElementById('btnNavUser');
-  const Dropdownusuario = document.getElementById('navUserDropdown');
-  if (Botonmenuusuario && Dropdownusuario) {
-    Botonmenuusuario.addEventListener('click', function(Evento) {
-      Evento.stopPropagation();
-      const Estaoculto = Dropdownusuario.hidden;
-      Dropdownusuario.hidden = !Estaoculto;
-      Botonmenuusuario.setAttribute('aria-expanded', Estaoculto ? 'true' : 'false');
-    });
-
-    document.addEventListener('click', function(Evento) {
-      if (!Evento.target.closest('#navUserMenu')) {
-        Dropdownusuario.hidden = true;
-        Botonmenuusuario.setAttribute('aria-expanded', 'false');
-      }
-    });
-  }
-
-  // Cierre de sesion en todos los componentes (.js-logout)
-  document.addEventListener('click', function(Evento) {
-    const Botoncerrarsesion = Evento.target.closest('.js-logout');
-    if (!Botoncerrarsesion) {
-      return;
-    }
-    Evento.preventDefault();
-    if (Dropdownusuario) {
-      Dropdownusuario.hidden = true;
-      if (Botonmenuusuario) Botonmenuusuario.setAttribute('aria-expanded', 'false');
-    }
-    const Accioncierre = typeof Cerrarsesionusuario === 'function'
-      ? Cerrarsesionusuario()
-      : Promise.resolve();
-
-    Accioncierre
-      .then(function() {
-        Estadoaplicacion.usuariologueado = '';
-        Estadoaplicacion.nombreviajero = '';
-        Estadoaplicacion.correoviajero = '';
-        Estadoaplicacion.claveviajero = '';
-        if (typeof Limpiardatossesion === 'function') {
-          Limpiardatossesion();
-        }
-        Refrescarpantalla();
-        if (Estadoaplicacion.pasomodal === 'login') {
-          Cambiarpasomodal('choose');
-        }
-      })
-      .catch(function() {
-        Estadoaplicacion.usuariologueado = '';
-        Estadoaplicacion.nombreviajero = '';
-        Estadoaplicacion.correoviajero = '';
-        if (typeof Limpiardatossesion === 'function') {
-          Limpiardatossesion();
-        }
-        Refrescarpantalla();
-      });
-  });
-
-  // Conmutador y envio de formulario de inicio de sesion o registro
-  const Botonconmutar = document.getElementById('toggleReg');
-  if (Botonconmutar) {
-    Botonconmutar.addEventListener('click', function() {
-      Estadoaplicacion.creandocuenta = !Estadoaplicacion.creandocuenta;
-      Mostrarmensajeerror('');
-      Refrescarpantalla();
-    });
-  }
-
-  const Formulariologin = document.getElementById('loginForm');
-  if (Formulariologin) {
-    Formulariologin.addEventListener('submit', function(Eventologin) {
-      Eventologin.preventDefault();
-      const Correolimpio = (Estadoaplicacion.correoviajero || '').trim();
-      const Clavelimpia = Estadoaplicacion.claveviajero || '';
-
-      if (Estadoaplicacion.creandocuenta && !(Estadoaplicacion.nombreviajero || '').trim()) {
-        return Mostrarmensajeerror('Escribe tu nombre completo.');
-      }
-      if (!Validarcorreoelectronico(Correolimpio)) {
-        return Mostrarmensajeerror('Revisa tu correo.');
-      }
-      if (Clavelimpia.length < 6) {
-        return Mostrarmensajeerror('La contraseña debe tener al menos 6 caracteres.');
-      }
-
-      const Botonenvio = Formulariologin.querySelector('button[type="submit"]');
-      const Textobotonoriginal = Botonenvio ? Botonenvio.innerHTML : '';
-      if (Botonenvio) {
-        Botonenvio.disabled = true;
-        Botonenvio.textContent = 'Verificando...';
-      }
-
-      const Promesaautenticacion = Estadoaplicacion.creandocuenta
-        ? Registrarnuevousuario(Estadoaplicacion.nombreviajero.trim(), Correolimpio, Clavelimpia)
-        : Iniciarsesionusuario(Correolimpio, Clavelimpia);
-
-      Promesaautenticacion
-        .then(function(Respuesta) {
-          const Usuariodatos = Respuesta.user || Respuesta;
-          const Nombreasignado = Usuariodatos.displayName || Usuariodatos.email.split('@')[0];
-          Estadoaplicacion.usuariologueado = Nombreasignado;
-          Estadoaplicacion.nombreviajero = Nombreasignado;
-          Estadoaplicacion.correoviajero = Usuariodatos.email;
-          Guardardatossesion(Nombreasignado);
-          Mostrarmensajeerror('');
-          Cambiarpasomodal('dates');
-        })
-        .catch(function(Errorautenticacion) {
-          const Codigoerror = Errorautenticacion.code || '';
-          Mostrarmensajeerror(Traducirerrorfirebase(Codigoerror));
-        })
-        .finally(function() {
-          if (Botonenvio) {
-            Botonenvio.disabled = false;
-            Botonenvio.innerHTML = Textobotonoriginal;
-          }
-        });
-    });
-  }
-
-  // Recuperacion de contraseña con el correo escrito en el formulario
-  const Botonolvideclave = document.getElementById('forgotPass');
-  if (Botonolvideclave) {
-    Botonolvideclave.addEventListener('click', function() {
-      const Correolimpio = (Estadoaplicacion.correoviajero || '').trim();
-      if (!Validarcorreoelectronico(Correolimpio)) {
-        return Mostrarmensajeerror('Escribe tu correo arriba y vuelve a tocar «¿Olvidaste tu contraseña?».');
-      }
-
-      const Textooriginal = Botonolvideclave.textContent;
-      Botonolvideclave.disabled = true;
-      Botonolvideclave.textContent = 'Enviando enlace...';
-
-      Solicitarrecuperacionclave(Correolimpio)
-        .then(function() {
-          Mostrarmensajeerror('');
-          Mostrarmensajeexito(`Si ${Correolimpio} tiene una cuenta, te llegará un enlace para crear una nueva contraseña. Revisa también la carpeta de spam.`);
-        })
-        .catch(function(Errorrecuperacion) {
-          Mostrarmensajeerror(Traducirerrorfirebase((Errorrecuperacion && Errorrecuperacion.code) || ''));
-        })
-        .finally(function() {
-          Botonolvideclave.disabled = false;
-          Botonolvideclave.textContent = Textooriginal;
-        });
-    });
-  }
-
-  // Autenticacion y registro con cuenta de Google
-  const Botongoogle = document.getElementById('btnGoogleAuth');
-  if (Botongoogle) {
-    Botongoogle.addEventListener('click', function() {
-      Mostrarmensajeerror('');
-      const Contenidobotonoriginal = Botongoogle.innerHTML;
-      Botongoogle.disabled = true;
-      Botongoogle.textContent = 'Conectando con Google...';
-
-      Autenticarcongoogle()
-        .then(function(Respuesta) {
-          if (!Respuesta) { return; }
-          const Usuariodatos = Respuesta.user || Respuesta;
-          if (!Usuariodatos || (!Usuariodatos.displayName && !Usuariodatos.email)) { return; }
-          const Nombreasignado = Usuariodatos.displayName || Usuariodatos.email.split('@')[0];
-          Estadoaplicacion.usuariologueado = Nombreasignado;
-          Estadoaplicacion.nombreviajero = Nombreasignado;
-          if (Usuariodatos.email) { Estadoaplicacion.correoviajero = Usuariodatos.email; }
-          Guardardatossesion(Nombreasignado);
-          Mostrarmensajeerror('');
-          Cambiarpasomodal('dates');
-        })
-        .catch(function(Errorautenticacion) {
-          Mostrarmensajeerror(Traducirerrorfirebase((Errorautenticacion && Errorautenticacion.code) || ''));
-        })
-        .finally(function() {
-          Botongoogle.disabled = false;
-          Botongoogle.innerHTML = Contenidobotonoriginal;
-        });
-    });
-  }
-
-  // Validacion de fechas antes de pasar al formulario de datos personales
   const Botoniradetalles = document.getElementById('toDetails');
   if (Botoniradetalles) {
     Botoniradetalles.addEventListener('click', function() {
@@ -371,18 +135,22 @@ document.addEventListener('DOMContentLoaded', function() {
         return Mostrarmensajeerror('Elige llegada y salida.');
       }
       const Habitacionactual = Habitacioneshotel[Estadoaplicacion.habitacionseleccionada];
-      if (Estadoaplicacion.mapaocupacion[Habitacionactual.numero] === false) {
+      if (Habitacionactual.mantenimiento || Estadoaplicacion.mapaocupacion[Habitacionactual.numero] === false) {
         return Mostrarmensajeerror(`La habitación ${Habitacionactual.numero} no está disponible.`);
       }
       Cambiarpasomodal('details');
     });
   }
 
-  // Envio de la solicitud final de reserva y sincronizacion con el servidor
+  let Enviandoreserva = false;
   const Formulariodetalles = document.getElementById('detailsForm');
   if (Formulariodetalles) {
     Formulariodetalles.addEventListener('submit', function(Eventodetalles) {
       Eventodetalles.preventDefault();
+      if (Enviandoreserva) {
+        return;
+      }
+
       const Nombrelimpio = Sanitizartexto(Estadoaplicacion.nombreviajero, 80);
       const Cedulalimpia = Sanitizartexto(Estadoaplicacion.cedulaviajero, 20);
       const Celularlimpio = Sanitizartexto(Estadoaplicacion.celularviajero, 20);
@@ -397,11 +165,13 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!Validarnumerocelular(Celularlimpio)) {
         return Mostrarmensajeerror('Escribe un celular válido.');
       }
+
       Estadoaplicacion.nombreviajero = Nombrelimpio;
       Estadoaplicacion.cedulaviajero = Cedulalimpia.replace(/\D/g, '');
       Estadoaplicacion.celularviajero = Celularlimpio;
       Estadoaplicacion.horallegada = Horalimpia;
       Estadoaplicacion.codigoreserva = Generarcodigoreserva();
+
       const Solicitudreserva = {
         codigo: Estadoaplicacion.codigoreserva,
         nombre: Nombrelimpio,
@@ -414,13 +184,37 @@ document.addEventListener('DOMContentLoaded', function() {
         horallegada: Horalimpia
       };
 
-      Guardarborradorreserva(Solicitudreserva);
-      Enviarsolicitudservidor(Solicitudreserva);
-      Cambiarpasomodal('done');
+      const Botonconfirmar = document.getElementById('btnConfirmarReserva');
+      Enviandoreserva = true;
+      if (Botonconfirmar) {
+        Botonconfirmar.disabled = true;
+        Botonconfirmar.textContent = 'Registrando...';
+      }
+
+      Enviarsolicitudservidor(Solicitudreserva)
+        .then(function(Respuesta) {
+          if (Respuesta && Respuesta.exito === false && Respuesta.mensaje) {
+            Mostrarmensajeerror(Respuesta.mensaje);
+            return;
+          }
+          if (Respuesta && Respuesta.codigo) {
+            Estadoaplicacion.codigoreserva = Respuesta.codigo;
+          }
+          Cambiarpasomodal('done');
+        })
+        .catch(function() {
+          Cambiarpasomodal('done');
+        })
+        .finally(function() {
+          Enviandoreserva = false;
+          if (Botonconfirmar) {
+            Botonconfirmar.disabled = false;
+            Botonconfirmar.textContent = 'Confirmar reserva';
+          }
+        });
     });
   }
 
-  // Acordeon y transicion de imagenes del catalogo de habitaciones
   const Elementoshabitacion = document.querySelectorAll('.room');
   const Elementosfoto = document.querySelectorAll('[data-photo]');
   const Numeroindicador = document.getElementById('roomNum');
@@ -429,12 +223,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const Botonacordeon = Cajahabitacion.querySelector('.room__btn');
     if (Botonacordeon) {
       Botonacordeon.addEventListener('click', function() {
-        Elementoshabitacion.forEach(function(Habitacionitem, Jndice) {
-          Habitacionitem.classList.toggle('is-active', Indice === Jndice);
+        Elementoshabitacion.forEach(function(Habitacionitem, Indiceitem) {
+          Habitacionitem.classList.toggle('is-active', Indice === Indiceitem);
         });
-        Elementosfoto.forEach(function(Fotoitem, Jndice) {
-          Fotoitem.classList.toggle('is-active', Indice === Jndice);
-          Fotoitem.classList.toggle('is-before', Jndice < Indice);
+        Elementosfoto.forEach(function(Fotoitem, Indiceitem) {
+          Fotoitem.classList.toggle('is-active', Indice === Indiceitem);
+          Fotoitem.classList.toggle('is-before', Indiceitem < Indice);
         });
         if (Numeroindicador) {
           Numeroindicador.textContent = Habitacioneshotel[Indice].numero;
@@ -443,10 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Inicializar modulo de efectos visuales y microinteracciones
   Inicializaranimaciones();
-
-  // Primer pintado y refresco de interfaz
   Refrescarpantalla();
 
   if (Abririniciosesion) {

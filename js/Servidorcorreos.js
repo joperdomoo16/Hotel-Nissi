@@ -126,6 +126,10 @@ function Buscarusuarioregistrado(Hoja, Uid) {
 // Valida el token de sesion de Firebase contra Google y devuelve los datos reales del usuario
 function Verificartokenfirebase(Token) {
   const Credenciales = Obtenercredenciales();
+  if (!Credenciales.clavefirebase) {
+    Registrarbitacora('Correos', 'ClaveFirebaseFaltante', 'Configura CLAVEFIREBASE en Propiedades del Script.');
+    return null;
+  }
   const Respuesta = UrlFetchApp.fetch(
     'https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' + encodeURIComponent(Credenciales.clavefirebase),
     {
@@ -137,7 +141,7 @@ function Verificartokenfirebase(Token) {
   );
 
   if (Respuesta.getResponseCode() !== 200) {
-    console.warn('Token de Firebase rechazado: ' + Respuesta.getContentText().slice(0, 300));
+    Registrarbitacora('Correos', 'TokenRechazado', `Estado HTTP ${Respuesta.getResponseCode()}`);
     return null;
   }
 
@@ -256,7 +260,7 @@ function Probarcorreobienvenida() {
     correo: Correoprueba,
     nombre: 'Viajero de prueba'
   });
-  console.log('Bienvenida de prueba enviada a ' + Correoprueba);
+  Registrarbitacora('Correos', 'PruebaBienvenida', 'Correo de bienvenida de prueba enviado.');
 }
 
 // El informe diario y los correos de reserva confirmada viven en Servidornotificaciones.gs
@@ -311,7 +315,7 @@ function Procesarrecuperacionclave(Correo) {
   );
 
   if (Respuesta.getResponseCode() !== 200) {
-    console.warn('No se generó el enlace de recuperación: ' + Respuesta.getContentText().slice(0, 300));
+    Registrarbitacora('Correos', 'ErrorEnlaceRecuperacion', `Estado HTTP ${Respuesta.getResponseCode()}`);
     return Respuestaneutra;
   }
 
@@ -343,7 +347,6 @@ function Procesarrecuperacionclave(Correo) {
 // Prueba desde el editor: usa CORREOPRUEBA, que debe tener una cuenta creada en la web
 function Probarrecuperacionclave() {
   const Correoprueba = Obtenercorreoprueba();
-  console.log('Correo de prueba: ' + Correoprueba);
   const Respuesta = UrlFetchApp.fetch(
     `https://identitytoolkit.googleapis.com/v1/projects/${Datoscorreo.proyectofirebase}/accounts:sendOobCode`,
     {
@@ -357,9 +360,8 @@ function Probarrecuperacionclave() {
       payload: JSON.stringify({ requestType: 'PASSWORD_RESET', email: Correoprueba, returnOobLink: true })
     }
   );
-  console.log('Respuesta de Google (' + Respuesta.getResponseCode() + '): ' + Respuesta.getContentText().slice(0, 500));
+  Registrarbitacora('Correos', 'PruebaRecuperacion', `Estado HTTP ${Respuesta.getResponseCode()}`);
   if (Respuesta.getResponseCode() === 200) {
-    console.log('Permisos correctos. Enviando el correo de prueba a ' + Correoprueba);
-    console.log(JSON.stringify(Procesarrecuperacionclave(Correoprueba)));
+    Procesarrecuperacionclave(Correoprueba);
   }
 }

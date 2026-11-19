@@ -8,7 +8,7 @@ function Enviarcorreoreservaconfirmada(Datos) {
   const Pagado = Number(Datos.pagado || 0);
   const Saldo = Math.max(0, Total - Pagado);
   const Horacheckout = Number(Leerconfiguracionhoja().HORACHECKOUT || 11);
-  const Horasalida = Datos.horasalida || Formatearhora12(Horacheckout);
+  const Horasalida = Datos.horasalida || Formatearhoradoce(Horacheckout);
 
   const Html = Rellenarplantilla(
     Cargarplantilla('Correoreservaconfirmada'),
@@ -58,12 +58,12 @@ function Notificarreservaconfirmada(Datos) {
   const Total = Number(Datos.total || 0);
   const Pagado = Number(Datos.pagado || 0);
   const Saldo = Math.max(0, Total - Pagado);
-  const Horacheckout = Formatearhora12(Number(Leerconfiguracionhoja().HORACHECKOUT || 11));
+  const Horacheckout = Formatearhoradoce(Number(Leerconfiguracionhoja().HORACHECKOUT || 11));
 
   if (Datos.celular && Datos.enviarcliente !== false) {
-    const Rutas = `\n\n📍 Cómo llegar a Hospedaje Nissi (Mingueo):\n• Google Maps: https://maps.app.goo.gl/TudMNAdQRpVyzHZGA\n• Waze: ${Datoscorreo.urlwaze}`;
+    const Rutas = `\n\nCómo llegar a Hospedaje Nissi (Mingueo):\n- Google Maps: https://maps.app.goo.gl/TudMNAdQRpVyzHZGA\n- Waze: ${Datoscorreo.urlwaze}`;
     const Msgbase = Datos.mensajecliente ||
-      `✅ ¡Tu reserva ${Datos.codigo} está confirmada en Hospedaje Nissi!\n` +
+      `Tu reserva ${Datos.codigo} está confirmada en Hospedaje Nissi.\n` +
       `Habitación ${Hab} · ${Datos.llegada} al ${Datos.salida} · Llegada ${Datos.horallegada || 'Por confirmar'}.\n` +
       `Check-out: ${Horacheckout}.\n` +
       `Total: $${Total.toLocaleString('es-CO')} COP · Pagado: $${Pagado.toLocaleString('es-CO')} COP · Saldo: $${Saldo.toLocaleString('es-CO')} COP.\n` +
@@ -73,7 +73,7 @@ function Notificarreservaconfirmada(Datos) {
   }
 
   const Resumenadmin =
-    `✅ Reserva confirmada · ${Datos.codigo}\n` +
+    `Reserva confirmada · ${Datos.codigo}\n` +
     `Habitación: ${Hab}\nHuésped: ${Datos.nombre}\nCelular: ${Datos.celular}\n` +
     `Estadía: ${Datos.llegada} al ${Datos.salida} (${Datos.noches} noche${Number(Datos.noches) > 1 ? 's' : ''}) · ${Datos.personas} persona(s)\n` +
     `Llegada: ${Datos.horallegada || 'Por confirmar'} · Check-out: ${Horacheckout}\n` +
@@ -130,10 +130,10 @@ function Enviarrecordatoriocheckout() {
     if (!Celular) { continue; }
     const Nombre = Primernombre(Filas[I][2]) || 'huésped';
     const Hab = String(Filas[I][4]).padStart(2, '0');
-    const Horabonita = Formatearhora12(Horacheckout);
+    const Horabonita = Formatearhoradoce(Horacheckout);
 
     const Msg =
-      `¡Buenos días, ${Nombre}! 😊 Desde la recepción de Hospedaje Nissi te recordamos que el check-out de tu habitación ${Hab} es hoy a las ${Horabonita}.\n\n` +
+      `Buenos días, ${Nombre}. Desde la recepción de Hospedaje Nissi te recordamos que el check-out de tu habitación ${Hab} es hoy a las ${Horabonita}.\n\n` +
       `Si deseas quedarte más tiempo, respóndenos por este chat a qué hora piensas salir para hacer el ajuste. Cada hora adicional tiene un valor de $${Valorhora.toLocaleString('es-CO')} COP (puedes pagarlo por transferencia o en efectivo al salir).`;
 
     Enviarmensajeinteligente(Celular, Msg, 'recordatorio_checkout', [Nombre, Hab, Horabonita, Valorhora.toLocaleString('es-CO')]);
@@ -345,7 +345,7 @@ function Revisarcanales() {
         const Motivo = String(Filas[C][11] || 'Solicitud de atención con recepción');
         const Resumen = String(Filas[C][12] || Ctx.obs || 'Cliente en espera de respuesta del administrador.');
         const Comandoabrir = `abrir canal con ${Numerocmd}`;
-        const Reportewa = `⚠️ Contacto pendiente (${Codres})\nCliente: ${Nombre} (${Numerocmd})\nHabitación: ${Ctx.habitacion} · ${Ctx.fechasestadia} (${Ctx.personas})\nRequerimiento: ${Motivo}\nResumen: ${Resumen}\n\nPara contactar al cliente, puedes abrir canal desde tu WhatsApp de administrador en el chat de Hospedaje Nissi escribiendo exactamente:\n${Comandoabrir}`;
+        const Reportewa = `Contacto pendiente (${Codres})\nCliente: ${Nombre} (${Numerocmd})\nHabitación: ${Ctx.habitacion} · ${Ctx.fechasestadia} (${Ctx.personas})\nRequerimiento: ${Motivo}\nResumen: ${Resumen}\n\nPara contactar al cliente, puedes abrir canal desde tu WhatsApp de administrador en el chat de Hospedaje Nissi escribiendo exactamente:\n${Comandoabrir}`;
         Enviarmensajeinteligente(Credenciales.celularadmin, Reportewa, 'canal_efectivo_admin', [Codres, Nombre]);
         try { Enviarcorreocontactopendiente({ nombre: Nombre, celular: Cel, numerocomando: Numerocmd, codigo: Codres, motivo: Motivo, resumen: Resumen, habitacion: Ctx.habitacion, fechasestadia: Ctx.fechasestadia, personas: Ctx.personas, comandoabrir: Comandoabrir }); } catch (Ec) { Registrarbitacora('Correos', 'ErrorContactoPendiente', String(Ec)); }
         Actualizarconversacion(Cel, { modo: 'PendienteContacto', aperturacanal: '', avisodemoracanal: 'TIMEOUT_15M', idinteraccionia: '' });
@@ -359,7 +359,7 @@ function Revisarcanales() {
       }
       const Ultrecadm = Filas[C][8] ? new Date(Filas[C][8]).getTime() : Aperturams;
       if ((Ahorams - Ultrecadm) / 60000 >= Limiterecadmin) {
-        Enviarmensajeinteligente(Credenciales.celularadmin, `⏰ Recordatorio: "${Nombre}" (${Codres} · ${Numerocmd}) lleva ${Math.round(Minabierto)} min esperando. Responde SI o escribe: abrir canal con ${Numerocmd}`, 'canal_efectivo_admin', []);
+        Enviarmensajeinteligente(Credenciales.celularadmin, `Recordatorio: "${Nombre}" (${Codres} · ${Numerocmd}) lleva ${Math.round(Minabierto)} min esperando. Responde SI o escribe: abrir canal con ${Numerocmd}`, 'canal_efectivo_admin', []);
         Actualizarconversacion(Cel, { ultimorecordatorioadmin: Formatearfechahora(new Date()) });
       }
     } else if (Modo === 'Canal') {

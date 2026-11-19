@@ -1,4 +1,4 @@
-// Modulo de gestion y autenticacion de usuarios con Firebase
+// Autenticación de viajeros con Firebase y envío de correos transaccionales
 
 const Configuracionfirebase = {
   apiKey: "AIzaSyDejKbwGSI3t4_gw6YRXeDwEDnhBIKjI0o",
@@ -10,8 +10,8 @@ const Configuracionfirebase = {
 };
 
 function Firebaseactivo() {
-  return typeof firebase !== 'undefined' && 
-         Boolean(firebase.apps) && 
+  return typeof firebase !== 'undefined' &&
+         Boolean(firebase.apps) &&
          Boolean(firebase.apps.length);
 }
 
@@ -23,11 +23,7 @@ function Inicializarfirebase() {
 
 function Registrarnuevousuario(Nombre, Correo, Clave) {
   if (!Firebaseactivo()) {
-    // Modo local de respaldo cuando aun no se han colocado credenciales
-    return Promise.resolve({
-      displayName: Nombre,
-      email: Correo
-    });
+    return Promise.reject({ code: 'auth/network-request-failed' });
   }
 
   return firebase.auth().createUserWithEmailAndPassword(Correo, Clave)
@@ -35,14 +31,12 @@ function Registrarnuevousuario(Nombre, Correo, Clave) {
       return Credencialusuario.user.updateProfile({
         displayName: Nombre
       }).then(function() {
-        // Primer ingreso de una cuenta nueva: se pide el correo de bienvenida sin bloquear al usuario
         Solicitarcorreobienvenida(Credencialusuario.user);
         return Credencialusuario.user;
       });
     });
 }
 
-// Pide al servidor de Apps Script el correo de bienvenida; el servidor valida el token y evita duplicados
 function Solicitarcorreobienvenida(Usuario) {
   if (!Usuario || typeof Usuario.getIdToken !== 'function' || !Configuracionhotel.urlservidor) {
     return Promise.resolve(null);
@@ -72,10 +66,9 @@ function Esusuarionuevo(Resultadoacceso) {
   );
 }
 
-// Envia el enlace para crear una nueva contraseña (plantilla de Firebase o servidor propio)
 function Solicitarrecuperacionclave(Correo) {
   if (!Firebaseactivo()) {
-    return Promise.resolve();
+    return Promise.reject({ code: 'auth/network-request-failed' });
   }
 
   if (Configuracionhotel.recuperacionporservidor && Configuracionhotel.urlservidor) {
@@ -97,7 +90,6 @@ function Solicitarrecuperacionclave(Correo) {
   const Ajustesenlace = { url: Configuracionhotel.urlsitio, handleCodeInApp: false };
   return firebase.auth().sendPasswordResetEmail(Correo, Ajustesenlace)
     .catch(function(Errorenvio) {
-      // Si el dominio de regreso no esta autorizado, se reintenta sin el boton de regreso al sitio
       if (Errorenvio && (Errorenvio.code === 'auth/unauthorized-continue-uri' || Errorenvio.code === 'auth/invalid-continue-uri')) {
         return firebase.auth().sendPasswordResetEmail(Correo);
       }
@@ -107,27 +99,14 @@ function Solicitarrecuperacionclave(Correo) {
 
 function Iniciarsesionusuario(Correo, Clave) {
   if (!Firebaseactivo()) {
-    // Modo local de respaldo cuando aun no se han colocado credenciales
-    return Promise.resolve({
-      user: {
-        displayName: Correo.split('@')[0],
-        email: Correo
-      }
-    });
+    return Promise.reject({ code: 'auth/network-request-failed' });
   }
-
   return firebase.auth().signInWithEmailAndPassword(Correo, Clave);
 }
 
 function Autenticarcongoogle() {
   if (!Firebaseactivo()) {
-    // Modo local de respaldo cuando aun no se han colocado credenciales
-    return Promise.resolve({
-      user: {
-        displayName: 'Viajero Google',
-        email: 'viajero@gmail.com'
-      }
-    });
+    return Promise.reject({ code: 'auth/network-request-failed' });
   }
 
   const Proveedor = new firebase.auth.GoogleAuthProvider();
@@ -188,7 +167,7 @@ function Traducirerrorfirebase(Codigoerror) {
     case 'auth/invalid-credential':
       return 'Correo o contraseña incorrectos.';
     case 'auth/too-many-requests':
-      return 'Demasiados intentos fallidos. Intenta más tarde.';
+      return 'Demasiados intentos fallidos. Espera unos minutos e intenta de nuevo.';
     case 'auth/network-request-failed':
       return 'Error de conexión. Revisa el internet de tu computador o celular.';
     case 'auth/popup-closed-by-user':
@@ -196,23 +175,21 @@ function Traducirerrorfirebase(Codigoerror) {
     case 'auth/popup-blocked':
       return 'El navegador bloqueó la ventana emergente de Google. Permite ventanas emergentes para este sitio.';
     case 'auth/cancelled-popup-request':
-      return 'Se canceló la solicitud de autenticación con Google.';
+      return 'Se canceló la solicitud de acceso con Google.';
     case 'auth/operation-not-allowed':
-      return 'El proveedor de Google no está habilitado en la consola de Firebase. Debes activarlo en Authentication.';
+      return 'El acceso con Google no está disponible en este momento.';
     case 'auth/unauthorized-domain':
-      return 'Este dominio aún no está autorizado en Firebase Authentication (Authorized domains).';
+      return 'Este sitio no pudo validar el acceso externo. Intenta con correo y contraseña.';
     case 'auth/account-exists-with-different-credential':
       return 'Ya existe una cuenta registrada con ese correo usando otro método de acceso.';
     case 'auth/missing-email':
       return 'Escribe tu correo para enviarte el enlace de recuperación.';
     case 'auth/unauthorized-continue-uri':
     case 'auth/invalid-continue-uri':
-      return 'El dominio del sitio no está autorizado en Firebase para recuperar contraseñas.';
+      return 'No pudimos preparar el enlace de recuperación. Escríbenos por WhatsApp.';
     default:
       return 'No fue posible completar la solicitud. Intenta de nuevo.';
   }
 }
 
-// Inicializar la aplicacion de Firebase al cargar el script
 Inicializarfirebase();
-

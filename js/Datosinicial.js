@@ -1,4 +1,4 @@
-// Catalogo de habitaciones, tarifas en pesos colombianos y datos iniciales del hospedaje
+// Catálogo de habitaciones, tarifas en pesos colombianos y configuración del sitio
 const Configuracionhotel = {
   celular: '573123757015',
   urlservidor: 'https://script.google.com/macros/s/AKfycbwtFwQcPEmpUm2thTlLmChpiyg5h81LVBp2dK3ZXI3J-HukMWhzRbzD2nBseM2zJN2H-w/exec',
@@ -12,8 +12,7 @@ const Configuracionhotel = {
   mapas: 'https://maps.app.goo.gl/TudMNAdQRpVyzHZGA',
   waze: 'https://waze.com/ul?ll=11.216310,-73.392264&navigate=yes',
   urlsitio: 'https://hospedaje-nissi-mingueo.web.app/',
-  // false: el correo de recuperacion lo envia Firebase con la plantilla de la consola
-  // true: lo envia Apps Script con correos/Correorecuperacion.html (alternativa B del README)
+  // true envía el enlace de recuperación mediante el servidor con plantilla propia
   recuperacionporservidor: true
 };
 
@@ -88,7 +87,7 @@ const Habitacioneshotel = [
 
 const Mensajeschat = [
   { mio: true, texto: 'Hola, ¿tienen habitación para esta noche? Somos 2.' },
-  { mio: false, texto: 'Hola, soy el asistente de Hospedaje Nissi. Hoy tenemos disponible la 03 (doble). ¿A qué hora llegan?' },
+  { mio: false, texto: 'Hola, soy el asistente de Hospedaje Nissi. Hoy tenemos disponible la 04 (doble). ¿A qué hora llegan?' },
   { mio: true, texto: 'Como a las 10 pm, venimos de Santa Marta.' },
   { mio: false, texto: 'Perfecto. Te envío el resumen y la tarifa para confirmar. La recepción queda avisada.' }
 ];

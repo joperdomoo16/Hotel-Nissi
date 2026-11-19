@@ -1,4 +1,4 @@
-// Compilador para generar version de distribucion sin comentarios para Firebase Hosting
+// Genera la carpeta dist/ sin comentarios ni scripts del lado servidor
 
 const fs = require('fs');
 const path = require('path');
@@ -81,7 +81,7 @@ function Procesardirectoriojs() {
 
   const Archivos = fs.readdirSync(Carpetajs);
   Archivos.forEach(function(Nombrearchivo) {
-    if (Nombrearchivo.endsWith('.js')) {
+    if (Nombrearchivo.endsWith('.js') && !Nombrearchivo.startsWith('Servidor')) {
       const Contenidooriginal = fs.readFileSync(path.join(Carpetajs, Nombrearchivo), 'utf8');
       const Contenidolimpio = Limpiarcomentariosjs(Contenidooriginal);
       fs.writeFileSync(path.join(Destinojs, Nombrearchivo), Contenidolimpio, 'utf8');

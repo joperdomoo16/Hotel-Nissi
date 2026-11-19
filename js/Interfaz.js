@@ -1,4 +1,5 @@
-// Actualizacion visual del contenido en pantalla y control de la ventana modal
+// Estado visual de la portada, catálogo de habitaciones y control del modal
+
 const Estadoaplicacion = {
   fechallegada: '',
   fechasalida: '',
@@ -17,92 +18,118 @@ const Estadoaplicacion = {
   mapaocupacion: {}
 };
 
-// Renderizado dinamico del catalogo de habitaciones y galeria de fotos
+function Crearelemento(Etiqueta, Clase, Texto) {
+  const Elemento = document.createElement(Etiqueta);
+  if (Clase) Elemento.className = Clase;
+  if (Texto !== undefined && Texto !== null) Elemento.textContent = String(Texto);
+  return Elemento;
+}
+
 function Renderizarcatalogohabitaciones() {
   const Contenedorhabitaciones = document.getElementById('roomList');
   const Contenedorfotos = document.getElementById('roomGallery');
-  if (!Contenedorhabitaciones || !Contenedorfotos) {
-    return;
-  }
+  if (!Contenedorhabitaciones || !Contenedorfotos) return;
 
-  let Htmlhabitaciones = '';
-  let Htmlfotos = '';
+  Contenedorhabitaciones.textContent = '';
+  Contenedorfotos.textContent = '';
 
   Habitacioneshotel.forEach(function(Hab, Indice) {
     const Esactiva = Indice === 0;
-    const Etiquetas = Hab.detalles.map(function(Tag) {
-      return `<span>${Tag}</span>`;
-    }).join('');
+    const Cajahab = Crearelemento('div', 'room' + (Esactiva ? ' is-active' : ''));
+    Cajahab.dataset.room = String(Indice);
 
-    Htmlhabitaciones += `
-      <div class="room ${Esactiva ? 'is-active' : ''}" data-room="${Indice}">
-        <button class="room__btn" data-cursor="Ver" type="button">
-          <span class="room__n">${Hab.numero}</span><span class="room__name">${Hab.tipo}</span><span class="room__cap">${Hab.capacidad}</span>
-        </button>
-        <div class="room__body">
-          <div class="room__inner">
-            ${
-              Hab.mantenimiento
-                ? '<p>No disponible temporalmente, te invitamos a ver las demás habitaciones.</p>'
-                : `<p>${Hab.descripcion}</p>
-                   <div class="tags">${Etiquetas}</div>
-                   <div class="row">
-                     <button class="btn btn--cream btn--sm" type="button" data-book="${Indice}">Reservar la ${Hab.numero} →</button>
-                     <a class="btn btn--ghost btn--sm" href="https://wa.me/${Configuracionhotel.celular}?text=${encodeURIComponent('Hola Hospedaje Nissi, quiero información de la habitación ' + Hab.numero + ' (' + Hab.tipo + ').')}" target="_blank" rel="noopener" data-wa="Hola Hospedaje Nissi, quiero información de la habitación ${Hab.numero} (${Hab.tipo}).">Preguntar por WhatsApp</a>
-                   </div>`
-            }
-          </div>
-        </div>
-      </div>
-    `;
+    const Botonacordeon = Crearelemento('button', 'room__btn');
+    Botonacordeon.dataset.cursor = 'Ver';
+    Botonacordeon.type = 'button';
+    Botonacordeon.appendChild(Crearelemento('span', 'room__n', Hab.numero));
+    Botonacordeon.appendChild(Crearelemento('span', 'room__name', Hab.tipo));
+    Botonacordeon.appendChild(Crearelemento('span', 'room__cap', Hab.capacidad));
 
-    Htmlfotos += `
-      <div class="rphoto__img ${Esactiva ? 'is-active' : ''}" data-photo="${Indice}">
-        <img src="${Hab.foto}" alt="Habitación ${Hab.numero} ${Hab.tipo}" width="800" height="1000" loading="lazy">
-      </div>
-    `;
+    const Cuerpohab = Crearelemento('div', 'room__body');
+    const Interiorhab = Crearelemento('div', 'room__inner');
+
+    if (Hab.mantenimiento) {
+      Interiorhab.appendChild(Crearelemento('p', '', 'No disponible temporalmente, te invitamos a ver las demás habitaciones.'));
+    } else {
+      Interiorhab.appendChild(Crearelemento('p', '', Hab.descripcion));
+
+      const Cajaetiquetas = Crearelemento('div', 'tags');
+      Hab.detalles.forEach(function(Detalle) {
+        Cajaetiquetas.appendChild(Crearelemento('span', '', Detalle));
+      });
+      Interiorhab.appendChild(Cajaetiquetas);
+
+      const Filaacciones = Crearelemento('div', 'row');
+      const Botonreservar = Crearelemento('button', 'btn btn--cream btn--sm', `Reservar la ${Hab.numero} →`);
+      Botonreservar.type = 'button';
+      Botonreservar.dataset.book = String(Indice);
+
+      const Mensajeconsulta = `Hola Hospedaje Nissi, quiero información de la habitación ${Hab.numero} (${Hab.tipo}).`;
+      const Enlacewhatsapp = Crearelemento('a', 'btn btn--ghost btn--sm', 'Preguntar por WhatsApp');
+      Enlacewhatsapp.href = Construirenlacewhatsapp(Mensajeconsulta);
+      Enlacewhatsapp.target = '_blank';
+      Enlacewhatsapp.rel = 'noopener';
+      Enlacewhatsapp.dataset.wa = Mensajeconsulta;
+
+      Filaacciones.appendChild(Botonreservar);
+      Filaacciones.appendChild(Enlacewhatsapp);
+      Interiorhab.appendChild(Filaacciones);
+    }
+
+    Cuerpohab.appendChild(Interiorhab);
+    Cajahab.appendChild(Botonacordeon);
+    Cajahab.appendChild(Cuerpohab);
+    Contenedorhabitaciones.appendChild(Cajahab);
+
+    const Cajafoto = Crearelemento('div', 'rphoto__img' + (Esactiva ? ' is-active' : ''));
+    Cajafoto.dataset.photo = String(Indice);
+    const Imagen = Crearelemento('img');
+    if (typeof Esurlsegura !== 'function' || Esurlsegura(Hab.foto)) Imagen.src = Hab.foto;
+    Imagen.alt = `Habitación ${Hab.numero} ${Hab.tipo}`;
+    Imagen.width = 800;
+    Imagen.height = 1000;
+    Imagen.loading = 'lazy';
+    Cajafoto.appendChild(Imagen);
+    Contenedorfotos.appendChild(Cajafoto);
   });
 
-  Contenedorhabitaciones.innerHTML = Htmlhabitaciones;
-  Contenedorfotos.innerHTML = Htmlfotos + '<div class="rphoto__num" id="roomNum">01</div>';
+  const Indicadornumero = Crearelemento('div', 'rphoto__num', '01');
+  Indicadornumero.id = 'roomNum';
+  Contenedorfotos.appendChild(Indicadornumero);
 }
 
-function Construirenlasewhatsapp(Mensajetexto) {
-  const Digitoslimpios = Configuracionhotel.celular.replace(/\D/g, '');
+function Construirenlacewhatsapp(Mensajetexto) {
+  const Digitoslimpios = String(Configuracionhotel.celular || '').replace(/\D/g, '');
   return `https://wa.me/${Digitoslimpios}?text=${encodeURIComponent(Mensajetexto)}`;
 }
 
 function Actualizarmensajeswhatsapp() {
   const Nochesnumero = Calcularnochesestadia(Estadoaplicacion.fechallegada, Estadoaplicacion.fechasalida);
   const Habitacionactual = Habitacioneshotel[Estadoaplicacion.habitacionseleccionada];
-  
+
   let Mensajegeneral = 'Hola Hospedaje Nissi, quiero reservar una habitación.';
   if (Estadoaplicacion.fechallegada) {
     const Llegadatexto = Formatearfechalegible(Estadoaplicacion.fechallegada);
     const Salidatexto = Formatearfechalegible(Estadoaplicacion.fechasalida) || '?';
     Mensajegeneral = `Hola Hospedaje Nissi, quiero reservar del ${Llegadatexto} al ${Salidatexto} para ${Estadoaplicacion.cantidadhuespedes} persona(s).`;
   }
-  
+
   document.querySelectorAll('.js-wa').forEach(function(Botonenlace) {
-    Botonenlace.href = Construirenlasewhatsapp(Mensajegeneral);
+    Botonenlace.href = Construirenlacewhatsapp(Mensajegeneral);
   });
-
   document.querySelectorAll('[data-wa]').forEach(function(Enlaceespecifico) {
-    Enlaceespecifico.href = Construirenlasewhatsapp(Enlaceespecifico.dataset.wa);
+    Enlaceespecifico.href = Construirenlacewhatsapp(Enlaceespecifico.dataset.wa);
   });
-
   document.querySelectorAll('.js-wa-num').forEach(function(Enlacenumero) {
-    Enlacenumero.textContent = `+${Configuracionhotel.celular.replace(/\D/g, '')}`;
+    Enlacenumero.textContent = `+${String(Configuracionhotel.celular || '').replace(/\D/g, '')}`;
   });
+  if (typeof Esurlsegura !== 'function' || Esurlsegura(Configuracionhotel.mapas)) {
+    document.querySelectorAll('.js-maps').forEach(function(Enlacemapa) { Enlacemapa.href = Configuracionhotel.mapas; });
+  }
+  if (typeof Esurlsegura !== 'function' || Esurlsegura(Configuracionhotel.waze)) {
+    document.querySelectorAll('.js-waze').forEach(function(Enlacewaze) { Enlacewaze.href = Configuracionhotel.waze; });
+  }
 
-  document.querySelectorAll('.js-maps').forEach(function(Enlacemapa) {
-    Enlacemapa.href = Configuracionhotel.mapas;
-  });
-
-  document.querySelectorAll('.js-waze').forEach(function(Enlacewaze) {
-    Enlacewaze.href = Configuracionhotel.waze;
-  });
-  
   const Confirmacionenlace = document.getElementById('waConfirm');
   if (Confirmacionenlace) {
     const Textorango = (Estadoaplicacion.fechallegada && Estadoaplicacion.fechasalida && Nochesnumero > 0)
@@ -110,19 +137,66 @@ function Actualizarmensajeswhatsapp() {
       : 'Fechas por definir';
     const Cedulatexto = Estadoaplicacion.cedulaviajero ? ` (C.C. ${Estadoaplicacion.cedulaviajero})` : '';
     const Textoconfirmacion = `Hola Hospedaje Nissi, confirmo mi solicitud ${Estadoaplicacion.codigoreserva}: habitación ${Habitacionactual.numero} (${Habitacionactual.tipo}), ${Textorango}, ${Estadoaplicacion.cantidadhuespedes} huésped(es). A nombre de ${Estadoaplicacion.nombreviajero}${Cedulatexto}${Estadoaplicacion.horallegada ? ', llegada ' + Estadoaplicacion.horallegada : ''}.`;
-    Confirmacionenlace.href = Construirenlasewhatsapp(Textoconfirmacion);
+    Confirmacionenlace.href = Construirenlacewhatsapp(Textoconfirmacion);
   }
+}
+
+function Actualizarbloqueautenticado(Eslogueado, Nombrecorto, Nombrecompleto, Correousuario) {
+  document.querySelectorAll('.js-login').forEach(function(Botonusuario) {
+    Botonusuario.textContent = Botonusuario.id !== 'btnNavLogin' && Eslogueado ? `Hola, ${Nombrecorto}` : 'Ingresar';
+  });
+
+  const Botonnavlogin = document.getElementById('btnNavLogin');
+  const Cajausuarionav = document.getElementById('navUserAuth');
+  const Textonombreusuario = document.getElementById('navUserName');
+  const Textodropnombre = document.getElementById('userDropName');
+  const Textodropcorreo = document.getElementById('userDropEmail');
+
+  if (Botonnavlogin) { Botonnavlogin.hidden = Eslogueado; Botonnavlogin.style.display = Eslogueado ? 'none' : ''; }
+  if (Cajausuarionav) { Cajausuarionav.hidden = !Eslogueado; Cajausuarionav.style.display = Eslogueado ? 'inline-flex' : 'none'; }
+  if (Textonombreusuario) Textonombreusuario.textContent = `Hola, ${Nombrecorto}`;
+  if (Textodropnombre) Textodropnombre.textContent = Nombrecompleto;
+  if (Textodropcorreo) Textodropcorreo.textContent = Correousuario;
+
+  const Footerlogin = document.getElementById('footerLoginItem');
+  const Footerlogout = document.getElementById('footerLogoutItem');
+  if (Footerlogin && Footerlogin.querySelector('button')) {
+    Footerlogin.querySelector('button').textContent = Eslogueado ? `Hola, ${Nombrecorto}` : 'Ingresar';
+  }
+  if (Footerlogout) Footerlogout.hidden = !Eslogueado;
+
+  const Textologineleccion = document.getElementById('choiceLoginText');
+  const Etiquetaeleccion = document.getElementById('choiceLoginTag');
+  if (Textologineleccion) {
+    Textologineleccion.textContent = '';
+    Textologineleccion.appendChild(Crearelemento('b', '', Eslogueado ? 'Sesión activa' : 'Iniciar sesión'));
+    Textologineleccion.appendChild(document.createTextNode(
+      Eslogueado
+        ? `Conectado como ${Nombrecorto}. Continúa o administra tu cuenta.`
+        : 'Tus datos guardados y el historial de tus estadías.'
+    ));
+  }
+  if (Etiquetaeleccion) Etiquetaeleccion.textContent = Eslogueado ? 'Sesión iniciada' : 'Usuario registrado';
+
+  const Tarjetausuarioactivo = document.getElementById('userActiveCard');
+  const Formularioingreso = document.getElementById('loginForm');
+  const Textonombreactivo = document.getElementById('userActiveName');
+  const Textocorreoactivo = document.getElementById('userActiveEmail');
+
+  if (Tarjetausuarioactivo) Tarjetausuarioactivo.hidden = !Eslogueado;
+  if (Formularioingreso) Formularioingreso.hidden = Eslogueado;
+  if (Textonombreactivo) Textonombreactivo.textContent = Nombrecompleto;
+  if (Textocorreoactivo) Textocorreoactivo.textContent = Correousuario;
 }
 
 function Refrescarpantalla() {
   const Nochesnumero = Calcularnochesestadia(Estadoaplicacion.fechallegada, Estadoaplicacion.fechasalida);
   const Habitacionactual = Habitacioneshotel[Estadoaplicacion.habitacionseleccionada];
-  
+
   const Textorango = (Estadoaplicacion.fechallegada && Estadoaplicacion.fechasalida && Nochesnumero > 0)
     ? `${Formatearfechalegible(Estadoaplicacion.fechallegada)} → ${Formatearfechalegible(Estadoaplicacion.fechasalida)}`
     : 'Fechas por definir';
-    
-  const Primeronombre = (Estadoaplicacion.nombreviajero || '').trim().split(' ')[0] || 'viajero';
+  const Primernombre = (Estadoaplicacion.nombreviajero || '').trim().split(' ')[0] || 'viajero';
 
   const Textossalida = {
     guests: Estadoaplicacion.cantidadhuespedes,
@@ -131,14 +205,12 @@ function Refrescarpantalla() {
     roomLabel: `Habitación ${Habitacionactual.numero} · ${Habitacionactual.tipo}`,
     roomN: Habitacionactual.numero,
     code: Estadoaplicacion.codigoreserva,
-    firstName: Primeronombre
+    firstName: Primernombre
   };
 
   document.querySelectorAll('[data-out]').forEach(function(Elementosalida) {
     const Clavedato = Elementosalida.dataset.out;
-    if (Textossalida[Clavedato] !== undefined) {
-      Elementosalida.textContent = Textossalida[Clavedato];
-    }
+    if (Textossalida[Clavedato] !== undefined) Elementosalida.textContent = Textossalida[Clavedato];
   });
 
   document.querySelectorAll('[data-bind]').forEach(function(Campoformulario) {
@@ -165,46 +237,9 @@ function Refrescarpantalla() {
   const Nombrecompleto = Estadoaplicacion.nombreviajero || Estadoaplicacion.usuariologueado || 'Viajero';
   const Correousuario = Estadoaplicacion.correoviajero || '';
 
-  // Actualizacion de botones generales de login (excluyendo el del navbar que tiene menu con punto verde)
-  document.querySelectorAll('.js-login').forEach(function(Botonusuario) {
-    if (Botonusuario.id !== 'btnNavLogin') {
-      Botonusuario.textContent = Eslogueado ? `Hola, ${Nombrecorto}` : 'Ingresar';
-    } else {
-      Botonusuario.textContent = 'Ingresar';
-    }
-  });
-
-  // Barra de navegacion superior: boton ingresar vs menu de usuario con punto verde
-  const Botonnavlogin = document.getElementById('btnNavLogin');
-  const Cajausuarionav = document.getElementById('navUserAuth');
-  const Textonombreusuario = document.getElementById('navUserName');
-  const Textodropnombre = document.getElementById('userDropName');
-  const Textodropcorreo = document.getElementById('userDropEmail');
-
-  if (Botonnavlogin) {
-    Botonnavlogin.hidden = Eslogueado;
-    Botonnavlogin.style.display = Eslogueado ? 'none' : '';
-  }
-  if (Cajausuarionav) {
-    Cajausuarionav.hidden = !Eslogueado;
-    Cajausuarionav.style.display = Eslogueado ? 'inline-flex' : 'none';
-  }
-  if (Textonombreusuario) Textonombreusuario.textContent = `Hola, ${Nombrecorto}`;
-  if (Textodropnombre) Textodropnombre.textContent = Nombrecompleto;
-  if (Textodropcorreo) Textodropcorreo.textContent = Correousuario;
-
-  // Pie de pagina
-  const Footerlogin = document.getElementById('footerLoginItem');
-  const Footerlogout = document.getElementById('footerLogoutItem');
-  if (Footerlogin) {
-    const Btnlogin = Footerlogin.querySelector('button');
-    if (Btnlogin) Btnlogin.textContent = Eslogueado ? `Hola, ${Nombrecorto}` : 'Ingresar';
-  }
-  if (Footerlogout) Footerlogout.hidden = !Eslogueado;
-
+  Actualizarbloqueautenticado(Eslogueado, Nombrecorto, Nombrecompleto, Correousuario);
   Actualizarmensajeswhatsapp();
 
-  // Control de pasos en la ventana modal
   document.querySelectorAll('.step').forEach(function(Pasocontenedor) {
     Pasocontenedor.hidden = Pasocontenedor.dataset.step !== Estadoaplicacion.pasomodal;
   });
@@ -214,50 +249,13 @@ function Refrescarpantalla() {
   const Lineaprogreso = document.getElementById('progBar');
   const Etiquetapaso = document.getElementById('stepLabel');
   const Etiquetausuario = document.getElementById('userTag');
-
-  if (Barramodal) {
-    Barramodal.hidden = Indicemodales === 0;
-  }
-  if (Lineaprogreso) {
-    Lineaprogreso.style.width = `${(Indicemodales / 3) * 100}%`;
-  }
-  if (Etiquetapaso) {
-    const Textospasos = ['', '1 / 3 · Fechas', '2 / 3 · Datos', '3 / 3 · Listo'];
-    Etiquetapaso.textContent = Textospasos[Indicemodales] || '';
-  }
-  if (Etiquetausuario) {
-    Etiquetausuario.textContent = Eslogueado
-      ? `Sesión: ${Nombrecorto}`
-      : 'Invitado';
-  }
   const Botonlogoutmodal = document.getElementById('modalLogoutBtn');
-  if (Botonlogoutmodal) {
-    Botonlogoutmodal.hidden = !Eslogueado;
-  }
 
-  // Modal Paso 1: texto descriptivo de la eleccion de usuario
-  const Textologineleccion = document.getElementById('choiceLoginText');
-  const Eletiquetachoice = document.getElementById('choiceLoginTag');
-  if (Textologineleccion) {
-    const Nombreseguro = typeof Escaparhtml === 'function' ? Escaparhtml(Nombrecorto) : Nombrecorto;
-    Textologineleccion.innerHTML = Eslogueado
-      ? `<b>Sesión activa</b>Conectado como ${Nombreseguro}. Continúa o administra tu cuenta.`
-      : `<b>Iniciar sesión</b>Tus datos guardados y el historial de tus estadías.`;
-  }
-  if (Eletiquetachoice) {
-    Eletiquetachoice.textContent = Eslogueado ? 'Sesión iniciada' : 'Usuario registrado';
-  }
-
-  // Modal Paso 2: tarjeta de sesion activa vs formulario
-  const Tarjetausuarioactivo = document.getElementById('userActiveCard');
-  const Formularioingreso = document.getElementById('loginForm');
-  const Textonombreactivo = document.getElementById('userActiveName');
-  const Textocorreoactivo = document.getElementById('userActiveEmail');
-
-  if (Tarjetausuarioactivo) Tarjetausuarioactivo.hidden = !Eslogueado;
-  if (Formularioingreso) Formularioingreso.hidden = Eslogueado;
-  if (Textonombreactivo) Textonombreactivo.textContent = Nombrecompleto;
-  if (Textocorreoactivo) Textocorreoactivo.textContent = Correousuario;
+  if (Barramodal) Barramodal.hidden = Indicemodales === 0;
+  if (Lineaprogreso) Lineaprogreso.style.width = `${(Indicemodales / 3) * 100}%`;
+  if (Etiquetapaso) Etiquetapaso.textContent = ['', '1 / 3 · Fechas', '2 / 3 · Datos', '3 / 3 · Listo'][Indicemodales] || '';
+  if (Etiquetausuario) Etiquetausuario.textContent = Eslogueado ? `Sesión: ${Nombrecorto}` : 'Invitado';
+  if (Botonlogoutmodal) Botonlogoutmodal.hidden = !Eslogueado;
 
   const Camporegistronombre = document.getElementById('regName');
   const Titulouno = document.getElementById('loginT1');
@@ -265,32 +263,20 @@ function Refrescarpantalla() {
   const Botonaccioncuenta = document.getElementById('loginCta');
   const Botonconmutarregistro = document.getElementById('toggleReg');
   const Textoetiquetagoogle = document.getElementById('googleCta');
+  const Bloquerecuperar = document.getElementById('loginAux');
 
   if (Camporegistronombre) {
     Camporegistronombre.hidden = !Estadoaplicacion.creandocuenta;
     Camporegistronombre.classList.toggle('is-hidden', !Estadoaplicacion.creandocuenta);
   }
-  if (Titulouno) {
-    Titulouno.textContent = Eslogueado ? 'Tu' : (Estadoaplicacion.creandocuenta ? 'Crea tu' : 'Iniciar');
-  }
-  if (Titulodos) {
-    Titulodos.textContent = Eslogueado ? 'cuenta.' : (Estadoaplicacion.creandocuenta ? 'cuenta.' : 'sesión.');
-  }
-  if (Botonaccioncuenta) {
-    Botonaccioncuenta.textContent = Estadoaplicacion.creandocuenta ? 'Crear cuenta' : 'Ingresar';
-  }
+  if (Titulouno) Titulouno.textContent = Eslogueado ? 'Tu' : (Estadoaplicacion.creandocuenta ? 'Crea tu' : 'Iniciar');
+  if (Titulodos) Titulodos.textContent = Eslogueado ? 'cuenta.' : (Estadoaplicacion.creandocuenta ? 'cuenta.' : 'sesión.');
+  if (Botonaccioncuenta) Botonaccioncuenta.textContent = Estadoaplicacion.creandocuenta ? 'Crear cuenta' : 'Ingresar';
   if (Botonconmutarregistro) {
     Botonconmutarregistro.textContent = Estadoaplicacion.creandocuenta ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Créala aquí';
   }
-  if (Textoetiquetagoogle) {
-    Textoetiquetagoogle.textContent = Estadoaplicacion.creandocuenta ? 'Registrarse con Google' : 'Continuar con Google';
-  }
-
-  // El enlace de recuperar contraseña solo aplica al iniciar sesion, no al crear cuenta
-  const Bloquerecuperar = document.getElementById('loginAux');
-  if (Bloquerecuperar) {
-    Bloquerecuperar.hidden = Boolean(Estadoaplicacion.creandocuenta);
-  }
+  if (Textoetiquetagoogle) Textoetiquetagoogle.textContent = Estadoaplicacion.creandocuenta ? 'Registrarse con Google' : 'Continuar con Google';
+  if (Bloquerecuperar) Bloquerecuperar.hidden = Boolean(Estadoaplicacion.creandocuenta);
 }
 
 function Mostrarmensajeexito(Mensajeexito) {
@@ -315,43 +301,32 @@ function Cambiarpasomodal(Nuevopaso) {
 
 function Abrirventanamodal(Eventoclic, Pasodeseado, Indicehabitacion) {
   const Modaldom = document.getElementById('modal');
-  if (!Modaldom) {
-    return;
-  }
+  if (!Modaldom) return;
+
   const Posicionx = Eventoclic && Eventoclic.clientX != null ? Eventoclic.clientX : window.innerWidth / 2;
   const Posiciony = Eventoclic && Eventoclic.clientY != null ? Eventoclic.clientY : window.innerHeight / 2;
-  
   Modaldom.style.setProperty('--ox', `${Posicionx}px`);
   Modaldom.style.setProperty('--oy', `${Posiciony}px`);
-  
+
   if (Indicehabitacion !== undefined && Indicehabitacion !== null) {
     Estadoaplicacion.habitacionseleccionada = Indicehabitacion;
   }
-  
-  Estadoaplicacion.pasomodal = Pasodeseado === 'login'
-    ? 'login'
-    : (Estadoaplicacion.usuariologueado ? 'dates' : 'choose');
-    
+
+  Estadoaplicacion.pasomodal = Pasodeseado === 'login' ? 'login' : (Estadoaplicacion.usuariologueado ? 'dates' : 'choose');
   Mostrarmensajeerror('');
   Refrescarpantalla();
-  
+
   Modaldom.classList.add('is-anim');
   requestAnimationFrame(function() {
-    requestAnimationFrame(function() {
-      Modaldom.classList.add('is-open');
-    });
+    requestAnimationFrame(function() { Modaldom.classList.add('is-open'); });
   });
   document.body.style.overflow = 'hidden';
 }
 
 function Cerrarventanamodal() {
   const Modaldom = document.getElementById('modal');
-  if (!Modaldom) {
-    return;
-  }
+  if (!Modaldom) return;
   Modaldom.classList.remove('is-open');
   document.body.style.overflow = '';
-  setTimeout(function() {
-    Modaldom.classList.remove('is-anim');
-  }, 900);
+  setTimeout(function() { Modaldom.classList.remove('is-anim'); }, 900);
 }

@@ -1,4 +1,4 @@
-// Modulo de la pagina para crear una nueva contraseña con el enlace enviado por correo
+// Pantalla para definir una nueva contraseña desde el enlace enviado al correo
 
 document.addEventListener('DOMContentLoaded', function() {
   const Parametros = new URLSearchParams(window.location.search);
@@ -117,7 +117,11 @@ document.addEventListener('DOMContentLoaded', function() {
       })
       .finally(function() {
         Botonguardar.disabled = false;
-        Botonguardar.innerHTML = 'Guardar contraseña <span aria-hidden="true">→</span>';
+        Botonguardar.textContent = 'Guardar contraseña ';
+        const Flecha = document.createElement('span');
+        Flecha.setAttribute('aria-hidden', 'true');
+        Flecha.textContent = '→';
+        Botonguardar.appendChild(Flecha);
       });
   });
 });

@@ -70,7 +70,7 @@ function Reglashoja(Hoja, Nombre) {
     return Construirreglasestado(Hoja, 15, [['Confirmada', '#E6F4EA', '#137333'], ['Apartada', '#FEF7E0', '#B06000'], ['Verificando', '#FEF7E0', '#B06000'], ['En canal', '#E8F0FE', '#1967D2'], ['Finalizada', '#EDF1E6', '#3E4A22'], ['Cancelada', '#FCE8E6', '#A50E0E'], ['Rechazada', '#FCE8E6', '#A50E0E'], ['Vencida', '#FCE8E6', '#A50E0E']]);
   }
   if (Nombre === 'Conversaciones') {
-    return Construirreglasestado(Hoja, 3, [['IA', '#E6F4EA', '#137333'], ['PendienteAdmin', '#FEF7E0', '#B06000'], ['Canal', '#E8F0FE', '#1967D2'], ['PostCanal', '#F3E8FD', '#7627BB'], ['PendienteContacto', '#FDECE6', '#8C3B1F'], ['Finalizado', '#ECEFF1', '#455A64']]);
+    return Construirreglasestado(Hoja, 3, [['IA', '#E6F4EA', '#137333'], ['PendienteAdmin', '#FEF7E0', '#B06000'], ['Canal', '#E8F0FE', '#1967D2'], ['PostCanal', '#EFE6D5', '#6B4E2E'], ['PendienteContacto', '#FDECE6', '#8C3B1F'], ['Finalizado', '#ECEFF1', '#455A64']]);
   }
   if (Nombre === 'Pagosrecibidos') {
     return Construirreglasestado(Hoja, 9, [['Libre', '#FEF7E0', '#B06000'], ['Usado', '#E6F4EA', '#137333'], ['Conciliado', '#E6F4EA', '#137333']]);

@@ -30,23 +30,23 @@ function Calculartarifanoche(Cantidadhuespedes, Camasseparadas, Numerohab) {
   if (Personas > 3) {
     return { exito: false, requiereadmin: true, mensaje: 'Para grupos de más de 3 personas se requiere atención directa de un administrador.' };
   }
-  const T1 = Number(Config.TARIFA1PERSONA || 55000);
-  const T2comp = Number(Config.TARIFA2PERSONASCAMACOMPARTIDA || 70000);
-  const T2sep = Number(Config.TARIFA2PERSONASCAMASSEPARADAS || 90000);
-  const T3 = Number(Config.TARIFA3PERSONAS || 110000);
+  const Tarifauno = Number(Config.TARIFA1PERSONA || 55000);
+  const Tarifadoscompartida = Number(Config.TARIFA2PERSONASCAMACOMPARTIDA || 70000);
+  const Tarifadosseparadas = Number(Config.TARIFA2PERSONASCAMASSEPARADAS || 90000);
+  const Tarifatres = Number(Config.TARIFA3PERSONAS || 110000);
 
   if (Personas <= 1) {
-    return { exito: true, tarifanoche: T1, detallecamas: '1 persona (cama principal)' };
+    return { exito: true, tarifanoche: Tarifauno, detallecamas: '1 persona (cama principal)' };
   }
   if (Personas === 2) {
     const Separadas = Boolean(Camasseparadas) && (!Numerohab || Habitacionadmitecamasseparadas(Numerohab));
     return {
       exito: true,
-      tarifanoche: Separadas ? T2sep : T2comp,
+      tarifanoche: Separadas ? Tarifadosseparadas : Tarifadoscompartida,
       detallecamas: Separadas ? '2 personas en camas individuales' : '2 personas compartiendo cama doble/queen'
     };
   }
-  return { exito: true, tarifanoche: T3, detallecamas: '3 personas (cama doble/queen + cama sencilla)' };
+  return { exito: true, tarifanoche: Tarifatres, detallecamas: '3 personas (cama doble/queen + cama sencilla)' };
 }
 
 // Actualiza las 6 habitaciones, tarifas en Configuracion y columnas de check-out sin borrar reservas
@@ -110,11 +110,11 @@ function Interpretahorasalida(Textohora) {
   return Hora;
 }
 
-function Formatearhora12(Hora24) {
-  const H = parseInt(Hora24 || 11, 10);
-  if (H === 12) { return '12:00 p. m.'; }
-  if (H > 12) { return `${H - 12}:00 p. m.`; }
-  return `${H}:00 a. m.`;
+function Formatearhoradoce(Horaveinticuatro) {
+  const Hora = parseInt(Horaveinticuatro || 11, 10);
+  if (Hora === 12) { return '12:00 p. m.'; }
+  if (Hora > 12) { return `${Hora - 12}:00 p. m.`; }
+  return `${Hora}:00 a. m.`;
 }
 
 function Habitaciontieneentradaeldia(Hojareservas, Numerohab, Fechahoy, Codigoactual) {
@@ -143,7 +143,7 @@ function Solicitarampliacioncheckout(Celularcliente, Codigoreserva, Horasalidanu
 
   const Horapedida = Interpretahorasalida(Horasalidanueva);
   if (!Horapedida || Horapedida <= Horacheckout || Horapedida > 22) {
-    return { exito: false, mensaje: `Indica una hora de salida posterior a las ${Formatearhora12(Horacheckout)} (por ejemplo 1:00 p. m., 2:00 p. m. o 4:00 p. m.).` };
+    return { exito: false, mensaje: `Indica una hora de salida posterior a las ${Formatearhoradoce(Horacheckout)} (por ejemplo 1:00 p. m., 2:00 p. m. o 4:00 p. m.).` };
   }
 
   const Filas = Hojareservas.getDataRange().getValues();
@@ -170,7 +170,7 @@ function Solicitarampliacioncheckout(Celularcliente, Codigoreserva, Horasalidanu
 
   const Horasextra = Horapedida - Horacheckout;
   const Valoradicional = Horasextra * Valorhora;
-  const Horabonita = Formatearhora12(Horapedida);
+  const Horabonita = Formatearhoradoce(Horapedida);
   const Medio = String(Mediopago || '').toLowerCase().trim();
 
   if (!Medio) {
@@ -202,7 +202,7 @@ function Solicitarampliacioncheckout(Celularcliente, Codigoreserva, Horasalidanu
   Hojareservas.getRange(Indice, 23).setValue(Sanitizarcelda(`${Obsactual} · Ampliación ${Horabonita} efectivo ($${Valoradicional})`, 140));
 
   const Msgadmin =
-    `⏰ Ampliación de check-out (Efectivo) · ${Codigo}\n` +
+    `Ampliación de check-out (Efectivo) · ${Codigo}\n` +
     `Habitación: ${Hab}\nHuésped: ${Nombre}\n` +
     `Nueva hora de salida: ${Horabonita} (${Horasextra} hora${Horasextra > 1 ? 's' : ''} adicional${Horasextra > 1 ? 'es' : ''})\n` +
     `Valor a cobrar en efectivo al salir: $${Valoradicional.toLocaleString('es-CO')} COP`;
@@ -311,7 +311,7 @@ function Confirmarreservaefectivo(Celularcliente, Codigoreserva, Montobillete) {
     nombre: String(Fila[2] || 'Viajero'), celular: Celularlimpio || String(Fila[3] || ''),
     llegada: Normalizarfecha(Fila[5]), salida: Normalizarfecha(Fila[6]),
     noches: Number(Fila[7] || 1), personas: Number(Fila[8] || 1),
-    horallegada: String(Fila[9] || 'Por confirmar'), horasalida: String(Fila[23] || Formatearhora12(Number(Leerconfiguracionhoja().HORACHECKOUT || 11))),
+    horallegada: String(Fila[9] || 'Por confirmar'), horasalida: String(Fila[23] || Formatearhoradoce(Number(Leerconfiguracionhoja().HORACHECKOUT || 11))),
     total: Total, pagado: 0, entidad: 'Efectivo', referencia: `Paga con $${Billete.toLocaleString('es-CO')} (cambio $${Cambio.toLocaleString('es-CO')})`,
     observaciones: Obsnueva, enviarcliente: false
   });
@@ -333,8 +333,8 @@ function Enviardatospago(Celularcliente, Codigoreserva, Mediopago, Montonequi, M
     if (Coincide && String(Filas[I][14]) === 'Apartada') {
       const Total = Number(Filas[I][10] || 0);
       const Pnequi = Number(Montonequi || 0), Pefec = Number(Montoefectivo || 0), Billete = Number(Montobillete || 0);
-      const EsMixto = String(Mediopago || '').toLowerCase().indexOf('mixt') !== -1 || (Pnequi > 0 && Pefec > 0);
-      if (EsMixto) {
+      const Esmixto = String(Mediopago || '').toLowerCase().indexOf('mixt') !== -1 || (Pnequi > 0 && Pefec > 0);
+      if (Esmixto) {
         if (Pnequi <= 0 || Pefec <= 0 || Pnequi + Pefec !== Total) {
           return { exito: false, mensaje: `La suma de Nequi y efectivo debe ser exactamente $${Total.toLocaleString('es-CO')} COP.` };
         }

@@ -1,4 +1,4 @@
-/* Modulo de Dashboard gerencial, filtros de periodo, KPIs y analiticas */
+/* Panel gerencial: pestañas, filtros de período, indicadores y tabla de movimientos */
 
 .admin-nav-tabs {
   display: flex;
@@ -124,14 +124,8 @@
 }
 
 .dash-select-month:focus,
-.dash-date-input:focus {
-  border-color: var(--cream);
-}
-
-.dash-select-month option {
-  background: #1F2218;
-  color: var(--cream);
-}
+.dash-date-input:focus { border-color: var(--cream); }
+.dash-select-month option { background: #1F2218; color: var(--cream); }
 
 .dash-custom-range {
   display: flex;
@@ -163,46 +157,26 @@
 .dash-kpi-card {
   background: var(--ink2);
   border: 1px solid rgba(242, 234, 219, 0.12);
-  border-radius: 20px;
+  border-top: 2px solid rgba(242, 234, 219, 0.24);
+  border-radius: 18px;
   padding: 22px 24px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  position: relative;
-  overflow: hidden;
 }
 
-.dash-kpi-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 4px;
-  background: rgba(242, 234, 219, 0.3);
-}
+.dash-kpi-card--income { border-top-color: #55E482; }
+.dash-kpi-card--occ { border-top-color: #F3BA47; }
+.dash-kpi-card--nights { border-top-color: var(--sand); }
+.dash-kpi-card--guests { border-top-color: var(--rust2); }
 
-.dash-kpi-card--income::before { background: #55E482; }
-.dash-kpi-card--occ::before { background: #F3BA47; }
-.dash-kpi-card--nights::before { background: #68B4FF; }
-.dash-kpi-card--guests::before { background: #B388FF; }
-
-.dash-kpi-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+.dash-kpi-header { display: flex; justify-content: space-between; align-items: center; }
 
 .dash-kpi-title {
   font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--muted);
-}
-
-.dash-kpi-icon {
-  font-size: 16px;
-  opacity: 0.85;
 }
 
 .dash-kpi-val {
@@ -212,10 +186,7 @@
   color: var(--cream);
 }
 
-.dash-kpi-sub {
-  font-size: 12px;
-  color: var(--sand);
-}
+.dash-kpi-sub { font-size: 12px; color: var(--sand); }
 
 .dash-analytics-grid {
   display: grid;
@@ -224,14 +195,16 @@
   margin-bottom: 28px;
 }
 
-.dash-card {
+.dash-card,
+.dash-table-card {
   background: var(--ink2);
   border: 1px solid rgba(242, 234, 219, 0.12);
-  border-radius: 22px;
+  border-radius: 20px;
   padding: 24px;
-  display: flex;
-  flex-direction: column;
 }
+
+.dash-card { display: flex; flex-direction: column; }
+.dash-table-card { overflow: hidden; }
 
 .dash-card-title {
   margin: 0 0 18px 0;
@@ -243,17 +216,8 @@
   justify-content: space-between;
 }
 
-.dash-payments-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.dash-payment-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.dash-payments-list { display: flex; flex-direction: column; gap: 16px; }
+.dash-payment-item { display: flex; flex-direction: column; gap: 6px; }
 
 .dash-payment-row {
   display: flex;
@@ -262,14 +226,8 @@
   font-size: 13px;
 }
 
-.dash-payment-row b {
-  color: var(--cream);
-  font-family: var(--sans);
-}
-
-.dash-payment-row span {
-  color: var(--sand);
-}
+.dash-payment-row b { color: var(--cream); font-family: var(--sans); }
+.dash-payment-row span { color: var(--sand); }
 
 .dash-bar-bg {
   height: 8px;
@@ -284,10 +242,7 @@
   transition: width 0.4s var(--ease);
 }
 
-.dash-rooms-list {
-  display: flex;
-  flex-direction: column;
-}
+.dash-rooms-list { display: flex; flex-direction: column; }
 
 .dash-room-item {
   display: flex;
@@ -297,22 +252,9 @@
   border-bottom: 1px solid rgba(242, 234, 219, 0.07);
 }
 
-.dash-room-item:last-child {
-  border-bottom: none;
-}
-
-.dash-room-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.dash-room-num {
-  font-family: var(--serif);
-  font-size: 20px;
-  color: var(--sand);
-  min-width: 30px;
-}
+.dash-room-item:last-child { border-bottom: none; }
+.dash-room-info { display: flex; align-items: center; gap: 12px; }
+.dash-room-num { font-family: var(--serif); font-size: 20px; color: var(--sand); min-width: 30px; }
 
 .dash-room-stats {
   display: flex;
@@ -321,23 +263,8 @@
   gap: 2px;
 }
 
-.dash-room-stats b {
-  font-size: 14px;
-  color: var(--cream);
-}
-
-.dash-room-stats small {
-  font-size: 12px;
-  color: var(--sand);
-}
-
-.dash-table-card {
-  background: var(--ink2);
-  border: 1px solid rgba(242, 234, 219, 0.12);
-  border-radius: 22px;
-  padding: 24px;
-  overflow: hidden;
-}
+.dash-room-stats b { font-size: 14px; color: var(--cream); }
+.dash-room-stats small { font-size: 12px; color: var(--sand); }
 
 .dash-table-head {
   display: flex;
@@ -360,14 +287,8 @@
   outline: none;
 }
 
-.dash-search-input:focus {
-  border-color: var(--cream);
-}
-
-.dash-table-wrapper {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
+.dash-search-input:focus { border-color: var(--cream); }
+.dash-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
 .dash-table {
   width: 100%;
@@ -393,9 +314,7 @@
   white-space: nowrap;
 }
 
-.dash-table tr:hover td {
-  background: rgba(242, 234, 219, 0.03);
-}
+.dash-table tr:hover td { background: rgba(242, 234, 219, 0.03); }
 
 .dash-badge {
   display: inline-block;
@@ -417,33 +336,11 @@
   border: 1px solid rgba(243, 186, 71, 0.3);
 }
 
-.dash-empty-state {
-  text-align: center;
-  padding: 48px 16px;
-  color: var(--sand);
-}
-
-.dash-empty-state span {
-  font-size: 32px;
-  display: block;
-  margin-bottom: 8px;
-}
+.dash-empty-state { text-align: center; padding: 48px 16px; color: var(--sand); }
 
 @media (max-width: 768px) {
-  .dash-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .dash-filter-group {
-    justify-content: flex-start;
-  }
-  .dash-custom-range {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .dash-search-input {
-    width: 100%;
-    min-width: 0;
-  }
+  .dash-toolbar { flex-direction: column; align-items: stretch; }
+  .dash-filter-group { justify-content: flex-start; }
+  .dash-custom-range { flex-direction: column; align-items: stretch; }
+  .dash-search-input { width: 100%; min-width: 0; }
 }
-

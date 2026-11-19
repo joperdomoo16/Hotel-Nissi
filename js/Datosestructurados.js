@@ -1,4 +1,4 @@
-// Inyeccion de datos estructurados Schema.org en formato JSON-LD
+// Datos estructurados Schema.org para buscadores
 document.documentElement.classList.add('js');
 
 function Inyectardatosestructurados() {
@@ -19,7 +19,7 @@ function Inyectardatosestructurados() {
         "image": "https://hospedaje-nissi-mingueo.web.app/assets/logo-nissi.png",
         "telephone": "+573123757015",
         "email": "hospedajenissiguajira@gmail.com",
-        "priceRange": "$$ (COP 90.000 - 180.000)",
+        "priceRange": "$ (COP 55.000 - 110.000)",
         "address": {
           "@type": "PostalAddress",
           "streetAddress": "Troncal del Caribe, Mingueo",

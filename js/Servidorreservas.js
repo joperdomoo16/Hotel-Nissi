@@ -62,10 +62,11 @@ function Obtenercredenciales() {
     clavegemini: String(Propiedades.CLAVEGEMINI || '').trim(),
     tokenwhatsapp: String(Propiedades.TOKENWHATSAPP || '').trim(),
     idtelefonowhatsapp: String(Propiedades.IDTELEFONOWHATSAPP || '').trim(),
-    tokenverificacion: String(Propiedades.TOKENVERIFICACION || 'nissiverificacion2026').trim(),
+    tokenverificacion: String(Propiedades.TOKENVERIFICACION || '').trim(),
+    llavewebhook: String(Propiedades.LLAVEWEBHOOK || '').trim(),
     celularadmin: Adminlimpio,
     correoadmin: Propiedades.CORREOADMIN || Session.getActiveUser().getEmail(),
-    clavefirebase: Propiedades.CLAVEFIREBASE || 'AIzaSyDejKbwGSI3t4_gw6YRXeDwEDnhBIKjI0o'
+    clavefirebase: String(Propiedades.CLAVEFIREBASE || '').trim()
   };
 }
 
@@ -287,7 +288,7 @@ function Apartarhabitacion(Celularcliente, Numerohabitacion, Fechallegada, Fecha
     const Calculo = Calculartarifanoche(Personas, Camasseparadas, Numerohab);
     const Noches = Math.max(1, Math.round((new Date(Fechasalida) - new Date(Fechallegada)) / 86400000));
     const Montototal = Noches * Calculo.tarifanoche;
-    const Codigo = `NS-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+    const Codigo = Generarcodigoreservaservidor();
     const Ahora = new Date();
     const Vence = new Date(Ahora.getTime() + Number(Config.MINUTOSAPARTADO || 30) * 60000);
     const Horasalidadefault = `${String(Number(Config.HORACHECKOUT || 11)).padStart(2, '0')}:00`;
@@ -341,7 +342,7 @@ function Liberarapartado(Celularcliente, Codigoreserva, Motivo) {
       Hojareservas.getRange(I + 1, 23).setValue(Sanitizarcelda(Motivo || 'Cancelada por el cliente', 120));
       if (Hojahabitaciones) { Cambiarocupacionhabitacion(Hojahabitaciones, Filas[I][4], 'Disponible'); }
       if (Est === 'Confirmada' && typeof Enviarmensajeinteligente === 'function') {
-        Enviarmensajeinteligente(Obtenercredenciales().celularadmin, `❌ Reserva cancelada por el cliente · ${Filas[I][0]} (Hab. ${String(Filas[I][4]).padStart(2, '0')} · ${Filas[I][2]}). Motivo: ${Motivo || 'Solicitado en chat'}.`, '', []);
+        Enviarmensajeinteligente(Obtenercredenciales().celularadmin, `Reserva cancelada por el cliente · ${Filas[I][0]} (Hab. ${String(Filas[I][4]).padStart(2, '0')} · ${Filas[I][2]}). Motivo: ${Motivo || 'Solicitado en chat'}.`, '', []);
       }
       Registrarbitacora('Apartados', 'Liberarapartado', `Reserva ${Filas[I][0]} -> ${Nuevoest}`);
       return { exito: true, codigo: Filas[I][0], estado: Nuevoest, mensaje: `Reserva ${Nuevoest.toLowerCase()} correctamente.` };

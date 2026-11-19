@@ -1,19 +1,10 @@
-// Modulo para construccion y ensamblaje de la ventana modal de reservas
+// Estructura del modal de reservas y selector de habitaciones
 
 function Construirmodalreservas() {
   const Contenedormodal = document.getElementById('modal');
   if (!Contenedormodal) {
     return;
   }
-
-  const Botoneshabitacion = Habitacioneshotel.map(function(Hab, Indice) {
-    return `
-      <button type="button" class="pick ${Indice === 0 ? 'is-on' : ''} ${Hab.mantenimiento ? 'is-disabled' : ''}" data-pick="${Indice}">
-        <i>${Hab.numero}</i>
-        <span><b>${Hab.mantenimiento ? 'No disponible' : Hab.tipo}</b><small>${Hab.mantenimiento ? 'Temporalmente' : Hab.capacidad}</small></span>
-      </button>
-    `;
-  }).join('');
 
   Contenedormodal.innerHTML = `
     <div class="modal__wrap">
@@ -29,13 +20,12 @@ function Construirmodalreservas() {
           <span id="stepLabel"></span>
           <span class="user-tag-wrap">
             <span id="userTag">Invitado</span>
-            <button class="link-btn js-logout link-logout-inline" type="button" id="modalLogoutBtn" hidden title="Cerrar sesión">Cerrar sesión ⎋</button>
+            <button class="link-btn js-logout link-logout-inline" type="button" id="modalLogoutBtn" hidden title="Cerrar sesión">Cerrar sesión</button>
           </span>
         </div>
         <div class="mprog__bar"><div id="progBar"></div></div>
       </div>
 
-      <!-- Paso 1: Eleccion de tipo de reserva -->
       <div class="step" data-step="choose">
         <h3 class="display mh">¿Cómo quieres<br><em>reservar?</em></h3>
         <div class="choices">
@@ -54,11 +44,15 @@ function Construirmodalreservas() {
         </div>
       </div>
 
-      <!-- Paso 2: Inicio de sesion o registro -->
       <div class="step two" data-step="login" hidden>
         <h3 class="display mh"><span id="loginT1">Iniciar</span><br><em id="loginT2">sesión.</em></h3>
         <div class="user-active-card" id="userActiveCard" hidden>
-          <div class="user-active-avatar">👤</div>
+          <div class="user-active-avatar" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c1.6-3.6 4.8-5.5 8-5.5s6.4 1.9 8 5.5"/>
+            </svg>
+          </div>
           <h4 id="userActiveName">Viajero</h4>
           <p id="userActiveEmail">correo@ejemplo.com</p>
           <div class="row row--amplia" style="margin-top:16px;">
@@ -108,7 +102,6 @@ function Construirmodalreservas() {
         </form>
       </div>
 
-      <!-- Paso 3: Seleccion de fechas y habitacion -->
       <div class="step" data-step="dates" hidden>
         <h3 class="display mh">Fechas y <em>habitación.</em></h3>
         <div class="fields3">
@@ -129,9 +122,7 @@ function Construirmodalreservas() {
             </div>
           </div>
         </div>
-        <div class="picks" id="modalPicks">
-          ${Botoneshabitacion}
-        </div>
+        <div class="picks" id="modalPicks"></div>
         <div class="mfoot">
           <span data-out="nights">Elige tus fechas</span>
           <div class="row row--amplia">
@@ -141,12 +132,11 @@ function Construirmodalreservas() {
         </div>
       </div>
 
-      <!-- Paso 4: Datos personales de contacto -->
       <div class="step two" data-step="details" hidden>
         <div>
           <h3 class="display mh">Tus <em>datos.</em></h3>
           <div class="summary">
-            <b data-out="roomLabel">Habitación 01 · Sencilla</b>
+            <b data-out="roomLabel">Habitación 01 · Triple</b>
             <span data-out="range">Fechas por definir</span>
             <span><span data-out="guests">2</span> huésped(es) · <span data-out="nights"></span></span>
           </div>
@@ -170,13 +160,12 @@ function Construirmodalreservas() {
           </label>
           <span class="err" data-err></span>
           <div class="row row--amplia">
-            <button class="btn btn--rust" type="submit">Confirmar reserva</button>
+            <button class="btn btn--rust" type="submit" id="btnConfirmarReserva">Confirmar reserva</button>
             <button class="link-btn" type="button" data-go="dates">← Volver</button>
           </div>
         </form>
       </div>
 
-      <!-- Paso 5: Confirmacion de solicitud lista -->
       <div class="step done" data-step="done" hidden>
         <div class="done__check" aria-hidden="true">✓</div>
         <h3 class="display mh">Reserva confirmada,<br><em data-out="firstName">viajero</em>.</h3>
@@ -192,5 +181,31 @@ function Construirmodalreservas() {
       </div>
     </div>
   `;
-}
 
+  const Contenedorelecciones = document.getElementById('modalPicks');
+  if (!Contenedorelecciones) {
+    return;
+  }
+
+  Habitacioneshotel.forEach(function(Hab, Indice) {
+    const Boton = document.createElement('button');
+    Boton.type = 'button';
+    Boton.className = 'pick' + (Indice === 0 ? ' is-on' : '') + (Hab.mantenimiento ? ' is-disabled' : '');
+    Boton.dataset.pick = String(Indice);
+
+    const Numero = document.createElement('i');
+    Numero.textContent = Hab.numero;
+
+    const Bloque = document.createElement('span');
+    const Titulo = document.createElement('b');
+    Titulo.textContent = Hab.mantenimiento ? 'No disponible' : Hab.tipo;
+    const Sub = document.createElement('small');
+    Sub.textContent = Hab.mantenimiento ? 'Temporalmente' : Hab.capacidad;
+
+    Bloque.appendChild(Titulo);
+    Bloque.appendChild(Sub);
+    Boton.appendChild(Numero);
+    Boton.appendChild(Bloque);
+    Contenedorelecciones.appendChild(Boton);
+  });
+}

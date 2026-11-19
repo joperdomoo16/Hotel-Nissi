@@ -13,11 +13,19 @@ function Evitarmensajerepetido(Idmensaje) {
 
 // Descarga la imagen del comprobante desde WhatsApp y extrae los datos
 function Analizarcomprobanteimagen(Idimagenwhatsapp) {
+  const Idlimpio = String(Idimagenwhatsapp || '').trim();
+  if (!/^[A-Za-z0-9_-]{5,120}$/.test(Idlimpio)) {
+    return { escomprobante: false, detalle: 'Identificador de imagen no válido.' };
+  }
   const Credenciales = Obtenercredenciales();
-  const Respuestameta = UrlFetchApp.fetch(`https://graph.facebook.com/v21.0/${Idimagenwhatsapp}`, {
+  const Respuestameta = UrlFetchApp.fetch(`https://graph.facebook.com/v25.0/${encodeURIComponent(Idlimpio)}`, {
     headers: { Authorization: `Bearer ${Credenciales.tokenwhatsapp}` }
   });
   const Datosmeta = JSON.parse(Respuestameta.getContentText());
+  if (!Datosmeta || !Esurlmediameta(Datosmeta.url)) {
+    Registrarbitacora('Seguridad', 'UrlMediaRechazada', 'URL de descarga fuera de dominios autorizados.');
+    return { escomprobante: false, detalle: 'Origen de imagen no autorizado.' };
+  }
   const Descargaimagen = UrlFetchApp.fetch(Datosmeta.url, {
     headers: { Authorization: `Bearer ${Credenciales.tokenwhatsapp}` }
   });
@@ -166,7 +174,7 @@ function Procesarmensajecongemini(Celularcliente, Textomensaje, Contexto) {
     `1 persona = $55.000/noche (aplica incluso en habitaciones de 2 o 3 personas); 2 personas = $70.000/noche si comparten la cama doble/queen, o $90.000/noche si usan cada uno su cama individual (solo en habs. 01, 02 y 06; las habs. 04 y 05 tienen 1 cama doble a $70.000); 3 personas = $110.000/noche.\n` +
     `MÁS DE 3 PERSONAS: Si el cliente pide para más de 3 personas, NO consultes habitaciones ni apartes nada; respóndele exactamente en este tono: "Entiendo, [Nombre]. Para este caso debo comunicarte con un administrador, si quieres puedo comunicarte ahora mismo." Si confirma que sí, ejecuta Solicitaradministrador y no escribas texto adicional.\n` +
     `PASOS DE RESERVA:\n` +
-    `1) Primer mensaje (solo si NO hay memoria previa): "¡Hola! ¿Cómo estás? Hablas con la recepción del Hospedaje Nissi en Mingueo 😊 ¿Me puedes indicar tu nombre, por favor?".\n` +
+    `1) Primer mensaje (solo si NO hay memoria previa): "¡Hola! ¿Cómo estás? Hablas con la recepción del Hospedaje Nissi en Mingueo. ¿Me puedes indicar tu nombre, por favor?".\n` +
     `2) Apenas el cliente diga su nombre por primera vez, llama INMEDIATAMENTE a Guardarnombrecliente(nombre), salúdalo por su nombre, dile: "Para continuar con la conversación te informo que tus datos personales se tratarán conforme a la Ley 1581 de 2012 para gestionar tu reserva." y pregúntale cuántas personas son, fechas de llegada y salida, y si requiere parqueadero. Si dice NO al parqueadero, no preguntes más de vehículos; si dice SÍ, pregunta tipo y cantidad de vehículos.\n` +
     `3) Con fechas, personas (1 a 3) y parqueadero listo, llama a Consultardisponibilidad. Si son 2 personas y están libres 01, 02 o 06, explícales ambas opciones ($70.000 compartiendo cama / $90.000 camas separadas) y pregunta qué prefieren antes de apartar.\n` +
     `4) Al elegir habitación (y tipo de camas si aplica), llama a Apartarhabitacion y responde: "¡Listo, [Nombre]! Te aparté la habitación XX, con el código NS-XXXX. Para continuar dime tu nombre completo, cédula de ciudadanía, hora estimada de llegada y número de contacto."\n` +
@@ -236,15 +244,19 @@ function doGet(Eventopeticion) {
   if (Parametros['hub.mode'] === 'subscribe') {
     const Credenciales = Obtenercredenciales();
     const Tokenrecibido = String(Parametros['hub.verify_token'] || '').trim();
-    if (Tokenrecibido === Credenciales.tokenverificacion || Tokenrecibido === 'nissiverificacion' || Tokenrecibido === 'nissiverificacion2026') {
-      return ContentService.createTextOutput(Parametros['hub.challenge']);
+    if (Credenciales.tokenverificacion &&
+        Comparartiempoconstante(Tokenrecibido, Credenciales.tokenverificacion) &&
+        Validarllavewebhook(Eventopeticion, Credenciales)) {
+      return ContentService.createTextOutput(String(Parametros['hub.challenge'] || ''));
     }
-    return ContentService.createTextOutput('Token invalido');
+    Registrarbitacora('Seguridad', 'SuscripcionRechazada', 'Verificación de webhook rechazada.');
+    return ContentService.createTextOutput('No autorizado');
   }
-  if (Parametros.tipo === 'reservas') {
-    return ContentService.createTextOutput(JSON.stringify(Obtenerreservasreales())).setMimeType(ContentService.MimeType.JSON);
-  }
-  const Resultado = Consultardisponibilidad(Parametros.llegada, Parametros.salida, Parametros.huespedes);
+
+  const Llegada = Esfechaisovalida(Parametros.llegada) ? String(Parametros.llegada).trim() : '';
+  const Salida = Esfechaisovalida(Parametros.salida) ? String(Parametros.salida).trim() : '';
+  const Huespedes = Math.max(1, Math.min(3, parseInt(Parametros.huespedes, 10) || 1));
+  const Resultado = Consultardisponibilidad(Llegada, Salida, Huespedes);
   return ContentService.createTextOutput(JSON.stringify(Resultado)).setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -254,6 +266,11 @@ function doPost(Eventopeticion) {
     const Cuerpo = JSON.parse((Eventopeticion && Eventopeticion.postData && Eventopeticion.postData.contents) || '{}');
 
     if (Cuerpo.object === 'whatsapp_business_account') {
+      const Credenciales = Obtenercredenciales();
+      if (!Validarllavewebhook(Eventopeticion, Credenciales)) {
+        Registrarbitacora('Seguridad', 'WebhookRechazado', 'Llave de webhook ausente o inválida.');
+        return Respuestajsonservidor({ exito: false, noautorizado: true });
+      }
       const Entrada = Cuerpo.entry && Cuerpo.entry[0];
       const Cambios = Entrada && Entrada.changes && Entrada.changes[0];
       const Valor = Cambios && Cambios.value;
@@ -261,6 +278,9 @@ function doPost(Eventopeticion) {
       // Ignorar avisos de entrega o lectura de Meta
       if (!Valor || !Valor.messages || !Valor.messages[0]) {
         return ContentService.createTextOutput('OK');
+      }
+      if (!Validaridtelefonowhatsapp(Valor, Credenciales)) {
+        return Respuestajsonservidor({ exito: false, noautorizado: true });
       }
 
       const Mensaje = Valor.messages[0];
@@ -274,7 +294,6 @@ function doPost(Eventopeticion) {
         Registrarbitacora('Webhook', 'SinRemitente', JSON.stringify(Valor).slice(0, 450));
         return ContentService.createTextOutput('OK');
       }
-      const Credenciales = Obtenercredenciales();
 
       // Si escribe el administrador desde su WhatsApp personal
       if (Remitente === Credenciales.celularadmin) {
@@ -285,14 +304,14 @@ function doPost(Eventopeticion) {
 
       const Estadoconv = Obtenerestadoconversacion(Remitente);
       const Ultimoms = Estadoconv.ultimomensajecliente ? new Date(Estadoconv.ultimomensajecliente).getTime() : 0;
-      const Inactivo2h = Ultimoms > 0 && (Date.now() - Ultimoms) > 2 * 3600000;
+      const Inactivodoshoras = Ultimoms > 0 && (Date.now() - Ultimoms) > 2 * 3600000;
       const Modoprevio = Estadoconv.modo;
       const Nombrerecordado = Estadoconv.nombre || '';
       const Reiniciarporcambio = Modoprevio === 'PostCanal' || Modoprevio === 'PendienteContacto' || Modoprevio === 'Finalizado';
-      const Sesionnueva = !Estadoconv.idinteraccionia || Inactivo2h || Reiniciarporcambio;
+      const Sesionnueva = !Estadoconv.idinteraccionia || Inactivodoshoras || Reiniciarporcambio;
       const Camposconv = { ultimomensajecliente: Formatearfechahora(new Date()) };
       if (Reiniciarporcambio) { Camposconv.modo = 'IA'; Camposconv.aperturacanal = ''; Camposconv.idinteraccionia = ''; }
-      else if (Inactivo2h && Modoprevio !== 'Canal' && Modoprevio !== 'PendienteAdmin') { Camposconv.idinteraccionia = ''; }
+      else if (Inactivodoshoras && Modoprevio !== 'Canal' && Modoprevio !== 'PendienteAdmin') { Camposconv.idinteraccionia = ''; }
       Actualizarconversacion(Remitente, Camposconv);
 
       // Si el cliente esta esperando al administrador o ya tiene canal abierto, la IA no responde
@@ -324,17 +343,46 @@ function doPost(Eventopeticion) {
       return ContentService.createTextOutput('OK');
     }
 
+    if (Cuerpo.accion === 'autenticaradmin') {
+      return Respuestajsonservidor(Autenticaradminservidor(Cuerpo.pin));
+    }
+    if (Cuerpo.accion === 'cerrarsesionadmin') {
+      return Respuestajsonservidor(Revocartokenadmin(Cuerpo.tokenadmin));
+    }
+    if (Cuerpo.accion === 'obtenerreservas') {
+      if (!Validartokenadmin(Cuerpo.tokenadmin)) {
+        return Respuestajsonservidor({ exito: false, noautorizado: true, mensaje: 'Sesión no autorizada.' });
+      }
+      return Respuestajsonservidor(Obtenerreservasreales());
+    }
     if (Cuerpo.accion === 'bienvenida') { return Respuestajsonservidor(Procesarcorreobienvenida(Cuerpo.token)); }
     if (Cuerpo.accion === 'recuperarclave') { return Respuestajsonservidor(Procesarrecuperacionclave(Cuerpo.correo)); }
     if (Cuerpo.accion === 'registrarreserva') {
-      return ContentService.createTextOutput(JSON.stringify(Registrarosincronizarreserva(Cuerpo.datos || {}))).setMimeType(ContentService.MimeType.JSON);
+      const Autorizadoadmin = Boolean(Cuerpo.tokenadmin && Validartokenadmin(Cuerpo.tokenadmin));
+      if (Cuerpo.datos && Cuerpo.datos.estado === 'Confirmada' && !Autorizadoadmin) {
+        return Respuestajsonservidor({ exito: false, noautorizado: true, mensaje: 'Se requiere sesión de recepción para confirmar ingresos.' });
+      }
+      if (!Autorizadoadmin && !Permitirtasapublica('WEB_RESERVA', 12, 60)) {
+        return Respuestajsonservidor({ exito: false, mensaje: 'Demasiadas solicitudes en poco tiempo. Espera un minuto e intenta de nuevo.' });
+      }
+      const Validacion = Validarreservaentrada(Cuerpo.datos || {}, Autorizadoadmin);
+      if (!Validacion.exito) {
+        return Respuestajsonservidor(Validacion);
+      }
+      return Respuestajsonservidor(Registrarosincronizarreserva(Validacion.datos, Autorizadoadmin));
     }
     if (Cuerpo.accion === 'habilitarhabitacion' || Cuerpo.accion === 'marcarlimpieza') {
+      if (!Validartokenadmin(Cuerpo.tokenadmin)) {
+        return Respuestajsonservidor({ exito: false, noautorizado: true, mensaje: 'Sesión no autorizada.' });
+      }
+      if (!Eshabitacionhabilitada(Cuerpo.habitacion)) {
+        return Respuestajsonservidor({ exito: false, mensaje: 'Habitación no válida.' });
+      }
       return Respuestajsonservidor(Gestionarlimpiezahabitacion(Cuerpo.habitacion, Cuerpo.accion === 'habilitarhabitacion'));
     }
-    return ContentService.createTextOutput(JSON.stringify({ exito: false, mensaje: 'Acción no reconocida' })).setMimeType(ContentService.MimeType.JSON);
+    return Respuestajsonservidor({ exito: false, mensaje: 'Acción no reconocida.' });
   } catch (Errorpost) {
     Registrarbitacora('Webhook', 'ErrorDoPost', String(Errorpost));
-    return ContentService.createTextOutput(JSON.stringify({ exito: false, mensaje: String(Errorpost) })).setMimeType(ContentService.MimeType.JSON);
+    return Respuestajsonservidor({ exito: false, mensaje: 'No pudimos procesar la solicitud en este momento.' });
   }
 }

@@ -1,4 +1,4 @@
-// Modulo de gestion y renderizado del bloque de descanso y comodidades
+// Tarjetas de comodidades y descanso en la portada
 
 const Tarjetasdescanso = [
   {
@@ -32,19 +32,29 @@ function Renderizardescanso() {
     Contenedordescanso.id = 'cardsDescanso';
   }
 
-  let Htmltarjetas = '';
+  Contenedordescanso.textContent = '';
   Tarjetasdescanso.forEach(function(Tarjeta) {
-    Htmltarjetas += `
-      <div class="card" data-reveal data-tilt>
-        <span class="card__n">${Tarjeta.numero}</span>
-        <div>
-          <span class="card__t">${Tarjeta.titulo}</span>
-          <span class="card__d">${Tarjeta.descripcion}</span>
-        </div>
-      </div>
-    `;
+    const Caja = document.createElement('div');
+    Caja.className = 'card';
+    Caja.setAttribute('data-reveal', '');
+    Caja.setAttribute('data-tilt', '');
+
+    const Numero = document.createElement('span');
+    Numero.className = 'card__n';
+    Numero.textContent = Tarjeta.numero;
+
+    const Texto = document.createElement('div');
+    const Titulo = document.createElement('span');
+    Titulo.className = 'card__t';
+    Titulo.textContent = Tarjeta.titulo;
+    const Descripcion = document.createElement('span');
+    Descripcion.className = 'card__d';
+    Descripcion.textContent = Tarjeta.descripcion;
+
+    Texto.appendChild(Titulo);
+    Texto.appendChild(Descripcion);
+    Caja.appendChild(Numero);
+    Caja.appendChild(Texto);
+    Contenedordescanso.appendChild(Caja);
   });
-
-  Contenedordescanso.innerHTML = Htmltarjetas;
 }
-

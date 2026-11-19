@@ -1,4 +1,4 @@
-// Modulo de construccion y renderizado dinamico del pie de pagina
+// Pie de página general con navegación secundaria y datos de contacto
 
 function Renderizarpiedepagina() {
   const Contenedorpie = document.getElementById('piePagina') || document.querySelector('footer.footer');
@@ -29,7 +29,7 @@ function Renderizarpiedepagina() {
             <li><a href="#habitaciones">Habitaciones</a></li>
             <li><a href="#descanso">Descanso</a></li>
             <li id="footerLoginItem"><button class="link-btn js-login" type="button">Ingresar</button></li>
-            <li id="footerLogoutItem" hidden><button class="link-btn js-logout" type="button" style="color:var(--rust);">Cerrar sesión ⎋</button></li>
+            <li id="footerLogoutItem" hidden><button class="link-btn js-logout" type="button" style="color:var(--rust);">Cerrar sesión</button></li>
           </ul>
         </nav>
         <nav class="fcol" aria-label="Información de contacto">

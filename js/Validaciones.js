@@ -1,13 +1,4 @@
-// Reglas para validar datos del viajero, fechas, formatos de contacto y sanitizacion contra XSS
-
-function Escaparhtml(Texto) {
-  return String(Texto == null ? '' : Texto)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
+// Validación de datos del huésped, fechas, enlaces y generación de códigos
 
 function Sanitizartexto(Texto, Longitudmaxima) {
   const Limite = Longitudmaxima || 120;
@@ -16,6 +7,22 @@ function Sanitizartexto(Texto, Longitudmaxima) {
     .replace(/[\u0000-\u001F\u007F]/g, '')
     .trim()
     .slice(0, Limite);
+}
+
+function Esurlsegura(Url) {
+  const Limpia = String(Url || '').trim();
+  if (!Limpia) {
+    return false;
+  }
+  if (Limpia.startsWith('/') || Limpia.startsWith('assets/')) {
+    return true;
+  }
+  try {
+    const Analizada = new URL(Limpia, window.location.origin);
+    return Analizada.protocol === 'https:';
+  } catch (Errorurl) {
+    return false;
+  }
 }
 
 function Validarcorreoelectronico(Correotexto) {
@@ -33,13 +40,21 @@ function Validarcedulacolombiana(Cedulatexto) {
   return /^[1-9]\d{5,9}$/.test(Solodigitos);
 }
 
+function Formatearfechalocal(Fecha) {
+  const Base = Fecha instanceof Date ? Fecha : new Date();
+  const Anio = Base.getFullYear();
+  const Mes = String(Base.getMonth() + 1).padStart(2, '0');
+  const Dia = String(Base.getDate()).padStart(2, '0');
+  return `${Anio}-${Mes}-${Dia}`;
+}
+
 function Validarrangofechas(Fechallegada, Fechasalida) {
   if (!Fechallegada || !Fechasalida) {
     return false;
   }
   const Momentollegada = new Date(Fechallegada);
   const Momentosalida = new Date(Fechasalida);
-  return Momentosalida > Momentollegada;
+  return !isNaN(Momentollegada.getTime()) && !isNaN(Momentosalida.getTime()) && Momentosalida > Momentollegada;
 }
 
 function Calcularnochesestadia(Fechallegada, Fechasalida) {
@@ -66,7 +81,18 @@ function Formatearfechalegible(Fechacadena) {
 }
 
 function Generarcodigoreserva() {
-  const Letrasazar = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `NS-${Letrasazar}`;
+  const Caracteres = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const Valores = new Uint32Array(6);
+  if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+    window.crypto.getRandomValues(Valores);
+  } else {
+    for (let Indice = 0; Indice < Valores.length; Indice++) {
+      Valores[Indice] = Math.floor((Date.now() + Indice * 997) % 4294967295);
+    }
+  }
+  let Sufijo = '';
+  for (let Pos = 0; Pos < Valores.length; Pos++) {
+    Sufijo += Caracteres[Valores[Pos] % Caracteres.length];
+  }
+  return `NS-${Sufijo}`;
 }
-

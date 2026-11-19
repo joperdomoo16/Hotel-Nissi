@@ -38,7 +38,7 @@ function Registrarcomprobante(Celularcliente, Codigoreserva, Datoscomprobante) {
       if (Refprevia && Refprevia === Reflimpia && Codprevio !== Codigo && String(Filasres[J][14]) === 'Confirmada') {
         Hojareservas.getRange(Indice, 15).setValue('Rechazada');
         Hojareservas.getRange(Indice, 23).setValue(`Rechazada: referencia duplicada (${Reflimpia} usada en ${Codprevio})`);
-        Enviarmensajewhatsapp(Credenciales.celularadmin, `⚠️ Alerta de posible fraude: el cliente +${Celularlimpio} (${Codigo}) envió un comprobante con referencia ${Reflimpia} que ya fue usada en la reserva ${Codprevio}.`);
+        Enviarmensajewhatsapp(Credenciales.celularadmin, `Alerta de posible fraude: el cliente ${Celularlimpio} (${Codigo}) envió un comprobante con referencia ${Reflimpia} que ya fue usada en la reserva ${Codprevio}.`);
         return { exito: false, estado: 'Rechazada', mensaje: 'Este comprobante ya fue utilizado previamente en otra reserva.' };
       }
     }
@@ -49,7 +49,7 @@ function Registrarcomprobante(Celularcliente, Codigoreserva, Datoscomprobante) {
       });
       if (Reusado) {
         Hojareservas.getRange(Indice, 15).setValue('Rechazada');
-        Enviarmensajewhatsapp(Credenciales.celularadmin, `⚠️ Alerta de posible fraude: referencia ${Reflimpia} en ${Codigo} ya figura como "${Reusado[8]}".`);
+        Enviarmensajewhatsapp(Credenciales.celularadmin, `Alerta de posible fraude: referencia ${Reflimpia} en ${Codigo} ya figura como "${Reusado[8]}".`);
         return { exito: false, estado: 'Rechazada', mensaje: 'Este comprobante ya fue registrado en otra reserva.' };
       }
     }
@@ -108,8 +108,8 @@ function Intentarcruzarcomprobante(Codigoreserva) {
   const Espagoextra = String(Reserva[14]) === 'Confirmada';
   const Mediopago = String(Reserva[17] || '').toLowerCase();
   const Coincidemixto = String(Reserva[22] || '').match(/\[Mixto Nequi:(\d+)/i);
-  const EsMixto = !Espagoextra && Mediopago === 'mixto' && Boolean(Coincidemixto);
-  const Montototal = Espagoextra ? Number(Reserva[25] || 0) : (EsMixto ? Number(Coincidemixto[1]) : Number(Reserva[10] || 0));
+  const Esmixto = !Espagoextra && Mediopago === 'mixto' && Boolean(Coincidemixto);
+  const Montototal = Espagoextra ? Number(Reserva[25] || 0) : (Esmixto ? Number(Coincidemixto[1]) : Number(Reserva[10] || 0));
   const Minimoexigido = Math.round(Montototal * (Number(Config.PAGOMINIMOPORCENTAJE || 100) / 100));
   const Montocaptura = Number(Reserva[18] || 0);
   const Refcaptura = Normalizarreferencia(Reserva[19]);
@@ -144,8 +144,8 @@ function Intentarcruzarcomprobante(Codigoreserva) {
         Hojareservas.getRange(Indice, 11).setValue(Nuevototal);
         Hojareservas.getRange(Indice, 12).setValue(Nuevopagado);
         Hojareservas.getRange(Indice, 23).setValue(Sanitizarcelda(String(Reserva[22]).replace('pendiente transferencia', 'pagada por transferencia'), 140));
-        Enviarmensajewhatsapp(Reserva[3], `✅ ¡Pago verificado! Tu ampliación de check-out de la habitación ${String(Reserva[4]).padStart(2, '0')} hasta las ${Horasalida} está confirmada.`);
-        Enviarmensajeinteligente(Obtenercredenciales().celularadmin, `✅ Ampliación pagada por transferencia · ${Reserva[0]} (Hab. ${String(Reserva[4]).padStart(2, '0')}) · Nueva salida: ${Horasalida} · $${Montocorreo.toLocaleString('es-CO')} COP.`, '', []);
+        Enviarmensajewhatsapp(Reserva[3], `Pago verificado. Tu ampliación de check-out de la habitación ${String(Reserva[4]).padStart(2, '0')} hasta las ${Horasalida} está confirmada.`);
+        Enviarmensajeinteligente(Obtenercredenciales().celularadmin, `Ampliación pagada por transferencia · ${Reserva[0]} (Hab. ${String(Reserva[4]).padStart(2, '0')}) · Nueva salida: ${Horasalida} · $${Montocorreo.toLocaleString('es-CO')} COP.`, '', []);
         return { confirmada: true, codigo: String(Reserva[0]), idpago: Idpago };
       }
       Confirmarreservaynotificar(Hojareservas, Hojahabitaciones, Indice, Reserva, Montocorreo, String(Filaspagos[P][4]), String(Filaspagos[P][2]), Idpago);
@@ -173,15 +173,15 @@ function Confirmarreservaynotificar(Hojareservas, Hojahabitaciones, Indicefila, 
 
   Notificarreservaconfirmada({
     codigo: Codigo, habitacion: Hab, canal: String(Reserva[15] || 'WhatsApp'),
-    nombre: String(Reserva[2] || 'Viajero'), celular: String(Reserva[3] || '').replace(/\D/g, ''),
+    nombre: String(Reserva[2] || 'Viajero'), celular: Normalizaridwhatsapp(Reserva[3]),
     llegada: Normalizarfecha(Reserva[5]), salida: Normalizarfecha(Reserva[6]),
     noches: Number(Reserva[7] || 1), personas: Number(Reserva[8] || 1),
     horallegada: String(Reserva[9] || 'Por confirmar'), horasalida: String(Reserva[23] || ''),
     total: Total, pagado: Number(Montopagado || 0), entidad: String(Reserva[17]) === 'Mixto' ? 'Mixto (Nequi + Efectivo)' : Entidad, referencia: Referencia,
     observaciones: Obs,
     mensajecliente:
-      `✅ ¡Pago verificado! Tu reserva ${Codigo} está confirmada en Hospedaje Nissi.\n` +
-      `Habitación ${Hab} · ${Normalizarfecha(Reserva[5])} al ${Normalizarfecha(Reserva[6])} · Llegada ${Reserva[9] || 'Por confirmar'} · Check-out ${Formatearhora12(Number(Leerconfiguracionhoja().HORACHECKOUT || 11))}.\n` +
+      `Pago verificado. Tu reserva ${Codigo} está confirmada en Hospedaje Nissi.\n` +
+      `Habitación ${Hab} · ${Normalizarfecha(Reserva[5])} al ${Normalizarfecha(Reserva[6])} · Llegada ${Reserva[9] || 'Por confirmar'} · Check-out ${Formatearhoradoce(Number(Leerconfiguracionhoja().HORACHECKOUT || 11))}.\n` +
       `Pagado por Nequi: $${Number(Montopagado).toLocaleString('es-CO')} · Saldo pendiente en efectivo: $${Saldo.toLocaleString('es-CO')}. Cualquier inconveniente o cancelación puedes gestionarlo por este mismo chat.`
   });
   Registrarbitacora('Pagos', 'Confirmarreserva', `${Codigo} confirmada con pago ${Idpagobanco}`);
@@ -245,9 +245,7 @@ function Revisarapartados() {
   const Libro = SpreadsheetApp.getActiveSpreadsheet();
   const Hojareservas = Libro.getSheetByName('Reservas');
   const Hojahabitaciones = Libro.getSheetByName('Habitaciones');
-  const Hojaconv = Libro.getSheetByName('Conversaciones');
   const Config = Leerconfiguracionhoja();
-  const Credenciales = Obtenercredenciales();
   const Ahorams = Date.now();
 
   if (Hojareservas && Hojareservas.getLastRow() >= 2) {
@@ -271,7 +269,7 @@ function Revisarapartados() {
         if (Obsactual.indexOf('Recordatorio 15m') === -1 && Celular) {
           const Habnum = String(Filas[I][4]).padStart(2, '0');
           Hojareservas.getRange(I + 2, 23).setValue(`${Obsactual} · Recordatorio 15m`);
-          Enviarmensajewhatsapp(Celular, `¡Hola! 😊 Te recordamos desde la recepción de Hospedaje Nissi que tu habitación ${Habnum} (reserva ${Codigo}) sigue apartada por 15 minutos más. Quedamos atentos a tus datos o al comprobante de pago para dejártela confirmada.`);
+          Enviarmensajewhatsapp(Celular, `Hola, te recordamos desde la recepción de Hospedaje Nissi que tu habitación ${Habnum} (reserva ${Codigo}) sigue apartada por 15 minutos más. Quedamos atentos a tus datos o al comprobante de pago para dejártela confirmada.`);
         }
       } else if (Estado === 'Verificando' && !isNaN(Marcatiempo)) {
         const Minutosespera = (Ahorams - Marcatiempo) / 60000;
@@ -286,8 +284,8 @@ function Revisarapartados() {
 }
 
 // Compatibilidad con formulario web y check-in presencial de recepcion + reloj horario de salidas
-function Registrarosincronizarreserva(Datos) {
-  if (Datos.estado === 'Confirmada') {
+function Registrarosincronizarreserva(Datos, Autorizadoadmin) {
+  if (Autorizadoadmin && Datos.estado === 'Confirmada') {
     const Res = Apartarhabitacion(Datos.celular, Datos.habitacion, Datos.llegada, Datos.salida, Datos.huespedes, 'Recepcion', Datos.camasseparadas);
     if (!Res.exito) { return Res; }
     Guardardatoshuesped(Datos.celular, Res.codigo, Datos.nombre, Datos.cedula, Datos.horallegada);
@@ -295,8 +293,8 @@ function Registrarosincronizarreserva(Datos) {
     const Hojares = Libro.getSheetByName('Reservas');
     const Hojahab = Libro.getSheetByName('Habitaciones');
     const Ult = Hojares.getLastRow();
-    const EsMixto = String(Datos.entidadpago || '').toLowerCase().indexOf('mixt') !== -1 || (Number(Datos.montonequi) > 0 && Number(Datos.montoefectivo) > 0);
-    if (EsMixto) {
+    const Esmixto = String(Datos.entidadpago || '').toLowerCase().indexOf('mixt') !== -1 || (Number(Datos.montonequi) > 0 && Number(Datos.montoefectivo) > 0);
+    if (Esmixto) {
       Hojares.getRange(Ult, 18).setValue('Mixto');
       const Obs = String(Hojares.getRange(Ult, 23).getValue() || '').trim();
       Hojares.getRange(Ult, 23).setValue(Sanitizarcelda(`${Obs} · [Mixto Nequi:${Datos.montonequi || 0} Efectivo:${Datos.montoefectivo || 0}]`, 140));
