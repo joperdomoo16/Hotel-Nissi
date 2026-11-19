@@ -126,7 +126,7 @@ function Enviarrecordatoriocheckout() {
     const Obs = String(Filas[I][22] || '');
     if (Obs.indexOf('Recordatorio checkout') !== -1) { continue; }
 
-    const Celular = String(Filas[I][3] || '').replace(/\D/g, '');
+    const Celular = Normalizaridwhatsapp(Filas[I][3]);
     if (!Celular) { continue; }
     const Nombre = Primernombre(Filas[I][2]) || 'huésped';
     const Hab = String(Filas[I][4]).padStart(2, '0');
@@ -272,44 +272,117 @@ function Construirtarjetasmovimiento(Filas, Tipo, Zonalibro) {
 
 function Probarinformediario() { Enviarinformecorreodiario(); }
 
-// Devuelve el listado real de reservas desde la hoja Reservas para el Dashboard de recepcion
-function Obtenerreservasreales() {
-  const Hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Reservas');
-  if (!Hoja || Hoja.getLastRow() < 2) { return { exito: true, reservas: [] }; }
-  const Filas = Hoja.getDataRange().getValues().slice(1);
-  const Lista = [];
-  for (let I = Filas.length - 1; I >= 0; I--) {
-    const F = Filas[I];
-    const Codigo = String(F[0] || '').trim();
-    if (!Codigo) { continue; }
-    const Nombrecrudo = String(F[2] || '').trim();
-    const Matchcc = Nombrecrudo.match(/^(.+?)\s*\(C\.C\.\s*([^)]+)\)$/i);
-    const Nombre = Matchcc ? Matchcc[1].trim() : Nombrecrudo;
-    const Cedula = Matchcc ? Matchcc[2].trim() : '';
-    const Mediopago = String(F[17] || F[13] || 'Efectivo').trim();
-    const Obs = String(F[22] || '').trim();
-    const Montototal = Number(F[10] || 0);
-    const Montopagado = Number(F[11] || 0);
-    const Mixmatch = Obs.match(/\[Mixto Nequi:(\d+)\s+Efectivo:(\d+)/i);
-    let Montonequi = 0, Montoefectivo = 0;
-    if (Mixmatch) {
-      Montonequi = Number(Mixmatch[1] || 0);
-      Montoefectivo = Number(Mixmatch[2] || 0);
-    } else if (/nequi/i.test(Mediopago) || /nequi/i.test(String(F[13] || ''))) {
-      Montonequi = Montopagado || Montototal;
-    } else if (/efectivo/i.test(Mediopago) || /efectivo/i.test(String(F[13] || ''))) {
-      Montoefectivo = Montopagado || Montototal;
+function Enviarcorreocontactopendiente(Datos) {
+  const Credenciales = Obtenercredenciales();
+  if (!Credenciales.correoadmin || MailApp.getRemainingDailyQuota() <= Datoscorreo.reservacuotacorreo) { return; }
+  const Fechaactual = Formatearfechahora(new Date()).slice(0, 16);
+  const Html = Rellenarplantilla(Cargarplantilla('Correocontactopendiente'), {
+    NOMBRE: Datos.nombre || 'Cliente', CELULAR: Datos.numerocomando || Datos.celular || '-',
+    CODIGO: Datos.codigo || 'SIN-CODIGO', FECHA: Fechaactual,
+    MOTIVO: Datos.motivo || 'Atención con recepción',
+    RESUMEN: Datos.resumen || 'El cliente solicitó hablar con un administrador y esperó 15 minutos sin respuesta.',
+    HABITACION: Datos.habitacion || '--', FECHASESTADIA: Datos.fechasestadia || 'Por definir',
+    PERSONAS: String(Datos.personas || 'Por definir'), COMANDOABRIR: Datos.comandoabrir
+  }, {});
+  const Textoplano =
+    `Contacto pendiente (${Datos.codigo || 'Chat'})\nCliente: ${Datos.nombre} (${Datos.numerocomando})\n` +
+    `Requerimiento: ${Datos.motivo}\nResumen: ${Datos.resumen}\n\n` +
+    `Para contactar al cliente, abre el chat de Hospedaje Nissi con tu WhatsApp de administrador y escribe:\n${Datos.comandoabrir}`;
+  MailApp.sendEmail({
+    to: Credenciales.correoadmin,
+    subject: `Contacto pendiente · ${Datos.nombre} (${Datos.numerocomando}) · Hospedaje Nissi`,
+    htmlBody: Html, body: Textoplano, name: `${Datoscorreo.remitente} · Recepción`
+  });
+}
+
+function Buscarcontextoreserva(Hojares, Codres, Celcliente) {
+  if (!Hojares || Hojares.getLastRow() < 2) { return { habitacion: '--', fechasestadia: 'Por definir', personas: 'Por definir', obs: '' }; }
+  const Filas = Hojares.getDataRange().getValues();
+  for (let I = Filas.length - 1; I >= 1; I--) {
+    const Ccod = Codres && String(Filas[I][0]).toUpperCase() === String(Codres).toUpperCase();
+    const Ccel = Celcliente && Normalizaridwhatsapp(Filas[I][3]) === Celcliente;
+    if (Ccod || Ccel) {
+      return { habitacion: String(Filas[I][4] || '--').padStart(2, '0'), fechasestadia: `${Normalizarfecha(Filas[I][5])} al ${Normalizarfecha(Filas[I][6])}`, personas: `${Number(Filas[I][8] || 1)} persona(s)`, obs: String(Filas[I][22] || '').trim() };
     }
-    const Fechareg = F[1] instanceof Date ? Formatearfechahora(F[1]).slice(0, 16) : String(F[1] || '').trim();
-    Lista.push({
-      codigo: Codigo, fecharegistro: Fechareg, nombre: Nombre, cedula: Cedula,
-      celular: String(F[3] || ''), habitacion: String(F[4] || '').padStart(2, '0'),
-      llegada: Normalizarfecha(F[5]), salida: Normalizarfecha(F[6]),
-      noches: Number(F[7] || 1), huespedes: Number(F[8] || 1), horallegada: String(F[9] || ''),
-      montototal: Montototal, montopagado: Montopagado, montonequi: Montonequi, montoefectivo: Montoefectivo,
-      referenciapago: String(F[12] || ''), entidadpago: Mediopago, estado: String(F[14] || ''),
-      canal: String(F[15] || ''), observaciones: Obs
-    });
   }
-  return { exito: true, reservas: Lista };
+  return { habitacion: '--', fechasestadia: 'Por definir', personas: 'Por definir', obs: '' };
+}
+
+// Reloj cada 1 minuto: avisos al cliente cada 2m, timeout 15m al admin, inactividad de canal 15m y cierre post-canal
+function Revisarcanales() {
+  const Libro = SpreadsheetApp.getActiveSpreadsheet();
+  const Hojaconv = Libro.getSheetByName('Conversaciones');
+  if (!Hojaconv || Hojaconv.getLastRow() < 2) { return; }
+  const Numcols = Math.min(Math.max(Hojaconv.getLastColumn(), 10), 13);
+  const Filas = Hojaconv.getRange(2, 1, Hojaconv.getLastRow() - 1, Numcols).getValues();
+  if (!Filas.some(function(F) { return F[2] === 'PendienteAdmin' || F[2] === 'Canal' || F[2] === 'PostCanal'; })) { return; }
+
+  const Config = Leerconfiguracionhoja();
+  const Credenciales = Obtenercredenciales();
+  const Hojares = Libro.getSheetByName('Reservas');
+  const Limitecliente = Number(Config.MINUTOSRECORDATORIOCLIENTE || 2);
+  const Limiteespera = Number(Config.MINUTOSESPERAADMIN || 15);
+  const Limiterecadmin = Number(Config.MINUTOSRECORDATORIOCANAL || 5);
+  const Limiteinact = Number(Config.MINUTOSINACTIVIDADCANAL || 15);
+  const Limitepost = Number(Config.MINUTOSCIERREPOSTCANAL || 15);
+  const Ahorams = Date.now();
+
+  for (let C = 0; C < Filas.length; C++) {
+    const Modo = String(Filas[C][2] || '');
+    if (Modo !== 'PendienteAdmin' && Modo !== 'Canal' && Modo !== 'PostCanal') { continue; }
+    const Cel = Normalizaridwhatsapp(Filas[C][0]);
+    const Nombre = String(Filas[C][1] || 'Cliente');
+    const Codres = String(Filas[C][3] || 'SIN-CODIGO');
+    const Aperturams = Filas[C][6] ? new Date(Filas[C][6]).getTime() : 0;
+    if (!Cel || isNaN(Aperturams) || !Aperturams) { continue; }
+
+    if (Modo === 'PendienteAdmin') {
+      const Minabierto = (Ahorams - Aperturams) / 60000;
+      const Numerocmd = Formatearnumerocomando(Cel);
+      if (Minabierto >= Limiteespera) {
+        Enviarmensajewhatsapp(Cel, 'El administrador no se encuentra disponible en este momento, lamentamos las molestias. Igualmente ya le envié el resumen de este chat con tu requerimiento; apenas esté disponible se pondrá en contacto contigo por este mismo medio.');
+        const Ctx = Buscarcontextoreserva(Hojares, Codres, Cel);
+        const Motivo = String(Filas[C][11] || 'Solicitud de atención con recepción');
+        const Resumen = String(Filas[C][12] || Ctx.obs || 'Cliente en espera de respuesta del administrador.');
+        const Comandoabrir = `abrir canal con ${Numerocmd}`;
+        const Reportewa = `⚠️ Contacto pendiente (${Codres})\nCliente: ${Nombre} (${Numerocmd})\nHabitación: ${Ctx.habitacion} · ${Ctx.fechasestadia} (${Ctx.personas})\nRequerimiento: ${Motivo}\nResumen: ${Resumen}\n\nPara contactar al cliente, puedes abrir canal desde tu WhatsApp de administrador en el chat de Hospedaje Nissi escribiendo exactamente:\n${Comandoabrir}`;
+        Enviarmensajeinteligente(Credenciales.celularadmin, Reportewa, 'canal_efectivo_admin', [Codres, Nombre]);
+        try { Enviarcorreocontactopendiente({ nombre: Nombre, celular: Cel, numerocomando: Numerocmd, codigo: Codres, motivo: Motivo, resumen: Resumen, habitacion: Ctx.habitacion, fechasestadia: Ctx.fechasestadia, personas: Ctx.personas, comandoabrir: Comandoabrir }); } catch (Ec) { Registrarbitacora('Correos', 'ErrorContactoPendiente', String(Ec)); }
+        Actualizarconversacion(Cel, { modo: 'PendienteContacto', aperturacanal: '', avisodemoracanal: 'TIMEOUT_15M', idinteraccionia: '' });
+        Registrarbitacora('Canal', 'TimeoutAdmin15m', `${Nombre} (${Numerocmd}) pasó a PendienteContacto.`);
+        continue;
+      }
+      const Ultreccli = Filas[C][10] ? new Date(Filas[C][10]).getTime() : Aperturams;
+      if ((Ahorams - Ultreccli) / 60000 >= Limitecliente) {
+        Enviarmensajewhatsapp(Cel, 'Por favor espera en el chat, seguimos buscando a un administrador disponible para atenderte.');
+        Actualizarconversacion(Cel, { ultimorecordatoriocliente: Formatearfechahora(new Date()) });
+      }
+      const Ultrecadm = Filas[C][8] ? new Date(Filas[C][8]).getTime() : Aperturams;
+      if ((Ahorams - Ultrecadm) / 60000 >= Limiterecadmin) {
+        Enviarmensajeinteligente(Credenciales.celularadmin, `⏰ Recordatorio: "${Nombre}" (${Codres} · ${Numerocmd}) lleva ${Math.round(Minabierto)} min esperando. Responde SI o escribe: abrir canal con ${Numerocmd}`, 'canal_efectivo_admin', []);
+        Actualizarconversacion(Cel, { ultimorecordatorioadmin: Formatearfechahora(new Date()) });
+      }
+    } else if (Modo === 'Canal') {
+      const Ultcli = Filas[C][4] ? new Date(Filas[C][4]).getTime() : 0;
+      const Ultadm = Filas[C][5] ? new Date(Filas[C][5]).getTime() : 0;
+      const Ultact = Math.max(Aperturams, Ultcli || 0, Ultadm || 0);
+      if ((Ahorams - Ultact) / 60000 >= Limiteinact) {
+        const Ahoratexto = Formatearfechahora(new Date());
+        Actualizarconversacion(Cel, { modo: 'PostCanal', aperturacanal: Ahoratexto, idinteraccionia: '' });
+        const Props = PropertiesService.getScriptProperties();
+        if (Props.getProperty('CANAL_ACTIVO_ADMIN') === Cel) { Props.deleteProperty('CANAL_ACTIVO_ADMIN'); }
+        const Saludo = Primernombre(Nombre) || Nombre || 'viajero';
+        Enviarmensajewhatsapp(Cel, `Hola ${Saludo}, la atención con el administrador ha finalizado. Para poder proceder, ¿me puedes indicar si concretaste alguna reserva con el administrador?`);
+        Enviarmensajewhatsapp(Credenciales.celularadmin, `Canal con ${Nombre} (${Formatearnumerocomando(Cel)}) cerrado por 15 min de inactividad. La IA consultó al cliente si concretó reserva.`);
+        Registrarbitacora('Canal', 'CierreInactividad15m', `Canal ${Codres} (${Cel}) pasó a PostCanal.`);
+      }
+    } else if (Modo === 'PostCanal' && (Ahorams - Aperturams) / 60000 >= Limitepost) {
+      Actualizarconversacion(Cel, { modo: 'Finalizado', aperturacanal: '', idinteraccionia: '' });
+      Registrarbitacora('Canal', 'FinalizadoPostCanal15m', `Chat ${Codres} (${Cel}) marcado como Finalizado.`);
+    }
+  }
+}
+
+function Probarcorreocontactopendiente() {
+  Enviarcorreocontactopendiente({ nombre: 'Juan Pérez', numerocomando: '3209014142', codigo: 'NS-PRUEBA', motivo: 'Grupo de 5 personas', resumen: 'Solicita cotización para 5 personas este fin de semana.', habitacion: '--', fechasestadia: '2026-11-20 al 2026-11-22', personas: '5', comandoabrir: 'abrir canal con 3209014142' });
 }

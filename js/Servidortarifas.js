@@ -137,7 +137,7 @@ function Solicitarampliacioncheckout(Celularcliente, Codigoreserva, Horasalidanu
   const Hojareservas = Libro.getSheetByName('Reservas');
   const Config = Leerconfiguracionhoja();
   const Credenciales = Obtenercredenciales();
-  const Celularlimpio = String(Celularcliente || '').replace(/\D/g, '');
+  const Celularlimpio = Normalizaridwhatsapp(Celularcliente);
   const Horacheckout = Number(Config.HORACHECKOUT || 11);
   const Valorhora = Number(Config.VALORHORAADICIONAL || 10000);
 
@@ -151,7 +151,7 @@ function Solicitarampliacioncheckout(Celularcliente, Codigoreserva, Horasalidanu
   let Fila = null;
   for (let I = Filas.length - 1; I >= 1; I--) {
     const Coincidecod = Codigoreserva && String(Filas[I][0]).toUpperCase() === String(Codigoreserva).toUpperCase();
-    const Coincidecel = Celularlimpio && String(Filas[I][3]).replace(/\D/g, '') === Celularlimpio;
+    const Coincidecel = Celularlimpio && Normalizaridwhatsapp(Filas[I][3]) === Celularlimpio;
     if ((Coincidecod || Coincidecel) && String(Filas[I][14]) === 'Confirmada') {
       Indice = I + 1; Fila = Filas[I]; break;
     }
@@ -278,11 +278,11 @@ function Confirmarreservaefectivo(Celularcliente, Codigoreserva, Montobillete) {
   const Libro = SpreadsheetApp.getActiveSpreadsheet();
   const Hojareservas = Libro.getSheetByName('Reservas');
   const Hojahab = Libro.getSheetByName('Habitaciones');
-  const Celularlimpio = String(Celularcliente || '').replace(/\D/g, '');
+  const Celularlimpio = Normalizaridwhatsapp(Celularcliente);
   const Filas = Hojareservas.getDataRange().getValues();
   let Indice = -1, Fila = null;
   for (let I = Filas.length - 1; I >= 1; I--) {
-    const Coincide = (Codigoreserva && String(Filas[I][0]).toUpperCase() === String(Codigoreserva).toUpperCase()) || (Celularlimpio && String(Filas[I][3]).replace(/\D/g, '') === Celularlimpio);
+    const Coincide = (Codigoreserva && String(Filas[I][0]).toUpperCase() === String(Codigoreserva).toUpperCase()) || (Celularlimpio && Normalizaridwhatsapp(Filas[I][3]) === Celularlimpio);
     if (Coincide && String(Filas[I][14]) === 'Apartada') { Indice = I + 1; Fila = Filas[I]; break; }
   }
   if (!Fila) { return { exito: false, mensaje: 'No se encontró una reserva apartada activa para confirmar.' }; }
@@ -327,9 +327,9 @@ function Enviardatospago(Celularcliente, Codigoreserva, Mediopago, Montonequi, M
   const Hojareservas = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Reservas');
   const Config = Leerconfiguracionhoja();
   const Filas = Hojareservas.getDataRange().getValues();
-  const Celularlimpio = String(Celularcliente || '').replace(/\D/g, '');
+  const Celularlimpio = Normalizaridwhatsapp(Celularcliente);
   for (let I = Filas.length - 1; I >= 1; I--) {
-    const Coincide = (Codigoreserva && String(Filas[I][0]).toUpperCase() === String(Codigoreserva).toUpperCase()) || (Celularlimpio && String(Filas[I][3]).replace(/\D/g, '') === Celularlimpio);
+    const Coincide = (Codigoreserva && String(Filas[I][0]).toUpperCase() === String(Codigoreserva).toUpperCase()) || (Celularlimpio && Normalizaridwhatsapp(Filas[I][3]) === Celularlimpio);
     if (Coincide && String(Filas[I][14]) === 'Apartada') {
       const Total = Number(Filas[I][10] || 0);
       const Pnequi = Number(Montonequi || 0), Pefec = Number(Montoefectivo || 0), Billete = Number(Montobillete || 0);

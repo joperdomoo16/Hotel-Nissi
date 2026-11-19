@@ -10,7 +10,7 @@ function Registrarcomprobante(Celularcliente, Codigoreserva, Datoscomprobante) {
   const Hojareservas = Libro.getSheetByName('Reservas');
   const Hojapagos = Libro.getSheetByName('Pagosrecibidos');
   const Credenciales = Obtenercredenciales();
-  const Celularlimpio = String(Celularcliente || '').replace(/\D/g, '');
+  const Celularlimpio = Normalizaridwhatsapp(Celularcliente);
   const Reflimpia = Normalizarreferencia(Datoscomprobante.referencia);
   const Montoleido = Number(Datoscomprobante.monto || 0);
   const Entidadleida = Sanitizarcelda(Datoscomprobante.entidad || 'Transferencia', 40);
@@ -21,7 +21,7 @@ function Registrarcomprobante(Celularcliente, Codigoreserva, Datoscomprobante) {
   let Codigo = Codigoreserva || '';
 
   for (let I = Filasres.length - 1; I >= 1; I--) {
-    const Coincide = (Codigo && String(Filasres[I][0]).toUpperCase() === String(Codigo).toUpperCase()) || (Celularlimpio && String(Filasres[I][3]).replace(/\D/g, '') === Celularlimpio);
+    const Coincide = (Codigo && String(Filasres[I][0]).toUpperCase() === String(Codigo).toUpperCase()) || (Celularlimpio && Normalizaridwhatsapp(Filasres[I][3]) === Celularlimpio);
     const Est = String(Filasres[I][14]);
     const Esampliacion = Est === 'Confirmada' && String(Filasres[I][22] || '').indexOf('pendiente transferencia') !== -1;
     if (Coincide && (Est === 'Apartada' || Est === 'Verificando' || Esampliacion)) {
@@ -254,7 +254,7 @@ function Revisarapartados() {
     const Filas = Hojareservas.getRange(2, 1, Hojareservas.getLastRow() - 1, 23).getValues();
     for (let I = 0; I < Filas.length; I++) {
       const Estado = String(Filas[I][14]);
-      const Celular = String(Filas[I][3] || '').replace(/\D/g, '');
+      const Celular = Normalizaridwhatsapp(Filas[I][3]);
       const Codigo = String(Filas[I][0]);
       const Marcatiempo = new Date(Filas[I][16] || Filas[I][1]).getTime();
 
@@ -282,41 +282,6 @@ function Revisarapartados() {
     }
   }
 
-  if (Hojaconv && Hojaconv.getLastRow() >= 2) {
-    const Convfilas = Hojaconv.getRange(2, 1, Hojaconv.getLastRow() - 1, 10).getValues();
-    for (let C = 0; C < Convfilas.length; C++) {
-      const Modoc = String(Convfilas[C][2]);
-      if (Modoc !== 'Canal' && Modoc !== 'PendienteAdmin') { continue; }
-      const Celcliente = String(Convfilas[C][0]).replace(/\D/g, '');
-      const Nombrec = String(Convfilas[C][1] || 'Cliente');
-      const Codres = String(Convfilas[C][3] || '');
-      const Aperturams = new Date(Convfilas[C][6]).getTime();
-      const Ultadminms = Convfilas[C][5] ? new Date(Convfilas[C][5]).getTime() : 0;
-      const Ultrecordms = Convfilas[C][8] ? new Date(Convfilas[C][8]).getTime() : Aperturams;
-      if (isNaN(Aperturams)) { continue; }
-
-      const Minabierto = (Ahorams - Aperturams) / 60000;
-      if (Minabierto >= Number(Config.MINUTOSCIERREAUTO || 120)) {
-        Cerrarcanalyactualizarreserva(Celcliente, false, 'cierre_automatico_2h');
-        continue;
-      }
-      const Limiteaviso = Modoc === 'PendienteAdmin' ? 5 : Number(Config.MINUTOSAVISOCANAL || 15);
-      if (Minabierto >= Limiteaviso && Ultadminms < Aperturams && String(Convfilas[C][7]) !== 'SI') {
-        const Msgdemora = Modoc === 'PendienteAdmin'
-          ? 'Seguimos buscando a un administrador disponible para atenderte. Por favor permanece en línea en el chat.'
-          : 'Un administrador te responderá en breve. Por favor permanece en línea en el chat.';
-        Enviarmensajewhatsapp(Celcliente, Msgdemora);
-        Hojaconv.getRange(C + 2, 8).setValue('SI');
-      }
-      if ((Ahorams - Ultrecordms) / 60000 >= Number(Config.MINUTOSRECORDATORIOCANAL || 10)) {
-        const Msgrec = Modoc === 'PendienteAdmin'
-          ? `⏰ Recordatorio: el cliente "${Nombrec}" (${Codres}) sigue esperando atención hace ${Math.round(Minabierto)} min.\n¿Comenzar atención con el cliente "${Nombrec}"?\nResponde: SI`
-          : `⏰ Recordatorio: tienes el canal ${Codres} (+${Celcliente}) abierto hace ${Math.round(Minabierto)} min. Responde al cliente o ciérralo con "reserva confirmada finalizar" o "reserva rechazada finalizar".`;
-        Enviarmensajeinteligente(Credenciales.celularadmin, Msgrec, 'canal_efectivo_admin', []);
-        Hojaconv.getRange(C + 2, 9).setValue(Formatearfechahora(new Date()));
-      }
-    }
-  }
   if (typeof Revisarhabitacioneslimpieza === 'function') { Revisarhabitacioneslimpieza(); }
 }
 

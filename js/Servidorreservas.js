@@ -13,9 +13,13 @@ const Configuracionbase = [
   ['PAGOMINIMOPORCENTAJE', '100', 'Porcentaje mínimo exigido para confirmar por transferencia (100%)'],
   ['MINUTOSAPARTADO', '30', 'Minutos para enviar el comprobante después de apartar'],
   ['MINUTOSESPERACORREO', '20', 'Minutos máximos esperando el correo del banco antes de pasar a administrador'],
-  ['MINUTOSAVISOCANAL', '15', 'Minutos para avisar al cliente si el administrador no ha respondido'],
-  ['MINUTOSRECORDATORIOCANAL', '10', 'Minutos entre cada recordatorio al administrador mientras haya un canal abierto'],
-  ['MINUTOSCIERREAUTO', '120', 'Minutos para cierre automático de un canal sin respuesta (2 horas)'],
+  ['MINUTOSRECORDATORIOCLIENTE', '2', 'Minutos entre avisos de espera al cliente mientras busca al admin'],
+  ['MINUTOSESPERAADMIN', '15', 'Tiempo máximo (min) esperando al admin antes de enviar informe pendiente'],
+  ['MINUTOSRECORDATORIOCANAL', '5', 'Minutos entre recordatorios al administrador mientras espera'],
+  ['MINUTOSINACTIVIDADCANAL', '15', 'Minutos de inactividad para cerrar automáticamente un canal abierto'],
+  ['MINUTOSCIERREPOSTCANAL', '15', 'Minutos esperando respuesta del cliente tras cierre del canal'],
+  ['MINUTOSAVISOCANAL', '15', 'Compatibilidad: minutos para avisar al cliente si el canal sigue abierto'],
+  ['MINUTOSCIERREAUTO', '120', 'Compatibilidad: minutos máximos de seguridad para canal abierto'],
   ['CELULARADMIN', '573123639298', 'WhatsApp personal del administrador (recibe canales y avisos)'],
   ['MODOSOMBRA', 'NO', 'SI para pedir confirmación al admin antes de validar transferencia; NO para automático'],
   ['CUENTANEQUI', 'Nequi: 3123639298 (Hospedaje Nissi)', 'Datos de pago Nequi que la IA envía al huésped'],
@@ -32,6 +36,13 @@ const Configuracionbase = [
 function Sanitizarcelda(Valor, Maximo) {
   let Limpio = String(Valor == null ? '' : Valor).replace(/[<>]/g, '').replace(/[\u0000-\u001F\u007F]/g, '').trim().slice(0, Maximo || 120);
   return /^[=+\-@]/.test(Limpio) ? "'" + Limpio : Limpio;
+}
+
+// Conserva tanto numeros telefonicos E.164 como identificadores BSUID alfanumericos de Meta (ej. CO.1349...)
+function Normalizaridwhatsapp(Valor) {
+  const Crudo = String(Valor == null ? '' : Valor).trim();
+  if (!Crudo) { return ''; }
+  return /[A-Za-z]/.test(Crudo) ? Crudo : Crudo.replace(/\D/g, '');
 }
 
 function Escaparhtmlservidor(Texto) {
@@ -60,8 +71,10 @@ function Obtenercredenciales() {
 
 function Leerconfiguracionhoja() {
   const Mapa = {
-    PAGOMINIMOPORCENTAJE: 100, MINUTOSAPARTADO: 30, MINUTOSESPERACORREO: 20, MINUTOSAVISOCANAL: 15,
-    MINUTOSRECORDATORIOCANAL: 10, MINUTOSCIERREAUTO: 120, CELULARADMIN: '573123639298', MODOSOMBRA: 'NO',
+    PAGOMINIMOPORCENTAJE: 100, MINUTOSAPARTADO: 30, MINUTOSESPERACORREO: 20,
+    MINUTOSRECORDATORIOCLIENTE: 2, MINUTOSESPERAADMIN: 15, MINUTOSRECORDATORIOCANAL: 5,
+    MINUTOSINACTIVIDADCANAL: 15, MINUTOSCIERREPOSTCANAL: 15, MINUTOSAVISOCANAL: 15,
+    MINUTOSCIERREAUTO: 120, CELULARADMIN: '573123639298', MODOSOMBRA: 'NO',
     TARIFA1PERSONA: 55000, TARIFA2PERSONASCAMACOMPARTIDA: 70000, TARIFA2PERSONASCAMASSEPARADAS: 90000,
     TARIFA3PERSONAS: 110000, VALORHORAADICIONAL: 10000, HORACHECKOUT: 11, MINUTOSRECORDATORIOLIMPIEZA: 20,
     CUENTANEQUI: 'Nequi: 3123639298',
@@ -128,35 +141,31 @@ function Inicializarhojas() {
     Hojaconfig = Libro.insertSheet('Configuracion');
     Hojaconfig.appendRow(['Parametro', 'Valor', 'Descripcion']);
     Configuracionbase.forEach(function(Fila) { Hojaconfig.appendRow(Fila); });
+  } else {
+    const Existcfg = Hojaconfig.getLastRow() >= 2 ? Hojaconfig.getRange(2, 1, Hojaconfig.getLastRow() - 1, 1).getValues().map(function(R) { return String(R[0]).trim().toUpperCase(); }) : [];
+    Configuracionbase.forEach(function(Fila) { if (Existcfg.indexOf(Fila[0]) === -1) { Hojaconfig.appendRow(Fila); } });
   }
-  if (!Libro.getSheetByName('Conversaciones')) {
-    Libro.insertSheet('Conversaciones').appendRow([
-      'Celular', 'Nombre', 'Modo', 'Codigoreserva', 'Ultimomensajecliente',
-      'Ultimomensajeadmin', 'Aperturacanal', 'Avisodemoracanal', 'Ultimorecordatorioadmin', 'Idinteraccionia'
-    ]);
+  const Columnasconv = ['Celular', 'Nombre', 'Modo', 'Codigoreserva', 'Ultimomensajecliente', 'Ultimomensajeadmin', 'Aperturacanal', 'Avisodemoracanal', 'Ultimorecordatorioadmin', 'Idinteraccionia', 'Ultimorecordatoriocliente', 'Motivorequerimiento', 'Resumencontexto'];
+  let Hojaconv = Libro.getSheetByName('Conversaciones');
+  if (!Hojaconv) {
+    Hojaconv = Libro.insertSheet('Conversaciones');
+    Hojaconv.appendRow(Columnasconv);
+  } else {
+    const Encconv = Hojaconv.getRange(1, 1, 1, Hojaconv.getLastColumn()).getValues()[0].map(String);
+    Columnasconv.forEach(function(Nom, Idx) { if (Idx >= Encconv.length) { Hojaconv.getRange(1, Idx + 1).setValue(Nom); } });
   }
-  if (!Libro.getSheetByName('Mensajescanal')) {
-    Libro.insertSheet('Mensajescanal').appendRow(['Idmensajemeta', 'Celularcliente', 'Codigoreserva', 'Direccion', 'Fechahora']);
-  }
-  if (!Libro.getSheetByName('Pagosrecibidos')) {
-    Libro.insertSheet('Pagosrecibidos').appendRow([
-      'Idpago', 'Fechacorreo', 'Entidad', 'Monto', 'Referencia', 'Pagador', 'Remitente', 'Dkimvalido', 'Estado'
-    ]);
-  }
-  if (!Libro.getSheetByName('Registro')) {
-    Libro.insertSheet('Registro').appendRow(['Fechahora', 'Modulo', 'Accion', 'Detalle']);
-  }
+  if (!Libro.getSheetByName('Mensajescanal')) { Libro.insertSheet('Mensajescanal').appendRow(['Idmensajemeta', 'Celularcliente', 'Codigoreserva', 'Direccion', 'Fechahora']); }
+  if (!Libro.getSheetByName('Pagosrecibidos')) { Libro.insertSheet('Pagosrecibidos').appendRow(['Idpago', 'Fechacorreo', 'Entidad', 'Monto', 'Referencia', 'Pagador', 'Remitente', 'Dkimvalido', 'Estado']); }
+  if (!Libro.getSheetByName('Registro')) { Libro.insertSheet('Registro').appendRow(['Fechahora', 'Modulo', 'Accion', 'Detalle']); }
   if (typeof Obtenerhojausuarios === 'function') { Obtenerhojausuarios(); }
   Programarrelojesautomaticos();
+  if (typeof Aplicardisenoempresarialhojas === 'function') { Aplicardisenoempresarialhojas(); }
   Registrarbitacora('Sistema', 'Inicializarhojas', 'Pestañas, columnas y relojes verificados correctamente.');
 }
 
 function Programarrelojesautomaticos() {
-  const Disparadoresactuales = ScriptApp.getProjectTriggers();
-  Disparadoresactuales.forEach(function(Disparador) {
-    ScriptApp.deleteTrigger(Disparador);
-  });
-
+  ScriptApp.getProjectTriggers().forEach(function(Disparador) { ScriptApp.deleteTrigger(Disparador); });
+  ScriptApp.newTrigger('Revisarcanales').timeBased().everyMinutes(1).create();
   ScriptApp.newTrigger('Revisarapartados').timeBased().everyMinutes(5).create();
   ScriptApp.newTrigger('Leercorreospago').timeBased().everyMinutes(5).create();
   ScriptApp.newTrigger('Liberarhabitacionesvencidas').timeBased().everyHours(1).create();
@@ -261,7 +270,7 @@ function Apartarhabitacion(Celularcliente, Numerohabitacion, Fechallegada, Fecha
     const Hojahabitaciones = Libro.getSheetByName('Habitaciones');
     const Config = Leerconfiguracionhoja();
     const Numerohab = String(Numerohabitacion || '01').padStart(2, '0');
-    const Celularlimpio = String(Celularcliente || '').replace(/\D/g, '');
+    const Celularlimpio = Normalizaridwhatsapp(Celularcliente);
     const Personas = parseInt(Cantidadhuespedes || 1, 10);
 
     if (Personas > 3) {
@@ -284,7 +293,7 @@ function Apartarhabitacion(Celularcliente, Numerohabitacion, Fechallegada, Fecha
     const Horasalidadefault = `${String(Number(Config.HORACHECKOUT || 11)).padStart(2, '0')}:00`;
 
     Hojareservas.appendRow([
-      Codigo, Formatearfechahora(Ahora).slice(0, 16), 'Por confirmar', Sanitizarcelda(Celularlimpio, 20),
+      Codigo, Formatearfechahora(Ahora).slice(0, 16), 'Por confirmar', Sanitizarcelda(Celularlimpio, 45),
       Numerohab, Sanitizarcelda(Fechallegada, 15), Sanitizarcelda(Fechasalida, 15), Noches,
       Personas, 'Por confirmar', Montototal, 0, '', '', 'Apartada',
       Sanitizarcelda(Canalorigen || 'WhatsApp', 20), Formatearfechahora(Vence), '', '', '', '', '',
@@ -309,7 +318,7 @@ function Apartarhabitacion(Celularcliente, Numerohabitacion, Fechallegada, Fecha
 function Liberarapartadosprevioscliente(Hojareservas, Hojahabitaciones, Celularlimpio) {
   const Filas = Hojareservas.getDataRange().getValues();
   for (let I = 1; I < Filas.length; I++) {
-    if (String(Filas[I][3] || '').replace(/\D/g, '') === Celularlimpio && String(Filas[I][14] || '') === 'Apartada') {
+    if (Normalizaridwhatsapp(Filas[I][3]) === Celularlimpio && String(Filas[I][14] || '') === 'Apartada') {
       Hojareservas.getRange(I + 1, 15).setValue('Vencida');
       Hojareservas.getRange(I + 1, 23).setValue('Liberada por cambio de habitación');
       if (Hojahabitaciones) { Cambiarocupacionhabitacion(Hojahabitaciones, Filas[I][4], 'Disponible'); }
@@ -322,9 +331,9 @@ function Liberarapartado(Celularcliente, Codigoreserva, Motivo) {
   const Hojareservas = Libro.getSheetByName('Reservas');
   const Hojahabitaciones = Libro.getSheetByName('Habitaciones');
   const Filas = Hojareservas.getDataRange().getValues();
-  const Celularlimpio = String(Celularcliente || '').replace(/\D/g, '');
+  const Celularlimpio = Normalizaridwhatsapp(Celularcliente);
   for (let I = Filas.length - 1; I >= 1; I--) {
-    const Coincide = (Codigoreserva && String(Filas[I][0]).toUpperCase() === String(Codigoreserva).toUpperCase()) || (Celularlimpio && String(Filas[I][3]).replace(/\D/g, '') === Celularlimpio);
+    const Coincide = (Codigoreserva && String(Filas[I][0]).toUpperCase() === String(Codigoreserva).toUpperCase()) || (Celularlimpio && Normalizaridwhatsapp(Filas[I][3]) === Celularlimpio);
     const Est = String(Filas[I][14]);
     if (Coincide && (Est === 'Apartada' || Est === 'Confirmada')) {
       const Nuevoest = Est === 'Confirmada' ? 'Cancelada' : 'Vencida';
@@ -358,9 +367,9 @@ function Cambiarocupacionhabitacion(Hojahabitaciones, Numerohabitacion, Nuevoest
 function Guardardatoshuesped(Celularcliente, Codigoreserva, Nombre, Cedula, Horallegada, Celularcontacto, Parqueadero) {
   const Hojareservas = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Reservas');
   const Filas = Hojareservas.getDataRange().getValues();
-  const Celularlimpio = String(Celularcliente || '').replace(/\D/g, '');
+  const Celularlimpio = Normalizaridwhatsapp(Celularcliente);
   for (let I = Filas.length - 1; I >= 1; I--) {
-    const Coincide = (Codigoreserva && String(Filas[I][0]).toUpperCase() === String(Codigoreserva).toUpperCase()) || (Celularlimpio && String(Filas[I][3]).replace(/\D/g, '') === Celularlimpio);
+    const Coincide = (Codigoreserva && String(Filas[I][0]).toUpperCase() === String(Codigoreserva).toUpperCase()) || (Celularlimpio && Normalizaridwhatsapp(Filas[I][3]) === Celularlimpio);
     const Estado = String(Filas[I][14]);
     if (Coincide && (Estado === 'Apartada' || Estado === 'Verificando' || Estado === 'En canal')) {
       const Nombreconcedula = Cedula ? `${Sanitizarcelda(Nombre || 'Viajero', 70)} (C.C. ${Sanitizarcelda(Cedula, 20)})` : Sanitizarcelda(Nombre || 'Viajero', 80);

@@ -57,143 +57,79 @@ function Extraertextointeraccion(Datosinteraccion) {
 }
 
 // Definicion de funciones disponibles para consulta y apartado
+function Crearherramientaia(Nombre, Descripcion, Propiedades, Requeridos) {
+  const Obj = { type: 'function', name: Nombre, description: Descripcion, parameters: { type: 'object', properties: Propiedades } };
+  if (Requeridos && Requeridos.length) { Obj.parameters.required = Requeridos; }
+  return Obj;
+}
+
 function Obtenerherramientasia() {
   return [
-    {
-      type: 'function',
-      name: 'Consultardisponibilidad',
-      description: 'Lee qué habitaciones están libres en Google Sheets y calcula la tarifa por cantidad de personas.',
-      parameters: {
-        type: 'object',
-        properties: {
-          fechallegada: { type: 'string', description: 'Fecha de llegada YYYY-MM-DD' },
-          fechasalida: { type: 'string', description: 'Fecha de salida YYYY-MM-DD' },
-          cantidadhuespedes: { type: 'integer', description: 'Número de personas (1 a 3)' },
-          camasseparadas: { type: 'boolean', description: 'True si son 2 personas y desean dormir en camas separadas' }
-        },
-        required: ['fechallegada', 'fechasalida']
-      }
-    },
-    {
-      type: 'function',
-      name: 'Apartarhabitacion',
-      description: 'Aparta automáticamente la habitación elegida con su tarifa calculada por persona y uso de camas.',
-      parameters: {
-        type: 'object',
-        properties: {
-          habitacion: { type: 'string', description: 'Número de habitación disponible (01, 02, 04, 05 o 06)' },
-          fechallegada: { type: 'string', description: 'Fecha de llegada YYYY-MM-DD' },
-          fechasalida: { type: 'string', description: 'Fecha de salida YYYY-MM-DD' },
-          cantidadhuespedes: { type: 'integer', description: 'Cantidad de huéspedes (1 a 3)' },
-          camasseparadas: { type: 'boolean', description: 'True si son 2 personas en camas individuales' }
-        },
-        required: ['habitacion', 'fechallegada', 'fechasalida']
-      }
-    },
-    {
-      type: 'function',
-      name: 'Liberarapartado',
-      description: 'Libera la habitación apartada si el cliente desiste o decide no continuar.',
-      parameters: {
-        type: 'object',
-        properties: {
-          codigo: { type: 'string', description: 'Código de la reserva apartada (ej. NS-4K9A)' },
-          motivo: { type: 'string', description: 'Motivo por el que libera' }
-        }
-      }
-    },
-    {
-      type: 'function',
-      name: 'Guardardatoshuesped',
-      description: 'Guarda el nombre completo, cédula de ciudadanía, hora estimada de llegada y teléfono de contacto en la reserva apartada.',
-      parameters: {
-        type: 'object',
-        properties: {
-          codigo: { type: 'string', description: 'Código de reserva (ej. NS-4K9A)' },
-          nombre: { type: 'string', description: 'Nombre completo del huésped' },
-          cedula: { type: 'string', description: 'Número de cédula de ciudadanía' },
-          horallegada: { type: 'string', description: 'Hora estimada de llegada (ej. 8:00 p. m.)' },
-          celularcontacto: { type: 'string', description: 'Número de celular de contacto si el cliente indica uno' },
-          parqueadero: { type: 'string', description: 'Si requiere parqueadero: "No" o detalle de cantidad y tipo de vehículo (ej. "Sí, 1 carro" o "Sí, 2 motos")' }
-        },
-        required: ['nombre', 'cedula']
-      }
-    },
-    {
-      type: 'function',
-      name: 'Enviardatospago',
-      description: 'Devuelve la cuenta de Nequi y el valor exacto a transferir para pago completo por Nequi o pago Mixto (parte Nequi + parte efectivo).',
-      parameters: {
-        type: 'object',
-        properties: {
-          codigo: { type: 'string', description: 'Código de la reserva apartada' },
-          mediopago: { type: 'string', description: '"Nequi" o "Mixto"' },
-          montonequi: { type: 'number', description: 'Si es Mixto, valor en pesos a transferir por Nequi' },
-          montoefectivo: { type: 'number', description: 'Si es Mixto, valor en pesos a pagar en efectivo al llegar' },
-          montobillete: { type: 'number', description: 'Si es Mixto, monto o billete con el que pagará la parte en efectivo (opcional)' }
-        }
-      }
-    },
-    {
-      type: 'function',
-      name: 'Registrarcomprobante',
-      description: 'Guarda los datos leídos de la captura de Nequi para verificarlos contra el correo del banco.',
-      parameters: {
-        type: 'object',
-        properties: {
-          codigo: { type: 'string', description: 'Código de reserva' },
-          monto: { type: 'number', description: 'Monto en pesos colombianos leído de la captura' },
-          referencia: { type: 'string', description: 'Referencia o número de comprobante' },
-          entidad: { type: 'string', description: 'Nequi' },
-          fecha: { type: 'string', description: 'Fecha y hora del comprobante' }
-        },
-        required: ['monto', 'referencia']
-      }
-    },
-    {
-      type: 'function',
-      name: 'Confirmarreservaefectivo',
-      description: 'Confirma directamente una reserva con pago 100% en efectivo al llegar, después de validar el monto con el que pagará y que el cliente confirmó el resumen.',
-      parameters: {
-        type: 'object',
-        properties: {
-          codigo: { type: 'string', description: 'Código de la reserva apartada' },
-          montobillete: { type: 'number', description: 'Monto o billete en pesos con el que pagará en efectivo (ej. 100000)' }
-        },
-        required: ['montobillete']
-      }
-    },
-    {
-      type: 'function',
-      name: 'Solicitaradministrador',
-      description: 'Solicita conexión con un administrador cuando el cliente pide hablar con una persona, son más de 3 personas o tiene un caso especial.',
-      parameters: {
-        type: 'object',
-        properties: {
-          codigo: { type: 'string', description: 'Código de reserva si existe' },
-          motivo: { type: 'string', description: 'Motivo de la solicitud' },
-          resumen: { type: 'string', description: 'Resumen breve de lo conversado con el cliente' }
-        }
-      }
-    },
-    {
-      type: 'function',
-      name: 'Solicitarampliacioncheckout',
-      description: 'Cotiza o registra la ampliación de la hora de salida después de las 11:00 a. m. ($10.000 COP por hora adicional).',
-      parameters: {
-        type: 'object',
-        properties: {
-          codigo: { type: 'string', description: 'Código de la reserva confirmada' },
-          horasalida: { type: 'string', description: 'Hora de salida solicitada (ej. 2:00 p. m. o 14:00)' },
-          mediopago: { type: 'string', description: 'Vacío para cotizar primero; "transferencia" o "efectivo" cuando el huésped elija cómo pagar' }
-        },
-        required: ['horasalida']
-      }
-    }
+    Crearherramientaia('Guardarnombrecliente', 'Guarda el nombre del cliente apenas lo indique para recordarlo en futuras conversaciones.', {
+      nombre: { type: 'string', description: 'Nombre indicado por el cliente' }
+    }, ['nombre']),
+    Crearherramientaia('Consultardisponibilidad', 'Lee qué habitaciones están libres en Google Sheets y calcula la tarifa por cantidad de personas.', {
+      fechallegada: { type: 'string', description: 'Fecha de llegada YYYY-MM-DD' },
+      fechasalida: { type: 'string', description: 'Fecha de salida YYYY-MM-DD' },
+      cantidadhuespedes: { type: 'integer', description: 'Número de personas (1 a 3)' },
+      camasseparadas: { type: 'boolean', description: 'True si son 2 personas y desean camas separadas' }
+    }, ['fechallegada', 'fechasalida']),
+    Crearherramientaia('Apartarhabitacion', 'Aparta automáticamente la habitación elegida con su tarifa calculada por persona y uso de camas.', {
+      habitacion: { type: 'string', description: 'Número de habitación disponible (01, 02, 04, 05 o 06)' },
+      fechallegada: { type: 'string', description: 'Fecha de llegada YYYY-MM-DD' },
+      fechasalida: { type: 'string', description: 'Fecha de salida YYYY-MM-DD' },
+      cantidadhuespedes: { type: 'integer', description: 'Cantidad de huéspedes (1 a 3)' },
+      camasseparadas: { type: 'boolean', description: 'True si son 2 personas en camas individuales' }
+    }, ['habitacion', 'fechallegada', 'fechasalida']),
+    Crearherramientaia('Liberarapartado', 'Libera la habitación apartada si el cliente desiste o cancela.', {
+      codigo: { type: 'string', description: 'Código de la reserva (ej. NS-4K9A)' },
+      motivo: { type: 'string', description: 'Motivo por el que libera' }
+    }),
+    Crearherramientaia('Guardardatoshuesped', 'Guarda nombre completo, cédula de ciudadanía, hora estimada de llegada y contacto en la reserva apartada.', {
+      codigo: { type: 'string', description: 'Código de reserva (ej. NS-4K9A)' },
+      nombre: { type: 'string', description: 'Nombre completo del huésped' },
+      cedula: { type: 'string', description: 'Número de cédula de ciudadanía' },
+      horallegada: { type: 'string', description: 'Hora estimada de llegada (ej. 8:00 p. m.)' },
+      celularcontacto: { type: 'string', description: 'Celular de contacto si indica otro' },
+      parqueadero: { type: 'string', description: 'No, o detalle de vehículos (ej. "Sí, 1 carro")' }
+    }, ['nombre', 'cedula']),
+    Crearherramientaia('Enviardatospago', 'Devuelve la cuenta de Nequi y el valor exacto a transferir para Nequi o pago Mixto.', {
+      codigo: { type: 'string', description: 'Código de la reserva apartada' },
+      mediopago: { type: 'string', description: '"Nequi" o "Mixto"' },
+      montonequi: { type: 'number', description: 'Si es Mixto, pesos por Nequi' },
+      montoefectivo: { type: 'number', description: 'Si es Mixto, pesos en efectivo al llegar' },
+      montobillete: { type: 'number', description: 'Si es Mixto, billete en efectivo (opcional)' }
+    }),
+    Crearherramientaia('Registrarcomprobante', 'Guarda los datos de la captura de Nequi para verificarlos contra el correo del banco.', {
+      codigo: { type: 'string', description: 'Código de reserva' },
+      monto: { type: 'number', description: 'Monto en COP de la captura' },
+      referencia: { type: 'string', description: 'Referencia o número de comprobante' },
+      entidad: { type: 'string', description: 'Nequi' },
+      fecha: { type: 'string', description: 'Fecha y hora del comprobante' }
+    }, ['monto', 'referencia']),
+    Crearherramientaia('Confirmarreservaefectivo', 'Confirma una reserva 100% en efectivo tras validar el monto/billete y confirmación del resumen.', {
+      codigo: { type: 'string', description: 'Código de la reserva apartada' },
+      montobillete: { type: 'number', description: 'Monto o billete con el que pagará en efectivo' }
+    }, ['montobillete']),
+    Crearherramientaia('Solicitaradministrador', 'Solicita conexión con un administrador cuando pide persona, más de 3 huéspedes o caso especial.', {
+      codigo: { type: 'string', description: 'Código de reserva si existe' },
+      motivo: { type: 'string', description: 'Motivo de la solicitud' },
+      resumen: { type: 'string', description: 'Resumen breve de lo conversado con el cliente' }
+    }),
+    Crearherramientaia('Solicitarampliacioncheckout', 'Cotiza o registra ampliación de hora de salida después de las 11:00 a. m. ($10.000 COP/hora).', {
+      codigo: { type: 'string', description: 'Código de la reserva confirmada' },
+      horasalida: { type: 'string', description: 'Hora solicitada (ej. 2:00 p. m.)' },
+      mediopago: { type: 'string', description: 'Vacío para cotizar; "transferencia" o "efectivo" al elegir pago' }
+    }, ['horasalida'])
   ];
 }
 
 function Ejecutarherramientaia(Nombre, Argumentos, Celularcliente) {
+  if (Nombre === 'Guardarnombrecliente') {
+    const Nom = Sanitizarcelda(Argumentos.nombre, 60);
+    if (Nom) { Actualizarconversacion(Celularcliente, { nombre: Nom }); }
+    return { exito: Boolean(Nom), nombre: Nom };
+  }
   if (Nombre === 'Consultardisponibilidad') { return Consultardisponibilidad(Argumentos.fechallegada, Argumentos.fechasalida, Argumentos.cantidadhuespedes, Argumentos.camasseparadas); }
   if (Nombre === 'Apartarhabitacion') { return Apartarhabitacion(Celularcliente, Argumentos.habitacion, Argumentos.fechallegada, Argumentos.fechasalida, Argumentos.cantidadhuespedes, 'WhatsApp', Argumentos.camasseparadas); }
   if (Nombre === 'Liberarapartado') { return Liberarapartado(Celularcliente, Argumentos.codigo, Argumentos.motivo); }
@@ -206,11 +142,22 @@ function Ejecutarherramientaia(Nombre, Argumentos, Celularcliente) {
   return { exito: false, mensaje: 'Herramienta no reconocida' };
 }
 
-function Procesarmensajecongemini(Celularcliente, Textomensaje) {
+function Procesarmensajecongemini(Celularcliente, Textomensaje, Contexto) {
   const Credenciales = Obtenercredenciales();
   const Estadoconv = Obtenerestadoconversacion(Celularcliente);
-  const Esprimermensaje = !Estadoconv.idinteraccionia;
+  const Ctx = Contexto || {};
+  const Modoprevio = Ctx.modoprevio || Estadoconv.modo;
+  const Nombrerecordado = Ctx.nombrerecordado !== undefined ? Ctx.nombrerecordado : (Estadoconv.nombre || '');
+  const Nombrevalido = Nombrerecordado && !/^(cliente|viajero|por confirmar)$/i.test(Nombrerecordado.trim()) ? Nombrerecordado.trim() : '';
+  const Sesionnueva = Ctx.sesionnueva !== undefined ? Ctx.sesionnueva : !Estadoconv.idinteraccionia;
   const Hoy = Utilities.formatDate(new Date(), Parametrosistema.zonahoraria, 'yyyy-MM-dd');
+
+  let Reglacontexto = '';
+  if (Modoprevio === 'PostCanal') {
+    Reglacontexto = `\nATENCIÓN POST-CANAL: El canal con el administrador acaba de cerrarse por inactividad y se preguntó a ${Nombrevalido || 'el cliente'} si concretó reserva con el administrador. Procesa su respuesta: si confirmó que sí reservó, felicítalo y pregunta si requiere indicaciones de llegada o algo adicional; si no concretó o desea continuar, ofrece consultar disponibilidad o iniciar una nueva reserva.`;
+  } else if (Sesionnueva && Nombrevalido) {
+    Reglacontexto = `\nMEMORIA DE CLIENTE RECURRENTE: Este número ya escribió anteriormente y su nombre es "${Nombrevalido}". NO pidas el nombre ni uses el saludo de primera vez. Saluda exactamente con: "Hola ${Primernombre(Nombrevalido)}, un gusto atenderte nuevamente, ¿en qué te puedo ayudar el día de hoy?" (si ya hizo una pregunta en este mensaje, respóndela justo después del saludo).`;
+  }
 
   const Instruccionessistema =
     `Actúas como la recepcionista humana, cálida, cercana y servicial de Hospedaje Nissi en Mingueo, Dibulla, La Guajira. Hoy es ${Hoy}. Hablas en español colombiano natural y respetuoso.\n` +
@@ -219,8 +166,8 @@ function Procesarmensajecongemini(Celularcliente, Textomensaje) {
     `1 persona = $55.000/noche (aplica incluso en habitaciones de 2 o 3 personas); 2 personas = $70.000/noche si comparten la cama doble/queen, o $90.000/noche si usan cada uno su cama individual (solo en habs. 01, 02 y 06; las habs. 04 y 05 tienen 1 cama doble a $70.000); 3 personas = $110.000/noche.\n` +
     `MÁS DE 3 PERSONAS: Si el cliente pide para más de 3 personas, NO consultes habitaciones ni apartes nada; respóndele exactamente en este tono: "Entiendo, [Nombre]. Para este caso debo comunicarte con un administrador, si quieres puedo comunicarte ahora mismo." Si confirma que sí, ejecuta Solicitaradministrador y no escribas texto adicional.\n` +
     `PASOS DE RESERVA:\n` +
-    `1) Primer mensaje: "¡Hola! ¿Cómo estás? Hablas con la recepción del Hospedaje Nissi en Mingueo 😊 ¿Me puedes indicar tu nombre, por favor?".\n` +
-    `2) Salúdalo por su nombre, dile: "Para continuar con la conversación te informo que tus datos personales se tratarán conforme a la Ley 1581 de 2012 para gestionar tu reserva." y pregúntale cuántas personas son, fechas de llegada y salida, y si requiere parqueadero. Si dice NO al parqueadero, no preguntes más de vehículos; si dice SÍ, pregunta tipo y cantidad de vehículos.\n` +
+    `1) Primer mensaje (solo si NO hay memoria previa): "¡Hola! ¿Cómo estás? Hablas con la recepción del Hospedaje Nissi en Mingueo 😊 ¿Me puedes indicar tu nombre, por favor?".\n` +
+    `2) Apenas el cliente diga su nombre por primera vez, llama INMEDIATAMENTE a Guardarnombrecliente(nombre), salúdalo por su nombre, dile: "Para continuar con la conversación te informo que tus datos personales se tratarán conforme a la Ley 1581 de 2012 para gestionar tu reserva." y pregúntale cuántas personas son, fechas de llegada y salida, y si requiere parqueadero. Si dice NO al parqueadero, no preguntes más de vehículos; si dice SÍ, pregunta tipo y cantidad de vehículos.\n` +
     `3) Con fechas, personas (1 a 3) y parqueadero listo, llama a Consultardisponibilidad. Si son 2 personas y están libres 01, 02 o 06, explícales ambas opciones ($70.000 compartiendo cama / $90.000 camas separadas) y pregunta qué prefieren antes de apartar.\n` +
     `4) Al elegir habitación (y tipo de camas si aplica), llama a Apartarhabitacion y responde: "¡Listo, [Nombre]! Te aparté la habitación XX, con el código NS-XXXX. Para continuar dime tu nombre completo, cédula de ciudadanía, hora estimada de llegada y número de contacto."\n` +
     `5) Guarda con Guardardatoshuesped (incluyendo parqueadero) y pregunta el medio de pago. El hospedaje SOLO acepta: Nequi, Efectivo o Mixto (una parte por Nequi y otra en Efectivo).\n` +
@@ -228,7 +175,7 @@ function Procesarmensajecongemini(Celularcliente, Textomensaje) {
     `PAGO POR NEQUI O MIXTO: Si elige Nequi 100%, llama a Enviardatospago(mediopago:"Nequi") y pídele enviar la captura del comprobante aquí. Si elige Mixto, pregúntale cuánto pagará ahora por Nequi, cuánto pagará en efectivo al llegar (validando que sume el total) y con qué monto pagará la parte en efectivo para tener cambio; luego llama a Enviardatospago(mediopago:"Mixto", montonequi, montoefectivo, montobillete) y pídele enviar la captura de la parte por Nequi.\n` +
     `CANCELACIÓN: Si un huésped pide cancelar o desistir de su reserva, usa Liberarapartado.\n` +
     `CHECK-OUT (11:00 a. m.): Cada hora adicional vale $10.000 COP. Si quiere ampliar su salida, usa Solicitarampliacioncheckout primero sin mediopago para cotizar y preguntar si paga por Nequi ya o en efectivo al salir; luego llama de nuevo con mediopago.\n` +
-    `Nunca inventes precios ni disponibilidad y nunca confirmes reservas sin usar las herramientas.`;
+    `Nunca inventes precios ni disponibilidad y nunca confirmes reservas sin usar las herramientas.${Reglacontexto}`;
 
   const Herramientas = Obtenerherramientasia();
   const Cuerpopeticion = {
@@ -321,7 +268,12 @@ function doPost(Eventopeticion) {
         return ContentService.createTextOutput('OK');
       }
 
-      const Remitente = String(Mensaje.from || '').replace(/\D/g, '');
+      const Contacto = (Valor.contacts && Valor.contacts[0]) || {};
+      const Remitente = Normalizaridwhatsapp(Mensaje.from || Contacto.wa_id || Mensaje.from_user_id || Mensaje.user_id || Contacto.user_id);
+      if (!Remitente) {
+        Registrarbitacora('Webhook', 'SinRemitente', JSON.stringify(Valor).slice(0, 450));
+        return ContentService.createTextOutput('OK');
+      }
       const Credenciales = Obtenercredenciales();
 
       // Si escribe el administrador desde su WhatsApp personal
@@ -334,18 +286,23 @@ function doPost(Eventopeticion) {
       const Estadoconv = Obtenerestadoconversacion(Remitente);
       const Ultimoms = Estadoconv.ultimomensajecliente ? new Date(Estadoconv.ultimomensajecliente).getTime() : 0;
       const Inactivo2h = Ultimoms > 0 && (Date.now() - Ultimoms) > 2 * 3600000;
+      const Modoprevio = Estadoconv.modo;
+      const Nombrerecordado = Estadoconv.nombre || '';
+      const Reiniciarporcambio = Modoprevio === 'PostCanal' || Modoprevio === 'PendienteContacto' || Modoprevio === 'Finalizado';
+      const Sesionnueva = !Estadoconv.idinteraccionia || Inactivo2h || Reiniciarporcambio;
       const Camposconv = { ultimomensajecliente: Formatearfechahora(new Date()) };
-      if (Inactivo2h && Estadoconv.modo !== 'Canal' && Estadoconv.modo !== 'PendienteAdmin') { Camposconv.idinteraccionia = ''; }
+      if (Reiniciarporcambio) { Camposconv.modo = 'IA'; Camposconv.aperturacanal = ''; Camposconv.idinteraccionia = ''; }
+      else if (Inactivo2h && Modoprevio !== 'Canal' && Modoprevio !== 'PendienteAdmin') { Camposconv.idinteraccionia = ''; }
       Actualizarconversacion(Remitente, Camposconv);
 
       // Si el cliente esta esperando al administrador o ya tiene canal abierto, la IA no responde
-      if (Estadoconv.modo === 'Canal' || Estadoconv.modo === 'PendienteAdmin') {
+      if (Modoprevio === 'Canal' || Modoprevio === 'PendienteAdmin') {
         Procesarmensajeclienteencanal(Remitente, Mensaje);
         return ContentService.createTextOutput('OK');
       }
 
       if (Mensaje.type === 'text' && Mensaje.text) {
-        const Respuestabot = Procesarmensajecongemini(Remitente, Mensaje.text.body);
+        const Respuestabot = Procesarmensajecongemini(Remitente, Mensaje.text.body, { modoprevio: Modoprevio, nombrerecordado: Nombrerecordado, sesionnueva: Sesionnueva });
         if (Respuestabot) {
           Enviarmensajewhatsapp(Remitente, Respuestabot);
         }
