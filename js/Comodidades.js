@@ -19,7 +19,7 @@ const Tarjetasdescanso = [
   {
     numero: 'iv.',
     titulo: 'Parqueadero',
-    descripcion: 'Espacio para tu carro o moto mientras descansas.'
+    descripcion: 'Espacio amplio para motos, carros y vehículos grandes mientras descansas.'
   }
 ];
 

@@ -1,4 +1,4 @@
-// Validación de datos del huésped, fechas, enlaces y generación de códigos
+// Validación de datos del huésped, cédula y celular de Colombia, fechas y códigos
 
 function Sanitizartexto(Texto, Longitudmaxima) {
   const Limite = Longitudmaxima || 120;
@@ -30,14 +30,41 @@ function Validarcorreoelectronico(Correotexto) {
   return Patrontipico.test((Correotexto || '').trim());
 }
 
+function Normalizarcelularcolombianocliente(Celulartexto) {
+  const Crudo = String(Celulartexto == null ? '' : Celulartexto).trim();
+  if (!Crudo || /[A-Za-z]/.test(Crudo)) {
+    return '';
+  }
+  let Digitos = Crudo.replace(/\D/g, '');
+  if (Digitos.length === 12 && Digitos.indexOf('573') === 0) {
+    Digitos = Digitos.slice(2);
+  }
+  if (!/^3\d{9}$/.test(Digitos) || /^3(\d)\1{8}$/.test(Digitos)) {
+    return '';
+  }
+  if (Digitos === '3123456789' || Digitos === '3012345678') {
+    return '';
+  }
+  return Digitos;
+}
+
 function Validarnumerocelular(Celulartexto) {
-  const Solodigitos = (Celulartexto || '').replace(/\D/g, '');
-  return Solodigitos.length >= 7 && Solodigitos.length <= 13;
+  return Boolean(Normalizarcelularcolombianocliente(Celulartexto));
 }
 
 function Validarcedulacolombiana(Cedulatexto) {
-  const Solodigitos = String(Cedulatexto || '').replace(/\D/g, '');
-  return /^[1-9]\d{5,9}$/.test(Solodigitos);
+  const Sinprefijo = String(Cedulatexto == null ? '' : Cedulatexto)
+    .trim()
+    .replace(/^c\.?\s*c\.?\s*:?\s*/i, '')
+    .replace(/[\s.\-]/g, '');
+  if (!/^([1-9]\d{5,7}|1\d{9})$/.test(Sinprefijo)) {
+    return false;
+  }
+  if (/^(\d)\1{5,}$/.test(Sinprefijo)) {
+    return false;
+  }
+  const Secuenciasinvalidas = ['123456', '1234567', '12345678', '1234567890', '1000000000'];
+  return Secuenciasinvalidas.indexOf(Sinprefijo) === -1;
 }
 
 function Formatearfechalocal(Fecha) {

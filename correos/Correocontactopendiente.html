@@ -6,110 +6,79 @@
 <meta name="x-apple-disable-message-reformatting">
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
-<title>Contacto pendiente · Hospedaje Nissi</title>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<title>URGENTE · Contacto pendiente · Hospedaje Nissi</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=Hanken+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  body { margin: 0; padding: 0; width: 100% !important; background: #E7DCC6; -webkit-text-size-adjust: 100%; }
+  body { margin: 0; padding: 0; width: 100% !important; background: #F5E6E4; -webkit-text-size-adjust: 100%; }
   table { border-collapse: collapse; }
   img { border: 0; display: block; outline: none; }
   a { text-decoration: none; }
   @media only screen and (max-width: 620px) {
     .contenedor { width: 100% !important; }
     .px { padding-left: 20px !important; padding-right: 20px !important; }
-    .titular { font-size: 34px !important; line-height: 36px !important; }
+    .titular { font-size: 32px !important; line-height: 35px !important; }
   }
 </style>
 </head>
-<body style="margin:0;padding:0;background:#E7DCC6;">
+<body style="margin:0;padding:0;background:#F5E6E4;">
 
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">Contacto pendiente de {{NOMBRE}} ({{CELULAR}}) · Comando: {{COMANDOABRIR}}</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">URGENTE: {{NOMBRE}} ({{CELULAR}}) espera atención inmediata (+15 min) · Comando: {{COMANDOABRIR}}</div>
 
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#E7DCC6" style="background:#E7DCC6;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F5E6E4" style="background:#F5E6E4;">
   <tr>
-    <td align="center" style="padding:32px 12px;">
-      <table role="presentation" class="contenedor" width="640" cellpadding="0" cellspacing="0" border="0" style="width:640px;max-width:640px;">
+    <td align="center" style="padding:28px 12px;">
+      <table role="presentation" class="contenedor" width="640" cellpadding="0" cellspacing="0" border="0" style="width:640px;max-width:640px;border:2px solid #B91C1C;border-radius:22px;overflow:hidden;">
 
-        <!-- Encabezado -->
+        <!-- Franja de prioridad critica -->
         <tr>
-          <td bgcolor="#1A1C13" class="px" style="background:#1A1C13;padding:28px 40px 8px;border-radius:24px 24px 0 0;">
+          <td bgcolor="#DC2626" class="px" align="center" style="background:#DC2626;padding:11px 24px;border-radius:20px 20px 0 0;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:15px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#FFFFFF;">
+            ATENCIÓN URGENTE &nbsp;·&nbsp; CLIENTE ESPERANDO RESPUESTA &nbsp;·&nbsp; +15 MIN
+          </td>
+        </tr>
+
+        <!-- Encabezado de alerta -->
+        <tr>
+          <td bgcolor="#260B0B" class="px" style="background:#260B0B;padding:24px 40px 8px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td valign="middle" width="40" style="width:40px;">
                   <img src="https://hospedaje-nissi-mingueo.web.app/assets/nissi-mark.png" width="40" height="35" alt="Nissi" style="width:40px;height:35px;">
                 </td>
-                <td valign="middle" style="padding-left:12px;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-size:20px;line-height:24px;color:#F2EADB;">Hospedaje Nissi</td>
-                <td valign="middle" align="right" style="font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:10px;line-height:14px;letter-spacing:3px;text-transform:uppercase;color:#BDB49F;">Atención pendiente</td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-
-        <!-- Titular -->
-        <tr>
-          <td bgcolor="#1A1C13" class="px" style="background:#1A1C13;padding:34px 40px 38px;">
-            <p style="margin:0 0 14px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;letter-spacing:3px;text-transform:uppercase;color:#BDB49F;">
-              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E08A44;vertical-align:middle;"></span>&nbsp;&nbsp;Cliente sin respuesta tras 15 min · {{CODIGO}}
-            </p>
-            <h1 class="titular" style="margin:0;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-weight:300;font-size:44px;line-height:46px;letter-spacing:-1px;color:#F2EADB;">
-              Contacto <em style="font-style:italic;color:#E7DCC6;">pendiente</em>
-            </h1>
-            <p style="margin:14px 0 0;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#BDB49F;">Solicitud recibida el {{FECHA}} · Tiempo máximo de espera superado</p>
-          </td>
-        </tr>
-
-        <!-- Resumen y requerimiento -->
-        <tr>
-          <td bgcolor="#F2EADB" class="px" style="background:#F2EADB;padding:32px 40px 0;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#8C3B1F" style="background:#8C3B1F;border-radius:20px;">
-              <tr>
-                <td style="padding:26px 30px;">
-                  <p style="margin:0;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;letter-spacing:3px;text-transform:uppercase;color:#E7DCC6;">Requerimiento del cliente</p>
-                  <p style="margin:8px 0 0;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-weight:400;font-size:24px;line-height:29px;color:#F2EADB;">{{MOTIVO}}</p>
-                  <p style="margin:16px 0 6px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;letter-spacing:2px;text-transform:uppercase;color:#E7DCC6;">Resumen de la conversación</p>
-                  <p style="margin:0;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:21px;color:#F2EADB;">{{RESUMEN}}</p>
+                <td valign="middle" style="padding-left:12px;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-size:20px;line-height:24px;color:#FFF5F5;">Hospedaje Nissi</td>
+                <td valign="middle" align="right">
+                  <span style="display:inline-block;padding:6px 14px;border-radius:999px;background:#DC2626;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FFFFFF;">URGENTE</span>
                 </td>
               </tr>
             </table>
           </td>
         </tr>
 
-        <!-- Datos del cliente -->
+        <!-- Titular urgente -->
         <tr>
-          <td bgcolor="#F2EADB" class="px" style="background:#F2EADB;padding:28px 40px 0;">
-            <p style="margin:0 0 6px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;letter-spacing:3px;text-transform:uppercase;color:#5A5C4E;">Contexto para administración</p>
-            <h2 style="margin:0 0 16px;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-weight:300;font-size:28px;line-height:32px;color:#1A1C13;">Datos del <em style="font-style:italic;color:#8C3B1F;">cliente.</em></h2>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#1A1C13;">
-              <tr>
-                <td width="42%" style="padding:12px 0;border-top:1px solid #D9CDB5;color:#5A5C4E;">Nombre</td>
-                <td align="right" style="padding:12px 0;border-top:1px solid #D9CDB5;font-weight:600;">{{NOMBRE}}</td>
-              </tr>
-              <tr>
-                <td style="padding:12px 0;border-top:1px solid #D9CDB5;color:#5A5C4E;">WhatsApp / ID</td>
-                <td align="right" style="padding:12px 0;border-top:1px solid #D9CDB5;font-weight:600;">{{CELULAR}}</td>
-              </tr>
-              <tr>
-                <td style="padding:12px 0;border-top:1px solid #D9CDB5;color:#5A5C4E;">Código de referencia</td>
-                <td align="right" style="padding:12px 0;border-top:1px solid #D9CDB5;font-weight:600;">{{CODIGO}}</td>
-              </tr>
-              <tr>
-                <td style="padding:12px 0;border-top:1px solid #D9CDB5;border-bottom:1px solid #D9CDB5;color:#5A5C4E;">Habitación / Estadía</td>
-                <td align="right" style="padding:12px 0;border-top:1px solid #D9CDB5;border-bottom:1px solid #D9CDB5;font-weight:600;">Hab. {{HABITACION}} · {{FECHASESTADIA}} · {{PERSONAS}}</td>
-              </tr>
-            </table>
+          <td bgcolor="#260B0B" class="px" style="background:#260B0B;padding:22px 40px 32px;">
+            <p style="margin:0 0 12px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:#FCA5A5;">
+              <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#EF4444;vertical-align:middle;"></span>&nbsp;&nbsp;ESPERA VENCIDA SIN ADMINISTRADOR · {{CODIGO}}
+            </p>
+            <h1 class="titular" style="margin:0;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-weight:400;font-size:40px;line-height:43px;letter-spacing:-0.8px;color:#FFFFFF;">
+              Requiere atención <em style="font-style:italic;color:#FCA5A5;">inmediata</em>
+            </h1>
+            <p style="margin:12px 0 0;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#FECACA;">
+              <strong>{{NOMBRE}}</strong> ({{CELULAR}}) espera respuesta desde {{FECHA}} tras superar el límite de 15 minutos.
+            </p>
           </td>
         </tr>
 
-        <!-- Comando copiar y pegar -->
+        <!-- Accion inmediata prioritaria -->
         <tr>
-          <td bgcolor="#F2EADB" class="px" style="background:#F2EADB;padding:28px 40px 40px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#E7DCC6" style="background:#E7DCC6;border-radius:18px;">
+          <td bgcolor="#FFFFFF" class="px" style="background:#FFFFFF;padding:28px 40px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#FFF5F5" style="background:#FFF5F5;border:2px solid #DC2626;border-radius:16px;">
               <tr>
                 <td style="padding:22px 24px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;">
-                  <p style="margin:0 0 8px;font-size:11px;line-height:14px;letter-spacing:2px;text-transform:uppercase;color:#5A5C4E;">Cómo contactar al cliente</p>
-                  <p style="margin:0 0 14px;font-size:14px;line-height:20px;color:#1A1C13;">Para contactar al cliente, abre el chat de Hospedaje Nissi desde tu WhatsApp de administrador y escribe exactamente el siguiente comando:</p>
-                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1A1C13" style="background:#1A1C13;border-radius:12px;">
+                  <p style="margin:0 0 6px;font-size:11px;line-height:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#B91C1C;">Acción inmediata · Responder ahora</p>
+                  <p style="margin:0 0 12px;font-size:14px;line-height:20px;color:#1F1212;">Abre tu chat de administrador con <strong>Hospedaje Nissi</strong> en WhatsApp y envía exactamente este comando para conectarte directo con <strong>{{NOMBRE}}</strong>:</p>
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#180808" style="background:#180808;border-radius:10px;">
                     <tr>
-                      <td style="padding:14px 18px;font-family:'Courier New',Courier,monospace;font-size:15px;line-height:22px;font-weight:600;color:#F2EADB;word-break:break-all;">{{COMANDOABRIR}}</td>
+                      <td style="padding:14px 18px;font-family:'Courier New',Courier,monospace;font-size:16px;line-height:22px;font-weight:700;color:#FFFFFF;word-break:break-all;">{{COMANDOABRIR}}</td>
                     </tr>
                   </table>
                 </td>
@@ -118,11 +87,52 @@
           </td>
         </tr>
 
+        <!-- Requerimiento critico -->
+        <tr>
+          <td bgcolor="#FFFFFF" class="px" style="background:#FFFFFF;padding:22px 40px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#991B1B" style="background:#991B1B;border-radius:18px;">
+              <tr>
+                <td style="padding:24px 28px;">
+                  <p style="margin:0;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#FECACA;">Motivo urgente reportado</p>
+                  <p style="margin:8px 0 0;font-family:'Newsreader',Georgia,'Times New Roman',serif;font-weight:400;font-size:23px;line-height:28px;color:#FFFFFF;">{{MOTIVO}}</p>
+                  <p style="margin:14px 0 6px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FECACA;">Último resumen del chat</p>
+                  <p style="margin:0;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:21px;color:#FFF5F5;">{{RESUMEN}}</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Ficha rapida del cliente -->
+        <tr>
+          <td bgcolor="#FFFFFF" class="px" style="background:#FFFFFF;padding:24px 40px 32px;">
+            <p style="margin:0 0 12px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;line-height:14px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#991B1B;">Ficha del huésped en espera</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;color:#1F1212;">
+              <tr>
+                <td width="42%" style="padding:11px 0;border-top:1px solid #F3DCDC;color:#6B4A4A;">Huésped</td>
+                <td align="right" style="padding:11px 0;border-top:1px solid #F3DCDC;font-weight:700;">{{NOMBRE}}</td>
+              </tr>
+              <tr>
+                <td style="padding:11px 0;border-top:1px solid #F3DCDC;color:#6B4A4A;">Celular / WhatsApp</td>
+                <td align="right" style="padding:11px 0;border-top:1px solid #F3DCDC;font-weight:700;color:#991B1B;">{{CELULAR}}</td>
+              </tr>
+              <tr>
+                <td style="padding:11px 0;border-top:1px solid #F3DCDC;color:#6B4A4A;">Código</td>
+                <td align="right" style="padding:11px 0;border-top:1px solid #F3DCDC;font-weight:700;">{{CODIGO}}</td>
+              </tr>
+              <tr>
+                <td style="padding:11px 0;border-top:1px solid #F3DCDC;border-bottom:1px solid #F3DCDC;color:#6B4A4A;">Habitación / Estadía</td>
+                <td align="right" style="padding:11px 0;border-top:1px solid #F3DCDC;border-bottom:1px solid #F3DCDC;font-weight:700;">Hab. {{HABITACION}} · {{FECHASESTADIA}} · {{PERSONAS}}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
         <!-- Pie -->
         <tr>
-          <td bgcolor="#1A1C13" class="px" style="background:#1A1C13;padding:24px 40px;border-radius:0 0 24px 24px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:12px;line-height:19px;color:#BDB49F;">
-            Alerta automática de atención pendiente · <span style="color:#F2EADB;">Hospedaje Nissi</span>, Mingueo, La Guajira.<br>
-            El cliente ya fue informado y queda atento en su chat de WhatsApp.
+          <td bgcolor="#260B0B" class="px" style="background:#260B0B;padding:20px 40px;border-radius:0 0 20px 20px;font-family:'Hanken Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#FECACA;">
+            Alerta prioritaria automática · <strong style="color:#FFFFFF;">Hospedaje Nissi</strong>, Mingueo, La Guajira.<br>
+            El cliente ya recibió aviso de demora; contáctalo cuanto antes desde WhatsApp.
           </td>
         </tr>
 

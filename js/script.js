@@ -160,15 +160,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return Mostrarmensajeerror('Escribe tu nombre.');
       }
       if (!Validarcedulacolombiana(Cedulalimpia)) {
-        return Mostrarmensajeerror('Ingresa una cédula colombiana válida (6 a 10 dígitos).');
+        return Mostrarmensajeerror('Ingresa una cédula colombiana válida (6 a 8 dígitos, o 10 dígitos iniciando en 1).');
       }
       if (!Validarnumerocelular(Celularlimpio)) {
-        return Mostrarmensajeerror('Escribe un celular válido.');
+        return Mostrarmensajeerror('Ingresa un celular colombiano válido de 10 dígitos (ej. 3001234567).');
       }
 
       Estadoaplicacion.nombreviajero = Nombrelimpio;
       Estadoaplicacion.cedulaviajero = Cedulalimpia.replace(/\D/g, '');
-      Estadoaplicacion.celularviajero = Celularlimpio;
+      Estadoaplicacion.celularviajero = Normalizarcelularcolombianocliente(Celularlimpio) || Celularlimpio;
       Estadoaplicacion.horallegada = Horalimpia;
       Estadoaplicacion.codigoreserva = Generarcodigoreserva();
 

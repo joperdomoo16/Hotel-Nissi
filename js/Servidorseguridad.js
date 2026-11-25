@@ -1,4 +1,4 @@
-// Seguridad del servidor: autenticación de recepción, tokens efímeros, límites de tasa y validación estricta
+// Seguridad del servidor: autenticación de recepción, tokens efímeros y validaciones de Colombia
 
 const Hashpinpredeterminado = '9baed8fceea6e36d36670d72429d909547165efc038c293a14a41ef2edf83141';
 const Habitacioneshabilitadas = ['01', '02', '04', '05', '06'];
@@ -27,6 +27,69 @@ function Comparartiempoconstante(Textoizq, Textoder) {
 function Generarcodigoreservaservidor() {
   const Sufijo = Utilities.getUuid().replace(/-/g, '').toUpperCase().slice(0, 6);
   return `NS-${Sufijo}`;
+}
+
+function Normalizarcelularcolombiano(Valor) {
+  const Crudo = String(Valor == null ? '' : Valor).trim();
+  if (!Crudo || /[A-Za-z]/.test(Crudo)) {
+    return '';
+  }
+  let Digitos = Crudo.replace(/\D/g, '');
+  if (Digitos.length === 12 && Digitos.indexOf('573') === 0) {
+    Digitos = Digitos.slice(2);
+  }
+  if (!/^3\d{9}$/.test(Digitos) || /^3(\d)\1{8}$/.test(Digitos)) {
+    return '';
+  }
+  if (Digitos === '3123456789' || Digitos === '3012345678') {
+    return '';
+  }
+  return Digitos;
+}
+
+function Normalizarcedulacolombiana(Valor) {
+  const Sinprefijo = String(Valor == null ? '' : Valor)
+    .trim()
+    .replace(/^c\.?\s*c\.?\s*:?\s*/i, '')
+    .replace(/[\s.\-]/g, '');
+  if (!/^([1-9]\d{5,7}|1\d{9})$/.test(Sinprefijo)) {
+    return '';
+  }
+  if (/^(\d)\1{5,}$/.test(Sinprefijo)) {
+    return '';
+  }
+  const Secuenciasinvalidas = ['123456', '1234567', '12345678', '1234567890', '1000000000'];
+  if (Secuenciasinvalidas.indexOf(Sinprefijo) !== -1) {
+    return '';
+  }
+  return Sinprefijo;
+}
+
+function Tieneapellidonombre(Nombre) {
+  const Limpio = String(Nombre == null ? '' : Nombre)
+    .replace(/[<>]/g, '')
+    .trim();
+  if (!Limpio || /^(cliente|viajero|por confirmar|administrador)$/i.test(Limpio)) {
+    return false;
+  }
+  const Palabras = Limpio.split(/\s+/).filter(function(P) { return P.length >= 2; });
+  return Palabras.length >= 2;
+}
+
+function Combinarnombreyapellido(Nombreprevio, Nombrenuevo) {
+  const Previo = Sanitizarcelda(Nombreprevio || '', 60);
+  const Nuevo = Sanitizarcelda(Nombrenuevo || '', 80);
+  const Previovalido = Previo && !/^(cliente|viajero|por confirmar|administrador)$/i.test(Previo) ? Previo : '';
+  if (!Nuevo) {
+    return Previovalido;
+  }
+  if (Tieneapellidonombre(Nuevo)) {
+    return Nuevo;
+  }
+  if (Previovalido && !Tieneapellidonombre(Previovalido) && Previovalido.toLowerCase() !== Nuevo.toLowerCase()) {
+    return Sanitizarcelda(`${Previovalido} ${Nuevo}`, 80);
+  }
+  return Nuevo;
 }
 
 function Obtenerhashpinadmin() {
@@ -147,16 +210,17 @@ function Validarreservaentrada(Datos, Autorizadoadmin) {
     return { exito: false, mensaje: 'La cantidad de huéspedes permitida es de 1 a 3 personas.' };
   }
   const Nombre = Sanitizarcelda(Datos.nombre, 80);
-  const Celular = String(Datos.celular || '').replace(/\D/g, '');
-  const Cedula = String(Datos.cedula || '').replace(/\D/g, '');
+  const Celular = Normalizarcelularcolombiano(Datos.celular);
+  const Cedulacruda = String(Datos.cedula || '').trim();
+  const Cedula = Cedulacruda ? Normalizarcedulacolombiana(Cedulacruda) : '';
   if (!Nombre) {
     return { exito: false, mensaje: 'El nombre del huésped es obligatorio.' };
   }
-  if (Celular.length < 7 || Celular.length > 13) {
-    return { exito: false, mensaje: 'Ingresa un número de celular válido.' };
+  if (!Celular) {
+    return { exito: false, mensaje: 'Ingresa un celular colombiano válido de 10 dígitos (ej. 3001234567).' };
   }
-  if (Cedula && !/^[1-9]\d{5,9}$/.test(Cedula)) {
-    return { exito: false, mensaje: 'Ingresa una cédula colombiana válida (6 a 10 dígitos).' };
+  if (Cedulacruda && !Cedula) {
+    return { exito: false, mensaje: 'Ingresa una cédula colombiana válida (6 a 8 dígitos, o 10 dígitos iniciando en 1).' };
   }
   if (!Autorizadoadmin && !Cedula) {
     return { exito: false, mensaje: 'La cédula de ciudadanía es obligatoria.' };

@@ -218,8 +218,8 @@ function Guardarcheckinpresencial(Evento) {
   const Montopago = Esmixto ? (Montonequi + Montoefectivo) : Math.max(0, parseInt(document.getElementById('checkinPago').value, 10) || 0);
 
   if (!Nombre) { if (Errorbox) Errorbox.textContent = 'Escribe el nombre del huésped.'; return; }
-  if (!Validarcedulacolombiana(Cedula)) { if (Errorbox) Errorbox.textContent = 'Ingresa una cédula colombiana válida (6 a 10 dígitos).'; return; }
-  if (!Validarnumerocelular(Celular)) { if (Errorbox) Errorbox.textContent = 'Escribe un celular válido de contacto.'; return; }
+  if (!Validarcedulacolombiana(Cedula)) { if (Errorbox) Errorbox.textContent = 'Ingresa una cédula colombiana válida (6 a 8 dígitos, o 10 dígitos iniciando en 1).'; return; }
+  if (!Validarnumerocelular(Celular)) { if (Errorbox) Errorbox.textContent = 'Ingresa un celular colombiano válido de 10 dígitos (ej. 3001234567).'; return; }
   if (!Validarrangofechas(Llegada, Salida)) { if (Errorbox) Errorbox.textContent = 'La fecha de salida debe ser posterior a la fecha de llegada.'; return; }
   if (Esmixto && (Montonequi <= 0 || Montoefectivo <= 0)) {
     if (Errorbox) Errorbox.textContent = 'En pago mixto debes escribir cuánto pagó por Nequi y cuánto en efectivo (ambos mayores a 0).';
@@ -227,13 +227,14 @@ function Guardarcheckinpresencial(Evento) {
   }
   if (Errorbox) Errorbox.textContent = '';
 
+  const Celularnormalizado = Normalizarcelularcolombianocliente(Celular) || Celular;
   const Codigo = Generarcodigoreserva();
   const Botonguardar = document.getElementById('btnGuardarCheckin');
   if (Botonguardar) { Botonguardar.disabled = true; Botonguardar.textContent = 'Registrando...'; }
 
   const Solicitud = {
     codigo: Codigo, fecharegistro: Formatearfechalocal(new Date()), nombre: Nombre,
-    cedula: Cedula.replace(/\D/g, ''), celular: Celular, habitacion: Hab.numero,
+    cedula: Cedula.replace(/\D/g, ''), celular: Celularnormalizado, habitacion: Hab.numero,
     llegada: Llegada, salida: Salida, noches: Calcularnochesestadia(Llegada, Salida) || 1,
     huespedes: Huespedes, camasseparadas: Camasseparadas, horallegada: 'Check-in presencial',
     montopagado: Montopago,
