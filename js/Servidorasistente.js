@@ -11,45 +11,6 @@ function Evitarmensajerepetido(Idmensaje) {
   return false;
 }
 
-function Analizarcomprobanteimagen(Idimagenwhatsapp) {
-  const Idlimpio = String(Idimagenwhatsapp || '').trim();
-  if (!/^[A-Za-z0-9_-]{5,120}$/.test(Idlimpio)) {
-    return { escomprobante: false, detalle: 'Identificador de imagen no válido.' };
-  }
-  const Credenciales = Obtenercredenciales();
-  const Respuestameta = UrlFetchApp.fetch(`https://graph.facebook.com/v25.0/${encodeURIComponent(Idlimpio)}`, {
-    headers: { Authorization: `Bearer ${Credenciales.tokenwhatsapp}` }
-  });
-  const Datosmeta = JSON.parse(Respuestameta.getContentText());
-  if (!Datosmeta || !Esurlmediameta(Datosmeta.url)) {
-    Registrarbitacora('Seguridad', 'UrlMediaRechazada', 'URL de descarga fuera de dominios autorizados.');
-    return { escomprobante: false, detalle: 'Origen de imagen no autorizado.' };
-  }
-  const Descargaimagen = UrlFetchApp.fetch(Datosmeta.url, {
-    headers: { Authorization: `Bearer ${Credenciales.tokenwhatsapp}` }
-  });
-
-  const Bytesbase = Utilities.base64Encode(Descargaimagen.getBlob().getBytes());
-  const Tipomime = Descargaimagen.getBlob().getContentType() || 'image/jpeg';
-
-  const Solicitudgemini = {
-    model: Parametrosistema.modeloia,
-    input: [
-      { type: 'text', text: 'Analiza esta captura de pantalla de un comprobante de pago en Colombia (Nequi o transferencia bancaria). Extrae exactamente en formato JSON sin bloques markdown: {"escomprobante": true/false, "monto": numero en pesos sin puntos, "referencia": "numero de comprobante o referencia", "entidad": "Nequi/Otro", "fecha": "YYYY-MM-DD HH:mm"}.' },
-      { type: 'image', data: Bytesbase, mime_type: Tipomime }
-    ]
-  };
-
-  const Respuestagemini = Llamarapigemini(Credenciales.clavegemini, Solicitudgemini);
-  const Textosalida = Extraertextointeraccion(Respuestagemini);
-  try {
-    const Jsonlimpio = Textosalida.replace(/```json|```/g, '').trim();
-    return JSON.parse(Jsonlimpio);
-  } catch (Errorjson) {
-    return { escomprobante: false, detalle: Textosalida };
-  }
-}
-
 function Extraertextointeraccion(Datosinteraccion) {
   if (!Datosinteraccion || !Datosinteraccion.steps) { return ''; }
   const Textos = [];
@@ -82,10 +43,13 @@ function Obtenerherramientasia() {
     }, ['fechallegada', 'fechasalida']),
     Crearherramientaia('Apartarhabitacion', 'Aparta automáticamente la habitación elegida con su tarifa calculada por persona y uso de camas.', {
       habitacion: { type: 'string', description: 'Número de habitación disponible (01, 02, 04, 05 o 06)' },
-      fechallegada: { type: 'string', description: 'Fecha de llegada YYYY-MM-DD' },
-      fechasalida: { type: 'string', description: 'Fecha de salida YYYY-MM-DD' },
-      cantidadhuespedes: { type: 'integer', description: 'Cantidad de huéspedes (1 a 3)' },
-      camasseparadas: { type: 'boolean', description: 'True si son 2 personas en camas individuales' }
+      fechallegada: { type: 'string', description: 'Fecha de llegada YYYY-MM-DD' }, fechasalida: { type: 'string', description: 'Fecha de salida YYYY-MM-DD' },
+      cantidadhuespedes: { type: 'integer', description: 'Cantidad de huéspedes (1 a 3)' }, camasseparadas: { type: 'boolean', description: 'True si son 2 personas en camas individuales' }
+    }, ['habitacion', 'fechallegada', 'fechasalida']),
+    Crearherramientaia('Registrarenesperahabitacion', 'Anota al huésped en espera si decide esperar unos minutos por una habitación recién apartada por otro cliente.', {
+      habitacion: { type: 'string', description: 'Número de habitación' }, fechallegada: { type: 'string', description: 'Fecha llegada YYYY-MM-DD' },
+      fechasalida: { type: 'string', description: 'Fecha salida YYYY-MM-DD' }, cantidadhuespedes: { type: 'integer', description: 'Número de personas' },
+      camasseparadas: { type: 'boolean', description: 'True si camas individuales' }
     }, ['habitacion', 'fechallegada', 'fechasalida']),
     Crearherramientaia('Liberarapartado', 'Libera la habitación apartada si el cliente desiste o cancela.', {
       codigo: { type: 'string', description: 'Código de la reserva (ej. NS-4K9A2B)' },
@@ -122,7 +86,17 @@ function Obtenerherramientasia() {
     }),
     Crearherramientaia('Solicitarampliacioncheckout', 'Cotiza o registra ampliación de hora de salida después de las 11:00 a. m. ($10.000 COP/hora).', {
       codigo: { type: 'string', description: 'Código de reserva' }, horasalida: { type: 'string', description: 'Hora solicitada' }, mediopago: { type: 'string', description: 'Vacío, "transferencia" o "efectivo"' }
-    }, ['horasalida'])
+    }, ['horasalida']),
+    Crearherramientaia('Emitirrecibocaja', 'Genera el Recibo de Caja en PDF con número único y lo envía por WhatsApp, correo o ambos al huésped.', {
+      codigoreserva: { type: 'string', description: 'Código de la reserva confirmada' },
+      nombretitular: { type: 'string', description: 'Nombre completo o Razón social del titular' },
+      documentotitular: { type: 'string', description: 'C.C. o NIT con dígito de verificación si aplica' },
+      direcciontitular: { type: 'string', description: 'Dirección completa' },
+      ciudadtitular: { type: 'string', description: 'Ciudad y departamento' },
+      telefonotitular: { type: 'string', description: 'Teléfono de contacto' },
+      correocliente: { type: 'string', description: 'Correo electrónico confirmado expresamente por el huésped' },
+      canalenvio: { type: 'string', description: '"whatsapp", "correo" o "ambos"' }
+    }, ['nombretitular', 'documentotitular', 'direcciontitular', 'ciudadtitular', 'telefonotitular', 'correocliente', 'canalenvio'])
   ];
 }
 
@@ -135,6 +109,7 @@ function Ejecutarherramientaia(Nombre, Argumentos, Celularcliente) {
   }
   if (Nombre === 'Consultardisponibilidad') { return Consultardisponibilidad(Argumentos.fechallegada, Argumentos.fechasalida, Argumentos.cantidadhuespedes, Argumentos.camasseparadas); }
   if (Nombre === 'Apartarhabitacion') { return Apartarhabitacion(Celularcliente, Argumentos.habitacion, Argumentos.fechallegada, Argumentos.fechasalida, Argumentos.cantidadhuespedes, 'WhatsApp', Argumentos.camasseparadas); }
+  if (Nombre === 'Registrarenesperahabitacion') { return Registrarenesperahabitacion(Celularcliente, Argumentos.habitacion, Argumentos.fechallegada, Argumentos.fechasalida, Argumentos.cantidadhuespedes, Argumentos.camasseparadas); }
   if (Nombre === 'Liberarapartado') { return Liberarapartado(Celularcliente, Argumentos.codigo, Argumentos.motivo); }
   if (Nombre === 'Guardardatoshuesped') { return Guardardatoshuesped(Celularcliente, Argumentos.codigo, Argumentos.nombre, Argumentos.cedula, Argumentos.horallegada, Argumentos.celularcontacto, Argumentos.parqueadero); }
   if (Nombre === 'Enviardatospago') { return Enviardatospago(Celularcliente, Argumentos.codigo, Argumentos.mediopago, Argumentos.montonequi, Argumentos.montoefectivo, Argumentos.montobillete); }
@@ -143,6 +118,7 @@ function Ejecutarherramientaia(Nombre, Argumentos, Celularcliente) {
   if (Nombre === 'Confirmarllegadahabitacion') { return Confirmarllegadahabitacion(Celularcliente, Argumentos.codigo, Argumentos.yaenhabitacion, Argumentos.nuevahorallegada); }
   if (Nombre === 'Solicitaradministrador') { return Solicitaradministrador(Celularcliente, Argumentos.codigo, Argumentos.motivo, Argumentos.resumen); }
   if (Nombre === 'Solicitarampliacioncheckout') { return Solicitarampliacioncheckout(Celularcliente, Argumentos.codigo, Argumentos.horasalida, Argumentos.mediopago); }
+  if (Nombre === 'Emitirrecibocaja') { return Emitirrecibocaja(Celularcliente, Argumentos); }
   return { exito: false, mensaje: 'Herramienta no reconocida' };
 }
 
@@ -167,6 +143,10 @@ function Procesarmensajecongemini(Celularcliente, Textomensaje, Contexto) {
   } else if (Sesionnueva && Nombrevalido) {
     Reglacontexto = `\nMEMORIA DE CLIENTE RECURRENTE: Este número ya escribió anteriormente y su nombre es "${Nombrevalido}". NO pidas el nombre ni uses el saludo de primera vez. Saluda exactamente con: "Hola ${Primernombre(Nombrevalido)}, un gusto atenderte nuevamente, ¿en qué te puedo ayudar el día de hoy?" (si ya hizo una pregunta en este mensaje, respóndela justo después del saludo).`;
   }
+  const Resconfirmada = typeof Buscarreservaconfirmadacliente === 'function' ? Buscarreservaconfirmadacliente(Celularcliente, Estadoconv.codigoreserva) : null;
+  if (Resconfirmada) {
+    Reglacontexto += `\nRESERVA CONFIRMADA DEL CLIENTE: codigo="${Resconfirmada.fila[0]}", titular="${Resconfirmada.fila[2]}", cedula="${Resconfirmada.fila[3]}", celular="${Obtenercelularlegiblereserva(Resconfirmada.fila)}". Si pide recibo de caja a su propio nombre, NO vuelvas a pedir nombre, cédula ni celular.`;
+  }
   const Estadodatoscliente = `\nDATOS ACTUALES DEL CLIENTE EN ESTA CHARLA: nombre="${Nombrevalido || 'sin registrar'}" (${Yaapellido ? 'YA tiene nombre y apellido completos: PROHIBIDO volver a pedirle nombre o apellido' : (Nombrevalido ? 'solo dio primer nombre: al registrar reserva pide ÚNICAMENTE su apellido, nunca el nombre otra vez' : 'aún no ha dado su nombre')}), celular_colombiano="${Celularconocido || 'sin registrar (debes pedir su celular colombiano de 10 dígitos al registrar la reserva)'}".`;
 
   const Instruccionessistema =
@@ -183,10 +163,11 @@ function Procesarmensajecongemini(Celularcliente, Textomensaje, Contexto) {
     `1) Primer mensaje (solo si NO hay memoria previa): "¡Hola! ¿Cómo estás? Hablas con la recepción del Hospedaje Nissi en Mingueo. ¿Me puedes indicar tu nombre, por favor?".\n` +
     `2) Apenas diga su nombre por primera vez (sea solo nombre o nombre y apellido), llama INMEDIATAMENTE a Guardarnombrecliente(nombre), salúdalo, infórmale: "Para continuar con la conversación te informo que tus datos personales se tratarán conforme a la Ley 1581 de 2012 para gestionar tu reserva." y pregúntale cuántas personas son, fechas de llegada y salida, y si requiere parqueadero (si dice SÍ, pregunta qué tipo y cuántos vehículos, aceptando también mulas/camiones).\n` +
     `3) Con fechas, personas (1 a 3) y parqueadero listo, llama a Consultardisponibilidad. Si son 2 personas y están libres 01, 02 o 06, explica ambas opciones ($70.000 compartiendo cama / $90.000 camas separadas) y pregunta cuál prefieren antes de apartar.\n` +
-    `4) Al elegir habitación, llama a Apartarhabitacion. Revisa lo que devuelve Apartarhabitacion: si tieneapellido es TRUE, NO vuelvas a pedirle el nombre ni el apellido; si tieneapellido es FALSE (solo dio su primer nombre), pídele ÚNICAMENTE su apellido (sin volver a pedir el primer nombre). Pídele además su cédula de ciudadanía, hora estimada de llegada y su número de celular colombiano de 10 dígitos (si celularregistrado viene vacío, es obligatorio pedírselo; si ya viene lleno, confírmale si dejamos ese mismo celular).\n` +
+    `4) Al elegir habitación, llama a Apartarhabitacion. Si devuelve enproceso:true, responde exactamente el texto de mensajecliente (informando que otro huésped acaba de iniciar el proceso sin confirmar y dando opción de esperar o ver otra). Si elige esperar, llama a Registrarenesperahabitacion. Si logra apartar, revisa tieneapellido: si es TRUE no pidas nombre ni apellido; si es FALSE pide ÚNICAMENTE su apellido. Pídele cédula, hora de llegada y celular colombiano de 10 dígitos (si celularregistrado viene lleno, confírmale si dejamos ese).\n` +
     `5) Verifica que cédula y celular cumplan las reglas de Colombia y llama a Guardardatoshuesped (si devuelve exito:false, explica con calidez el ajuste necesario). Una vez guardado, pregunta el medio de pago: Nequi, Efectivo o Mixto.\n` +
-    `PAGO EN EFECTIVO: Pide con qué monto va a pagar para alistar el cambio, envía el resumen completo (Nombre y apellido, C.C., celular, habitación y personas/camas, efectivo y cambio, parqueadero, fechas) y pregunta "¿Es correcto?". Al confirmar que sí, llama a Confirmarreservaefectivo y envía el código junto con los enlaces rutamaps y rutawaze.\n` +
+    `PAGO EN EFECTIVO: Pide con qué monto va a pagar para alistar el cambio, envía el resumen completo (Nombre y apellido, C.C., celular, habitación y personas/camas, efectivo y cambio, parqueadero, fechas) y pregunta "¿Es correcto?". Al confirmar que sí, llama a Confirmarreservaefectivo y envía el código junto con los enlaces rutamaps y rutawaze, terminando SIEMPRE con: "¿Requieres un recibo de caja?".\n` +
     `PAGO POR NEQUI O MIXTO: Si es Nequi 100%, llama a Enviardatospago(mediopago:"Nequi") y pide captura del comprobante. Si es Mixto, pregunta cuánto transfiere por Nequi, cuánto paga en efectivo al llegar y con qué billete, llama a Enviardatospago(mediopago:"Mixto", montonequi, montoefectivo, montobillete) y pide la captura. Al recibirla, queda confirmada de inmediato y se envía la captura al administrador.\n` +
+    `RECIBO DE CAJA: Si el huésped con reserva confirmada responde que SÍ quiere recibo de caja, pregunta primero si lo necesita a su nombre, de otra persona o de una empresa, indicándole que puede enviar su RUT (en PDF o foto) para extraer los datos automáticamente. Si es a nombre propio sin RUT, NO repitas nombre/cédula/celular ya guardados: pide solo dirección, ciudad/departamento y correo electrónico. Si es otra persona o empresa sin RUT, pide: Nombre o Razón social, C.C. o NIT (con DV), Dirección, Ciudad/Departamento, Teléfono y Correo electrónico. Si envía RUT, muéstrale los datos extraídos y SIEMPRE pregunta a cuál correo electrónico desea registrarlo y enviarlo (mencionando el del RUT como opción, sin darlo por definitivo). Pregunta también si lo quiere por WhatsApp, correo electrónico o ambos, y luego llama a Emitirrecibocaja. Si pide algún dato adicional o modificación en el recibo, NO alteres el formato: infórmale que lo pasarás con el administrador y llama a Solicitaradministrador.\n` +
     `CANCELACIÓN Y CHECK-OUT (11:00 a. m., hora extra $10.000 COP): Usa Liberarapartado para cancelar, Solicitarampliacioncheckout para ampliar salida y Confirmarllegadahabitacion si confirma presencia o retraso.\n` +
     `Nunca inventes precios ni disponibilidad y nunca confirmes reservas sin usar las herramientas.${Estadodatoscliente}${Reglacontexto}`;
 
@@ -326,19 +307,23 @@ function doPost(Eventopeticion) {
 
       if (Mensaje.type === 'text' && Mensaje.text) {
         const Respuestabot = Procesarmensajecongemini(Remitente, Mensaje.text.body, { modoprevio: Modoprevio, nombrerecordado: Nombrerecordado, sesionnueva: Sesionnueva });
-        if (Respuestabot) {
-          Enviarmensajewhatsapp(Remitente, Respuestabot);
+        if (Respuestabot) { Enviarmensajewhatsapp(Remitente, Respuestabot); }
+      } else if (Mensaje.type === 'document' && Mensaje.document) {
+        if (typeof Procesarrutentrante !== 'function' || !Procesarrutentrante(Remitente, Mensaje.document.id, Mensaje.document.mime_type || 'application/pdf')) {
+          const Respdoc = Procesarmensajecongemini(Remitente, 'El cliente envió un documento que no se pudo leer como RUT. Pídele enviarlo más nítido o escribir los datos.');
+          if (Respdoc) { Enviarmensajewhatsapp(Remitente, Respdoc); }
         }
       } else if (Mensaje.type === 'image' && Mensaje.image) {
+        const Resconf = typeof Buscarreservaconfirmadacliente === 'function' ? Buscarreservaconfirmadacliente(Remitente, Estadoconv.codigoreserva) : null;
+        if (Resconf && typeof Procesarrutentrante === 'function' && Procesarrutentrante(Remitente, Mensaje.image.id, 'image/jpeg')) {
+          return ContentService.createTextOutput('OK');
+        }
         const Datosrecibo = Analizarcomprobanteimagen(Mensaje.image.id);
         if (Datosrecibo && Datosrecibo.escomprobante && Datosrecibo.monto && Datosrecibo.referencia) {
           Datosrecibo.idimagen = Mensaje.image.id;
           const Rescomp = Registrarcomprobante(Remitente, Estadoconv.codigoreserva, Datosrecibo);
-          if (Rescomp && Rescomp.mensajecliente) {
-            Enviarmensajewhatsapp(Remitente, Rescomp.mensajecliente);
-          } else if (Rescomp && Rescomp.mensaje && !Rescomp.confirmada) {
-            Enviarmensajewhatsapp(Remitente, Rescomp.mensaje);
-          }
+          if (Rescomp && Rescomp.mensajecliente) { Enviarmensajewhatsapp(Remitente, Rescomp.mensajecliente); }
+          else if (Rescomp && Rescomp.mensaje && !Rescomp.confirmada) { Enviarmensajewhatsapp(Remitente, Rescomp.mensaje); }
         } else {
           const Respimagen = Procesarmensajecongemini(Remitente, `El cliente envió una imagen que no parece un comprobante completo: ${JSON.stringify(Datosrecibo)}. Indícale amablemente qué dato falta.`);
           if (Respimagen) { Enviarmensajewhatsapp(Remitente, Respimagen); }

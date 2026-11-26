@@ -167,12 +167,14 @@ function Abrircanaladministrador(Celularcliente, Codigoreserva, Motivo, Detallee
     Msgcli = Motivo === 'efectivo'
       ? `Debido a que es pago en efectivo, necesitas atención con un administrador. En este momento está ocupado atendiendo a otro huésped; tienes el turno #${Turno} en espera. Apenas termine le llegará el aviso para atenderte por este chat.`
       : (Motivo === 'tiempo_correo' || Motivo === 'comprobante'
-        ? `Un administrador debe revisar tu comprobante, pero en este momento está ocupado atendiendo a otro huésped. Tienes el turno #${Turno} en espera y te conectaremos apenas se desocupe.`
+        ? `Encontramos una anomalía al validar tu comprobante de pago, por lo cual te transferiré con un administrador. En este momento está ocupado atendiendo a otro huésped; tienes el turno #${Turno} en espera y te atenderá apenas se desocupe.`
         : `En este momento el administrador está ocupado atendiendo a otro huésped. Tienes el turno #${Turno} en espera; apenas finalice esa conversación le llegará el aviso para conectarse contigo por este mismo chat.`);
   } else {
     Msgcli = Motivo === 'efectivo'
       ? 'Debido a que es pago en efectivo, te voy a comunicar con un administrador. Por favor permanece en línea en el chat mientras se conecta contigo.'
-      : (Motivo === 'tiempo_correo' ? 'Un administrador revisará tu comprobante en breve y se conectará por este medio. Por favor permanece en línea en el chat.' : 'Perfecto, ya te comunico con el administrador, por favor espera en el chat.');
+      : (Motivo === 'comprobante'
+        ? 'Encontramos una anomalía al validar los datos de tu comprobante de pago, por lo cual te voy a transferir con un administrador para revisarlo contigo. Por favor permanece en línea en el chat.'
+        : (Motivo === 'tiempo_correo' ? 'Un administrador revisará tu comprobante en breve y se conectará por este medio. Por favor permanece en línea en el chat.' : 'Perfecto, ya te comunico con el administrador, por favor espera en el chat.'));
     Enviartarjetaadminpendiente(Celularlimpio, Filareserva, { nombre: Nombre, codigoreserva: Codigo, resumen: Resumenfinal, resumencontexto: Resumenfinal, motivorequerimiento: Motivofinal }, Motivo, Pendientes.length, Turno > 1 ? `Turno #${Turno} · ` : '');
   }
   Enviarmensajewhatsapp(Celularlimpio, Msgcli);
@@ -382,6 +384,7 @@ function Cerrarcanalyactualizarreserva(Celularcliente, Confirmar, Origen) {
     Hojareservas.getRange(Indice, 16).setValue('Rechazada'); Hojareservas.getRange(Indice, 24).setValue(`Cerrada sin confirmar (${Origen || 'admin'})`);
     Cambiarocupacionhabitacion(Hojahab, Hab, 'Disponible');
     Enviarmensajeinteligente(Conv.celular, 'Tu reserva no ha sido confirmada en esta ocasión, pero puedes seguir contando con Hospedaje Nissi. Cuando quieras, vuelve a escribirnos por este mismo chat.', 'reserva_no_confirmada_cliente', [Nombre, Codigo]);
+    if (typeof Notificaresperahabitacion === 'function') { Notificaresperahabitacion(Hab); }
   }
   Actualizarconversacion(Conv.celular, { modo: 'IA', aperturacanal: '', avisodemoracanal: '' });
   const Props = PropertiesService.getScriptProperties();

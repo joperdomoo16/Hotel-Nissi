@@ -202,7 +202,15 @@ function Apartarhabitacion(Celularcliente, Numerohabitacion, Fechallegada, Fecha
     const Disponibilidad = Consultardisponibilidad(Fechallegada, Fechasalida, Personas, Camasseparadas);
     const Hablibre = Disponibilidad.disponibles.find(function(H) { return H.numero === Numerohab; });
     if (!Hablibre) {
-      return { exito: false, mensaje: `La habitación ${Numerohab} ya no está disponible para esas fechas.` };
+      const Habestado = Disponibilidad.todas.find(function(H) { return H.numero === Numerohab; });
+      const Otras = Disponibilidad.disponibles.map(function(H) { return H.numero; });
+      if (Habestado && Habestado.estadoactual === 'Apartada') {
+        return {
+          exito: false, enproceso: true, habitacion: Numerohab, otrasdisponibles: Otras,
+          mensajecliente: '¡Qué pena contigo! Acabo de revisar en tiempo real y justo hace un momento otro huésped inició el proceso para reservar esta misma habitación, aunque todavía no la ha confirmado.\n\nSi quieres, podemos esperar unos minutos: si no concreta el pago, te la aparto de una vez y te aviso. O si prefieres no esperar, podemos revisar otra habitación disponible ahora mismo. ¿Cómo te gustaría que sigamos?'
+        };
+      }
+      return { exito: false, enproceso: false, otrasdisponibles: Otras, mensaje: `La habitación ${Numerohab} ya no está disponible para esas fechas.` };
     }
 
     const Estadoconv = (typeof Obtenerestadoconversacion === 'function' && Celularlimpio) ? Obtenerestadoconversacion(Celularlimpio) : null;
@@ -275,6 +283,7 @@ function Liberarapartado(Celularcliente, Codigoreserva, Motivo) {
         Enviarmensajeinteligente(Obtenercredenciales().celularadmin, `Reserva cancelada por el cliente · ${Filas[I][0]} (Hab. ${String(Filas[I][5]).padStart(2, '0')} · ${Filas[I][2]}). Motivo: ${Motivo || 'Solicitado en chat'}.`, '', []);
       }
       Registrarbitacora('Apartados', 'Liberarapartado', `Reserva ${Filas[I][0]} -> ${Nuevoest}`);
+      if (typeof Notificaresperahabitacion === 'function') { Notificaresperahabitacion(Filas[I][5]); }
       return { exito: true, codigo: Filas[I][0], estado: Nuevoest, mensaje: `Reserva ${Nuevoest.toLowerCase()} correctamente.` };
     }
   }

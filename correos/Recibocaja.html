@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Recibo de Caja {{NUMERORECIBO}} · Hospedaje Nissi</title>
+<style>
+  @page { size: letter; margin: 28px 34px; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 18px 24px;
+    font-family: Helvetica, Arial, sans-serif;
+    color: #111111;
+    font-size: 11px;
+    line-height: 1.35;
+    background: #ffffff;
+  }
+  .marco {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .encabezado-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    border-bottom: 1.5px solid #111111;
+    margin-bottom: 0;
+  }
+  .encabezado-tabla td {
+    vertical-align: top;
+    padding-bottom: 10px;
+  }
+  .marca-titulo {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    margin: 0 0 3px 0;
+  }
+  .marca-sub {
+    font-size: 10px;
+    color: #222222;
+    margin: 1px 0;
+  }
+  .caja-numero {
+    border: 1.5px solid #111111;
+    border-radius: 6px;
+    padding: 8px 18px;
+    text-align: center;
+    display: inline-block;
+    min-width: 180px;
+  }
+  .caja-numero-titulo {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    margin-bottom: 3px;
+  }
+  .caja-numero-valor {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .tabla-borde {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .tabla-borde td, .tabla-borde th {
+    border: 1px solid #333333;
+    padding: 6px 8px;
+    vertical-align: top;
+  }
+  .etiqueta {
+    display: block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: #333333;
+    margin-bottom: 3px;
+  }
+  .valor-fuerte {
+    font-size: 12px;
+    font-weight: 700;
+    color: #111111;
+  }
+  .valor-monto {
+    font-size: 14px;
+    font-weight: 700;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .fila-contable th {
+    background: #F4F4F4;
+    font-size: 9.5px;
+    font-weight: 700;
+    text-align: center;
+    padding: 5px 6px;
+  }
+  .celda-vacia {
+    height: 19px;
+  }
+  .sombreado {
+    background: #E6E6E6;
+    text-align: center;
+    vertical-align: bottom !important;
+  }
+  .firma-etiqueta {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #222222;
+  }
+  .pie-obs {
+    font-size: 10px;
+    line-height: 1.45;
+  }
+</style>
+</head>
+<body>
+
+  <table class="encabezado-tabla">
+    <tr>
+      <td style="width:62%;">
+        <div class="marca-titulo">HOSPEDAJE NISSI</div>
+        <div class="marca-sub">Justa Murgas &ndash; NIT 36.543.251</div>
+        <div class="marca-sub">Persona natural</div>
+        <div class="marca-sub">Troncal del Caribe, Calle 2 # 14-24 &ndash; Mingueo, Dibulla, La Guajira</div>
+      </td>
+      <td style="width:38%; text-align:right;">
+        <div class="caja-numero">
+          <div class="caja-numero-titulo">RECIBO DE CAJA</div>
+          <div class="caja-numero-valor">N&deg; {{NUMERORECIBO}}</div>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <table class="tabla-borde" style="margin-top:8px;">
+    <tr>
+      <td style="width:36%;">
+        <span style="color:#333333;">Ciudad:</span> <strong>Mingueo, Dibulla &ndash; La Guajira</strong>
+      </td>
+      <td style="width:39%;">
+        <span style="color:#333333;">Fecha:</span> <strong>{{FECHARECIBO}}</strong>
+      </td>
+      <td style="width:25%;" class="valor-monto">
+        $ {{TOTALFORMATO}}
+      </td>
+    </tr>
+  </table>
+
+  <table class="tabla-borde" style="margin-top:-1px;">
+    <tr>
+      <td style="width:65%;">
+        <span class="etiqueta">RECIBIDO DE</span>
+        <span class="valor-fuerte">{{NOMBRETITULAR}}</span>
+      </td>
+      <td style="width:35%;">
+        <span class="etiqueta">C.C. / NIT</span>
+        <span class="valor-fuerte">{{DOCUMENTOTITULAR}}</span>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <span class="etiqueta">DIRECCI&Oacute;N</span>
+        <div>{{DIRECCIONTITULAR}}</div>
+        <div>{{CIUDADTITULAR}}</div>
+      </td>
+      <td>
+        <span style="color:#333333;">Tel&eacute;fono:</span><br>
+        <strong>{{TELEFONOTITULAR}}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" style="padding:7px 8px;">
+        <span class="etiqueta">POR CONCEPTO DE</span>
+        <div style="font-weight:700; margin-bottom:2px;">{{CONCEPTORESUMEN}}</div>
+        <div>{{DETALLECONCEPTO}}</div>
+        <!--INICIO:PARQUEO-->
+        <div>{{DETALLEPARQUEO}}</div>
+        <!--FIN:PARQUEO-->
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" style="padding:7px 8px;">
+        <span class="etiqueta">LA SUMA DE (en letras)</span>
+        <span style="font-weight:700;">{{VALORLETRAS}}</span>
+      </td>
+    </tr>
+  </table>
+
+  <table class="tabla-borde" style="margin-top:-1px;">
+    <tr>
+      <td style="width:50%; padding:0; border:0;">
+        <table class="tabla-borde" style="width:100%;">
+          <tr class="fila-contable">
+            <th style="width:34%;">C&Oacute;DIGO</th>
+            <th style="width:33%;">D&Eacute;BITOS</th>
+            <th style="width:33%;">CR&Eacute;DITOS</th>
+          </tr>
+          <tr><td class="celda-vacia"></td><td></td><td></td></tr>
+          <tr><td class="celda-vacia"></td><td></td><td></td></tr>
+          <tr><td class="celda-vacia"></td><td></td><td></td></tr>
+          <tr><td class="celda-vacia"></td><td></td><td></td></tr>
+        </table>
+      </td>
+      <td style="width:50%; padding:0; border:0;">
+        <table class="tabla-borde" style="width:100%;">
+          <tr>
+            <td style="width:50%;">
+              <span class="etiqueta">Banco</span>
+              <span>{{VALORBANCO}}</span>
+            </td>
+            <td style="width:50%;">
+              <span class="etiqueta">Efectivo</span>
+              <span style="font-weight:700;">{{VALOREFECTIVO}}</span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <span class="etiqueta">Cuenta N&deg;</span>
+              <span>{{CUENTABANCO}}</span>
+            </td>
+            <td>
+              <span class="etiqueta">Cheque N&deg;</span>
+              <span></span>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2" class="sombreado" style="height:49px; padding-bottom:6px;">
+              <span class="firma-etiqueta">FIRMA Y SELLO</span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <table class="tabla-borde" style="margin-top:-1px;">
+    <tr>
+      <td style="width:56%;" class="pie-obs">
+        <div style="font-weight:700; margin-bottom:3px;">Observaciones:</div>
+        <div>Forma de pago: {{FORMAPAGO}}.</div>
+        <div>{{LINEAOBSERVACION}}</div>
+        <!--INICIO:OBSPARQUEO-->
+        <div>{{OBSERVACIONPARQUEO}}</div>
+        <!--FIN:OBSPARQUEO-->
+        <div>Correo cliente: {{CORREOCLIENTE}}</div>
+      </td>
+      <td style="width:44%;" class="sombreado" style="height:78px; padding-bottom:6px;">
+        <div style="height:56px;"></div>
+        <div class="firma-etiqueta" style="margin-bottom:6px;">FIRMA Y SELLO</div>
+        <div style="border-top:1px solid #555555; padding-top:3px; font-size:9px; color:#333333; text-align:left;">C.C. o NIT</div>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

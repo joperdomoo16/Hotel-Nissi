@@ -1,5 +1,71 @@
 // Verificación de pagos, lectura de correos bancarios y vencimiento de apartados
 
+function Normalizarnombrepago(Texto) {
+  return String(Texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function Parsearfechacomprobante(Valor) {
+  if (Valor instanceof Date && !isNaN(Valor.getTime())) { return Valor.getTime(); }
+  const Txt = String(Valor || '').trim().replace(/\s+/g, ' ');
+  const M = Txt.match(/^(\d{4}-\d{2}-\d{2})(?:[ T](\d{1,2}:\d{2})(?::\d{2})?)?/);
+  if (!M) { return NaN; }
+  const Hora = M[2] ? `${M[2].padStart(5, '0')}:00` : '12:00:00';
+  return new Date(`${M[1]}T${Hora}-05:00`).getTime();
+}
+
+function Validardestinatariocomprobante(Datos, Config, Reserva) {
+  const Numesperado = Normalizarcelularcolombiano((Config && Config.NUMERONEQUIDESTINO) || '3126609214') || '3126609214';
+  const Nombresperado = Normalizarnombrepago((Config && Config.TITULARNEQUIDESTINO) || 'Justa Emilia Murgas Arias');
+  const Numrecibido = Normalizarcelularcolombiano(Datos.numerodestino || '');
+  const Nombrerecibido = Normalizarnombrepago(Datos.nombredestino || '');
+  const Tokensesp = Nombresperado.split(' ').filter(Boolean);
+  const Tokensrec = Nombrerecibido.split(' ').filter(Boolean);
+  const Nombrecoincide = Tokensrec.length >= 2 &&
+    Tokensrec.indexOf(Tokensesp[0]) !== -1 &&
+    Tokensrec.some(function(T) { return T === 'murgas' || (Tokensesp.length > 1 && T === Tokensesp[Tokensesp.length - 1]); }) &&
+    Tokensrec.every(function(T) { return Tokensesp.indexOf(T) !== -1; });
+  const Numerocoincide = Boolean(Numrecibido && Numrecibido === Numesperado);
+  const Fallos = [];
+  if (!Nombrecoincide) { Fallos.push(`titular leído "${Datos.nombredestino || 'no legible'}" distinto a ${Config.TITULARNEQUIDESTINO || 'Justa Murgas'}`); }
+  if (!Numerocoincide) { Fallos.push(`número leído "${Datos.numerodestino || 'no legible'}" distinto a ${Numesperado}`); }
+  if (Reserva || Datos.fecha) {
+    const Fechams = Parsearfechacomprobante(Datos.fecha);
+    const Creams = Reserva ? Parsearfechacomprobante(Reserva[1]) : NaN;
+    if (isNaN(Fechams) || Fechams > Date.now() + 900000 || (!isNaN(Creams) && Fechams < Creams - 1800000)) {
+      Fallos.push(`fecha/hora "${Datos.fecha || 'no legible'}" incoherente con la reserva`);
+    }
+  }
+  if (Fallos.length) { return { valido: false, motivo: `Anomalía en comprobante: ${Fallos.join(' y ')}` }; }
+  return { valido: true };
+}
+
+function Registrarenesperahabitacion(Celularcliente, Numerohabitacion, Fechallegada, Fechasalida, Cantidadhuespedes, Camasseparadas) {
+  const Hab = String(Numerohabitacion || '01').padStart(2, '0'), Cel = Normalizaridwhatsapp(Celularcliente);
+  if (!Cel) { return { exito: false }; }
+  PropertiesService.getScriptProperties().setProperty(`ESPERA_HAB_${Hab}`, JSON.stringify({
+    celular: Cel, llegada: String(Fechallegada || ''), salida: String(Fechasalida || ''),
+    huespedes: parseInt(Cantidadhuespedes || 1, 10), camasseparadas: Boolean(Camasseparadas), ts: Date.now()
+  }));
+  return { exito: true, habitacion: Hab, mensaje: `Listo, quedas anotado en espera prioritaria para la habitación ${Hab}.` };
+}
+
+function Notificaresperahabitacion(Numerohabitacion) {
+  const Hab = String(Numerohabitacion || '').padStart(2, '0'), Props = PropertiesService.getScriptProperties();
+  const Crudo = Props.getProperty(`ESPERA_HAB_${Hab}`);
+  if (!Crudo) { return false; }
+  Props.deleteProperty(`ESPERA_HAB_${Hab}`);
+  try {
+    const Esp = JSON.parse(Crudo);
+    if (!Esp.celular || (Date.now() - Number(Esp.ts || 0)) > 7200000) { return false; }
+    const Res = Apartarhabitacion(Esp.celular, Hab, Esp.llegada, Esp.salida, Esp.huespedes, 'WhatsApp', Esp.camasseparadas);
+    if (Res && Res.exito) {
+      Enviarmensajewhatsapp(Esp.celular, `¡Buenas noticias! La habitación ${Hab} acaba de quedar libre y te la aparté de inmediato (código ${Res.codigo}). ¿Me confirmas si continuamos con tu registro para confirmarla?`);
+      return true;
+    }
+  } catch (E) {}
+  return false;
+}
+
 function Normalizarreferencia(Ref) {
   return String(Ref || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 }
@@ -70,6 +136,14 @@ function Registrarcomprobante(Celularcliente, Codigoreserva, Datoscomprobante) {
 
   const Destinocliente = Obtenerdestinowhatsappreserva(Reserva) || Celularlimpio;
   const Numcmd = Obtenercelularlegiblereserva(Reserva);
+  const Validaciondest = Validardestinatariocomprobante(Datoscomprobante, Config, Reserva);
+  if (!Validaciondest.valido) {
+    Abrircanaladministrador(Destinocliente, Codigo, 'comprobante', Validaciondest.motivo, `Captura recibida: $${Montoleido.toLocaleString('es-CO')} · Ref. ${Refguardar}`);
+    if (Idimagen && typeof Obtenercanalesabiertos === 'function' && Obtenercanalesabiertos('Canal').length === 0) {
+      Reenviarmediawhatsapp(Credenciales.celularadmin, 'image', Idimagen, `Comprobante con anomalía · ${Codigo} (${Reserva[2]})\n${Validaciondest.motivo}`);
+    }
+    return { exito: false, confirmada: false, encanal: true, anomalia: Validaciondest.motivo };
+  }
   if (Montoleido < Minimo) {
     Abrircanaladministrador(Destinocliente, Codigo, 'comprobante', `Monto captura ($${Montoleido.toLocaleString('es-CO')}) menor al requerido ($${Minimo.toLocaleString('es-CO')})`);
     return { exito: false, confirmada: false, encanal: true };
@@ -228,6 +302,7 @@ function Revisarapartados() {
           Actualizarconversacion(Celular, { idinteraccionia: '', codigoreserva: '' });
           Enviarmensajewhatsapp(Celular, 'Tu apartado venció; si aún la quieres, te reviso disponibilidad.');
         }
+        Notificaresperahabitacion(Filas[I][5]);
       } else if (Estado === 'Apartada' && !isNaN(Marcatiempo) && (Marcatiempo - Ahorams) / 60000 <= 15) {
         const Obsactual = String(Filas[I][23] || '');
         if (Obsactual.indexOf('Recordatorio 15m') === -1 && Celular) {

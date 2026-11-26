@@ -48,13 +48,15 @@ function Notificarreservaconfirmada(Datos) {
 
   if (Destinocliente && Datos.enviarcliente !== false) {
     const Rutas = `\n\nCómo llegar a Hospedaje Nissi (Mingueo):\n- Google Maps: https://maps.app.goo.gl/TudMNAdQRpVyzHZGA\n- Waze: ${Datoscorreo.urlwaze}`;
+    const Preguntarecibo = '\n\n¿Requieres un recibo de caja?';
     const Msgbase = Datos.mensajecliente ||
       `Tu reserva ${Datos.codigo} está confirmada en Hospedaje Nissi.\n` +
       `Habitación ${Hab} · ${Datos.llegada} al ${Datos.salida} · Llegada ${Datos.horallegada || 'Por confirmar'}.\n` +
       `Check-out: ${Horacheckout}.\n` +
       `Total: $${Total.toLocaleString('es-CO')} COP · Pagado: $${Pagado.toLocaleString('es-CO')} COP · Saldo: $${Saldo.toLocaleString('es-CO')} COP.\n` +
       `Te esperamos en Mingueo.`;
-    const Msgcliente = Msgbase.indexOf('maps.app.goo.gl') !== -1 ? Msgbase : `${Msgbase}${Rutas}`;
+    const Msgconrutas = Msgbase.indexOf('maps.app.goo.gl') !== -1 ? Msgbase : `${Msgbase}${Rutas}`;
+    const Msgcliente = /recibo de caja/i.test(Msgconrutas) ? Msgconrutas : `${Msgconrutas}${Preguntarecibo}`;
     Enviarmensajeinteligente(Destinocliente, Msgcliente, 'reserva_confirmada_cliente', [Datos.nombre || 'Viajero', Datos.codigo]);
   }
 
