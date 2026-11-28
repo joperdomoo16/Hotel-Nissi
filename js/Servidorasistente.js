@@ -208,19 +208,29 @@ function Procesarmensajecongemini(Celularcliente, Textomensaje, Contexto) {
 }
 
 function Llamarapigemini(Claveapi, Cuerpopeticion) {
-  if (!Cuerpopeticion.model || Cuerpopeticion.model === 'gemini-3.8-flash') {
-    Cuerpopeticion.model = 'gemini-3.5-flash-lite';
-  }
-  const Respuestahttp = UrlFetchApp.fetch(Parametrosistema.urlgemini, {
-    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
-    headers: { 'x-goog-api-key': String(Claveapi || '').trim(), 'Api-Revision': Parametrosistema.versionapi },
-    payload: JSON.stringify(Cuerpopeticion)
+  const Base = (!Cuerpopeticion.model || Cuerpopeticion.model === 'gemini-3.8-flash') ? 'gemini-3.5-flash-lite' : Cuerpopeticion.model;
+  const Candidatos = [Base, Base, 'gemini-3.6-flash', 'gemini-4-hydrogen'].filter(function(M, Idx, Arr) {
+    return Idx === 0 || Idx === 1 || Arr.indexOf(M, 2) === Idx && M !== Base;
   });
-  const Texto = Respuestahttp.getContentText();
-  if (Respuestahttp.getResponseCode() >= 300) {
-    Registrarbitacora('Gemini', `ErrorHTTP_${Respuestahttp.getResponseCode()}`, Texto);
+  let Ultimotexto = '{}';
+  for (let I = 0; I < Candidatos.length; I++) {
+    const Peticion = Object.assign({}, Cuerpopeticion, { model: Candidatos[I] });
+    const Resp = UrlFetchApp.fetch(Parametrosistema.urlgemini, {
+      method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+      headers: { 'x-goog-api-key': String(Claveapi || '').trim(), 'Api-Revision': Parametrosistema.versionapi },
+      payload: JSON.stringify(Peticion)
+    });
+    const Codigo = Resp.getResponseCode();
+    Ultimotexto = Resp.getContentText();
+    if (Codigo < 300) {
+      if (I > 0) { Registrarbitacora('Gemini', 'RespaldoExitoso', `Respondido con ${Candidatos[I]} tras fallo previo.`); }
+      return JSON.parse(Ultimotexto);
+    }
+    Registrarbitacora('Gemini', `ErrorHTTP_${Codigo}_${Candidatos[I]}`, Ultimotexto);
+    if (Codigo !== 503 && Codigo !== 429 && Codigo !== 500 && Codigo !== 404) { break; }
+    if (I === 0 && typeof Utilities !== 'undefined' && Utilities.sleep) { Utilities.sleep(800); }
   }
-  return JSON.parse(Texto);
+  try { return JSON.parse(Ultimotexto); } catch (E) { return {}; }
 }
 
 function doGet(Eventopeticion) {
